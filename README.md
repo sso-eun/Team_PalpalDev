@@ -11,3 +11,5 @@ VersaDevs – Versatile(다재다능한) + Devs
 Beyond_D – Beyond + D(Developer, Dynamic)
 
 UniCode – Universal + Code
+
+팔팔데브 
