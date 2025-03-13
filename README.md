@@ -12,4 +12,5 @@ Beyond_D – Beyond + D(Developer, Dynamic)
 
 UniCode – Universal + Code
 
-팔팔데브 
+### 팔팔데브 (선정)
+### 어플네임
