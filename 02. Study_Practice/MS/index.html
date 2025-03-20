@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="mystyle.css">
+    <title>My Personal Webpage</title>
+    
+    <style>
+        h1 {color:blue;}
+        input.a{ background-color: green;}
+        a:hover{font-size: large;}
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h1>Welcome to My Personal Webpage</h1>
+    </div>
+
+    <div id="navigation">
+       <p>
+            <a href="index.html">Home</a> |
+            <a href="portfolio.html">Portfolio</a> |
+            <a href="timetable.html">Timetable</a>
+        </p>
+    </div>
+
+    <div id="content">
+
+        <div class="section">
+            <h2>About Me</h2>
+            <img src="profile.png" alt="My Profile Picture" width="200">
+            <p>Hi! My name is Aziz Nasridinov. I am passionate about web development and learning HTML.</p> 
+            <p>My website: <a class="hover" href="http://dalab.cbnu.ac.kr">Click Here</a></p>       
+        </div>
+
+        <div class="section">
+            <fieldset>
+                <legend>Contact Me</legend>
+
+                <form>
+                    <label for="name">Name:</label><br>
+                    <input class="a" type="text" id="name"><br><br>
+
+                    <label for="email">Email:</label><br>
+                    <input class="a" type="text" id="email"><br><br>
+
+                    <input type="submit" value="Send">
+                </form>
+            </fieldset>
+        </div>
+
+    </div>
+
+    <div id = "footer">
+        <p>&copy; 2025 Aziz Nasridinov. All Rights Reserved.</p>
+    </div>
+
+</body>
+</html>
