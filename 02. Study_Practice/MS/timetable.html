@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="mystyle.css">
+    <title>Timetable - Aziz Nasridinov</title>
+
+    <style>
+         h1 {color:blue;}
+        input.a{ background-color: green;}
+        #target
+        {
+            color:red;
+        }
+
+        .type
+        {
+            text-decoration: line-through;
+        }
+        td:hover{background-color:darkgrey;}
+    
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h1>Welcome to My Personal Webpage</h1>
+    </div>
+
+    <div id="navigation">
+       <p>
+            <a href="index.html">Home</a> |
+            <a href="portfolio.html">Portfolio</a> |
+            <a href="timetable.html">Timetable</a>
+        </p>
+    </div>
+
+    <div id = "content">
+        <h2>My Schedule</h2>
+        <table border="1">
+            <tr>
+                <th id="target">Days/Time</th>
+                <td>Monday</td>
+                <td>Tuesday</td>
+                <td>Wednesday</td>
+                <td>Thursday</td>
+                <td>Friday</td>
+            </tr>
+            <tr>
+                <td>Morning</td>
+                <td>Algorithm Study</td>
+                <td>C Programming</td>
+                <td>Algorithm Study</td>
+                <td>C Programming</td>
+                <td>Algorithm Study</td>
+            </tr>
+            <tr>
+                <td>Lunch</td>
+                <td colspan="5" style ="background-color:pink"></td>
+            </tr>
+            <tr>
+                <td>Afternoon</td>
+                <td>Data Analysis</td>
+                <td class="type">Web Programming</td>
+                <td>Data Analysis</td>
+                <td class="type">Web Programming</td>
+                <td>Data Analysis</td>
+            </tr>
+            <tr>
+                <td>Dinner</td>
+                <td colspan="5" style ="background-color:orange"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div id = "footer">
+        <p>&copy; 2025 Aziz Nasridinov. All Rights Reserved.</p>
+    </div>
+
+</body>
+</html>
