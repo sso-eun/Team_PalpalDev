@@ -1,0 +1,55 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:background="#00FFE1"
+        android:text="버튼 1" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+
+        android:text="이건 텍스트뷰입니다." />
+    <TextView
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:textColor="#FF0000"
+        android:text="이건 작은텍스트뷰입니다.!!" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:background="#400000FF"
+        android:text="이건 에디트텍스트입니다." />
+    <EditText
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_margin="20dp"
+        android:background="#3BFF5900"
+        android:text="주황색 에디트텍스트입니다." />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="200dp"
+        android:layout_margin="20dp"
+        android:enabled="false"
+        android:text="버튼 2" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:layout_margin="10dp"
+        android:enabled="false"
+        android:background="#34FFEB3B"
+        android:textColor="#000000"
+        android:text="버튼 3" />
+
+</LinearLayout>
