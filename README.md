@@ -60,6 +60,9 @@ ex. 20250313_아이디어기술서양식_박소은
 [ Trello ] 
 - https://trello.com/b/gdvXoiS9/dundun-hi
 
+[ Server(Render) ] 
+- https://dundunhi.onrender.com/
+
 
 
 --------------------------------------------------------------------
