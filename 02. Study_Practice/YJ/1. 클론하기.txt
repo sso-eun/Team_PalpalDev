@@ -1,0 +1,8 @@
+1. 클론하기
+
+2. 파일 올리기
+일단 먼저 team_PalpalDev로 가야되기 때문에 먼저 옮김
+$ cd Team_PalpalDev/
+$ fit pull origin master
+$ git commit -m "yeji 메모
+
