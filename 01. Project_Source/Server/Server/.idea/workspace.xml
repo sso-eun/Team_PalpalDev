@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="db893b53-23e0-44a7-886f-00cb872d3014" name="변경" comment="init">
-      <change beforePath="$PROJECT_DIR$/../../../00. Document/03. 개발문서/든든하이_API명세서(25-0508).xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/../../../00. Document/03. 개발문서/든든하이_API명세서(25-0508).xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+    <list default="true" id="db893b53-23e0-44a7-886f-00cb872d3014" name="변경" comment="WeatherAPI">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Weather_API/Weather.js" beforeDir="false" afterPath="$PROJECT_DIR$/Weather_API/Weather.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +52,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "eunjae 리베이스 중에 #15개",
+    "git-widget-placeholder": "eunjae에 #15개",
     "last_opened_file_path": "C:/Users/user/Desktop/2025_Project/01. Project_Source/Server/Server",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -91,7 +91,7 @@
       <workItem from="1746680297132" duration="2867000" />
       <workItem from="1746816388296" duration="20000" />
       <workItem from="1746817267264" duration="2976000" />
-      <workItem from="1746987921671" duration="11434000" />
+      <workItem from="1746987921671" duration="14631000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <option name="closed" value="true" />
@@ -101,7 +101,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746680397811</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="WeatherAPI">
+      <option name="closed" value="true" />
+      <created>1747145950851</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1747145950851</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -121,6 +129,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="WeatherAPIspec" />
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="WeatherAPI" />
+    <option name="LAST_COMMIT_MESSAGE" value="WeatherAPI" />
   </component>
 </project>
