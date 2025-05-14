@@ -60,9 +60,9 @@ ex. 20250313_아이디어기술서양식_박소은
 [ Trello ] 
 - https://trello.com/b/gdvXoiS9/dundun-hi
 
-[ Server(Render) ] 
+[ Server(Render, cloudeType) ] 
 - https://dundunhi.onrender.com/
-
+- https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app
 
 
 --------------------------------------------------------------------
