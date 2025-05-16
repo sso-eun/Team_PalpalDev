@@ -1,3 +1,7 @@
+// 2025-05-16
+// Member_Router
+// author : Soeun
+
 const express = require('express');
 const router = express.Router();
 const memberController = require('../controllers/memberController');
