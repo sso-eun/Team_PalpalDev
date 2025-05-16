@@ -3,63 +3,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:background="#E6F0FA"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#E6F0FA">
 
-    <!-- 상단 텍스트 -->
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="든든하이"
-        android:textSize="24sp"
+        android:text="바른 사진찍기"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
-
-    <!-- 바로 사진찍기 버튼 -->
-
-    <!-- 사진 보러가기 버튼 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:gravity="center"
         android:layout_marginBottom="16dp"
-        android:background="#D6EAF8"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:drawablePadding="8dp"
+        android:drawableBottom="@android:drawable/ic_menu_camera"
+        android:drawableEnd="@android:drawable/ic_menu_camera"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@android:color/transparent"
+        android:padding="16dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="바로 사진찍기"
-            android:textSize="30sp" />
-
-        <ImageView
-            android:layout_width="262dp"
-            android:layout_height="361dp"
-            android:src="@android:drawable/ic_menu_camera" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:text="사진 보러가기"
+        android:textSize="20sp"
+        android:textStyle="bold"
         android:gravity="center"
-        android:background="#D6EAF8"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="사진 보러가기"
-            android:textSize="30sp"
-            android:layout_marginEnd="16dp"/>
-
-        <ImageView
-            android:layout_width="273dp"
-            android:layout_height="319dp"
-            android:src="@android:drawable/ic_menu_gallery" />
-    </LinearLayout>
+        android:drawablePadding="8dp"
+        android:drawableBottom="@android:drawable/ic_menu_gallery"
+        android:drawableEnd="@android:drawable/ic_menu_gallery"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@android:color/transparent"
+        android:padding="16dp"/>
 
 </LinearLayout>
