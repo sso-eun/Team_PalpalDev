@@ -1,1 +1,5 @@
 ./idea
+.gitignore
+package.json
+.env
+/node_modules
