@@ -35,7 +35,7 @@ exports.signup = async (req, res) => {
 
     try {
         const [existRows] = await db.execute(
-            'SELECT COUNT(*) AS count FROM Member WHERE user_id = ?',
+            'SELECT COUNT(*) AS count FROM member WHERE user_id = ?',
             [user_id]
         );
         if (existRows[0].count > 0) {
@@ -59,7 +59,7 @@ exports.signup = async (req, res) => {
         const values = Object.values(userData);
 
         const sql = `
-            INSERT INTO Member (
+            INSERT INTO member (
                 ${Object.keys(userData).join(', ')}, user_signup, user_update, user_recent
             ) VALUES (
                 ${new Array(values.length).fill('?').join(', ')}, CURDATE(), CURDATE(), NOW()
@@ -86,7 +86,7 @@ exports.login = async (req, res) => {
 
     try {
         const [rows] = await db.execute(
-            'SELECT user_num, user_pw FROM Member WHERE user_id = ?',
+            'SELECT user_num, user_pw FROM member WHERE user_id = ?',
             [user_id]
         );
 
@@ -121,7 +121,7 @@ exports.findId = async (req, res) => {
 
     try {
         const [rows] = await db.execute(
-            'SELECT user_id, user_num FROM Member WHERE user_tel = ?',
+            'SELECT user_id, user_num FROM member WHERE user_tel = ?',
             [user_tel]
         );
 
@@ -161,7 +161,7 @@ exports.updateProfile = async (req, res) => {
             .join(', ');
 
     const sql = `
-                      UPDATE Member SET
+                      UPDATE member SET
                         ${setClause},
                         user_update = CURDATE()
                       WHERE user_num = ?
@@ -195,7 +195,7 @@ exports.updatePassword = async (req, res) => {
 
     try {
         const [rows] = await db.execute(
-            'SELECT user_pw FROM Member WHERE user_num = ?',
+            'SELECT user_pw FROM member WHERE user_num = ?',
             [user_num]
         );
 
@@ -210,7 +210,7 @@ exports.updatePassword = async (req, res) => {
 
         const hashedNewPw = await bcrypt.hash(new_pw, 10);
         await db.execute(
-            'UPDATE Member SET user_pw = ?, user_update = CURDATE() WHERE user_num = ?',
+            'UPDATE member SET user_pw = ?, user_update = CURDATE() WHERE user_num = ?',
             [hashedNewPw, user_num]
         );
 
