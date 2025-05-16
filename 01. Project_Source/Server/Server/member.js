@@ -1,3 +1,7 @@
+// 2025-05-16
+// Member_..
+// author : Soeun
+
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 

@@ -1,3 +1,7 @@
+// 2025-05-16
+// Member_API
+// author : Soeun
+
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 
@@ -138,38 +142,33 @@ exports.findId = async (req, res) => {
 //Update MyProfile
 exports.updateProfile = async (req, res) => {
     const { user_num } = req.params;
-    const {
-        user_tel,
-        user_profile_img,
-        user_home_lat,
-        user_home_lot,
-        user_condition
-    } = req.body;
+    const updateFields = req.body;
 
     if (!user_num) {
         return res.status(400).json({ message: '회원 번호가 필요합니다.' });
     }
 
-    try {
-        const sql = `
-      UPDATE Member SET
-        user_tel = ?,
-        user_profile_img = ?,
-        user_home_lat = ?,
-        user_home_lot = ?,
-        user_condition = ?,
-        user_update = CURDATE()
-      WHERE user_num = ?
-    `;
+    if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ message: '수정할 항목이 없습니다.' });
+    }
 
-        const [result] = await db.execute(sql, [
-            user_tel,
-            user_profile_img,
-            user_home_lat,
-            user_home_lot,
-            user_condition,
-            user_num
-        ]);
+
+    try {
+        const setClause = Object.keys(updateFields)
+            .map(field => `${field} = ?`)
+            .join(', ');
+
+    const sql = `
+                      UPDATE Member SET
+                        ${setClause},
+                        user_update = CURDATE()
+                      WHERE user_num = ?
+                     `;
+
+        const values = [...Object.values(updateFields), user_num];
+
+
+        const [result] = await db.execute(sql, values);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: '회원 정보를 찾을 수 없습니다.' });
