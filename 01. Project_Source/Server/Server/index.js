@@ -3,6 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const memberRouter = require('./routes/memberRouter');
 
+// 250517_은재_라우터 등록
+const placeRouter = require('./routes/placeRouter');
 // index.js
 // const http = require('http');
 //
@@ -26,7 +28,12 @@ app.get('/', (req, res) => {
 // /member
 app.use('/member', memberRouter);
 
+// 250517_은재
+// /api/places
+app.use('/api/places', placeRouter);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
