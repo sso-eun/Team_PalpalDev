@@ -13,9 +13,8 @@ const port = 3000;
 
 
 // 2025-05-14 은재 수정. 클라이언트가 날짜와 시간을 전달하는 방식으로 변경
-// 안드로이드 개발 담당자와 협의 필요
-
-// 날짜 및 시간 계산 함수: 요청 파라미터 전달을 위한 처리
+// 날짜 및 시간 계산 함수
+// 요청 파라미터 전달을 위한 처리
 // const getBaseDateTime = () => {
 //     const now = new Date();
 //     const yyyy = now.getFullYear();
