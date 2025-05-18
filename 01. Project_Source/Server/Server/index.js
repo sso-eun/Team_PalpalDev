@@ -5,6 +5,7 @@ const memberRouter = require('./routes/memberRouter');
 
 // 250517_은재_라우터 등록
 const placeRouter = require('./routes/placeRouter');
+
 // index.js
 // const http = require('http');
 //
@@ -29,7 +30,7 @@ app.get('/', (req, res) => {
 app.use('/member', memberRouter);
 
 // 250517_은재
-// /api/places
+// /api/places로 들어온 요청을 .placeRouter에 넘기는 거임
 app.use('/api/places', placeRouter);
 
 const PORT = process.env.PORT || 3000;
