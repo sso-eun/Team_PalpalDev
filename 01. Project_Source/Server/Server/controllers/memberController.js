@@ -293,18 +293,13 @@ exports.searchMembers = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const allowedFields = [
+        'user_type',
+        'user_condition',
         'user_id',
         'user_tel',
-        'user_profile_img',
         'user_home_lat',
         'user_home_lot'
     ];
-
-
-
-    if (!field || !keyword || keyword.length < 2) {
-        return res.status(400).json({ message: '검색어는 2자 이상 입력해주세요.' });
-    }
 
 
     if (!allowedFields.includes(field)) {
@@ -312,30 +307,43 @@ exports.searchMembers = async (req, res) => {
     }
 
     try {
-        const [countRows] = await db.execute(
-            `SELECT COUNT(*) as count FROM Member WHERE ${field} LIKE ?`,
-            [`%${keyword}%`]
-        );
-        const total = countRows[0].count;
-        const totalPages = Math.ceil(total / limit);
+        let sql;
+        if (['user_type', 'user_condition'].includes(field)) {
 
-
-
-        const sql = `
-                          SELECT user_num, user_type, user_id, user_tel, user_profile_img,
-                                 user_home_lat, user_home_lot, user_condition, user_signup
-                          FROM member
-                          WHERE ${field} LIKE ?
-                          ORDER BY user_num DESC
-                        `;
+            sql = `
+                    SELECT user_num, user_type, user_id, user_tel, user_profile_img,
+                           user_home_lat, user_home_lot, user_condition, user_signup
+                    FROM member
+                    WHERE ${field} = ${db.escape(keyword)}
+                    ORDER BY user_num DESC
+                 `;
+        } else {
+            if (!field || !keyword || keyword.length < 2) {
+                return res.status(400).json({ message: '검색어는 2자 이상 입력해주세요.' });
+            }
+            sql = `
+                    SELECT user_num, user_type, user_id, user_tel, user_profile_img,
+                           user_home_lat, user_home_lot, user_condition, user_signup
+                    FROM member
+                    WHERE ${field} LIKE '%${keyword}%'
+                    ORDER BY user_num DESC
+                 `;
+        }
 
         const [rows] = await db.execute(sql, [`%${keyword}%`]);
+        const total = rows.length;
+        const pagedRows = rows.slice(offset, offset + limit);
+
 
         res.status(200).json({
-            totalResults: total,
-            totalPages,
-            currentPage: parseInt(page),
-            results: rows,
+            // totalResults: total,
+            // totalPages,
+            // currentPage: parseInt(page),
+            // results: rows,
+            totalResults : total,
+            totalPages: Math.ceil(total / limit),
+            currentPage : page,
+            results: pagedRows
         });
 
 
