@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/item_card_background">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/typeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="귀가"
+            android:textStyle="bold"
+            android:textSize="32sp"
+            android:layout_marginEnd="4dp" />
+
+        <ImageView
+            android:id="@+id/typeIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_door_alt"
+            android:contentDescription="@null" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/dateTimeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="04/01 오후 5:30"
+        android:textSize="32sp"
+        android:layout_marginTop="4dp" />
+</LinearLayout>
