@@ -221,3 +221,127 @@ exports.updatePassword = async (req, res) => {
     }
 };
 // end update user Password
+
+// select all user & pagiNation
+exports.getAllMembers = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    try {
+        const [countRows] = await db.execute('SELECT COUNT(*) AS total FROM member');
+        const total = countRows[0].total;
+        const totalPages = Math.ceil(total / limit);
+
+        const sql = `
+                              SELECT user_num, user_type, user_id, user_tel, user_profile_img,
+                                     user_home_lat, user_home_lot, user_condition, user_signup
+                              FROM member
+                              ORDER BY user_num DESC
+                              LIMIT ${limit} OFFSET ${offset}
+                            `;
+
+        const [rows] = await db.query(sql);
+        res.status(200).json({
+            totalResults : total,
+            totalPages : totalPages,
+            currentPage: page,
+            limit,
+            results: rows,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '서버 오류', error });
+    }
+};
+
+//특정 회원 단일 조회
+exports.getMember = async (req, res) => {
+    const user_num = parseInt(req.params.user_num);
+
+    if (isNaN(user_num)) {
+        return res.status(400).json({ message: '잘못된 회원 번호입니다.' });
+    }
+
+    try {
+
+        const sql =   `SELECT user_num, user_type, user_id, user_tel, user_profile_img,
+                                     user_home_lat, user_home_lot, user_condition, user_signup
+                              FROM member
+                              WHERE user_num = ${user_num}
+                              `;
+
+        const [rows] = await db.query(sql);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: '해당 회원을 찾을 수 없습니다.' });
+        }
+
+        res.status(200).json(rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '서버 오류', error });
+    }
+};
+
+//회원 검색 검색필드 + 검색어(2자이상)
+
+exports.searchMembers = async (req, res) => {
+    const { field, keyword } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const allowedFields = [
+        'user_id',
+        'user_tel',
+        'user_profile_img',
+        'user_home_lat',
+        'user_home_lot'
+    ];
+
+
+
+    if (!field || !keyword || keyword.length < 2) {
+        return res.status(400).json({ message: '검색어는 2자 이상 입력해주세요.' });
+    }
+
+
+    if (!allowedFields.includes(field)) {
+        return res.status(400).json({ message: '잘못된 필드입니다.' });
+    }
+
+    try {
+        const [countRows] = await db.execute(
+            `SELECT COUNT(*) as count FROM Member WHERE ${field} LIKE ?`,
+            [`%${keyword}%`]
+        );
+        const total = countRows[0].count;
+        const totalPages = Math.ceil(total / limit);
+
+
+
+        const sql = `
+                          SELECT user_num, user_type, user_id, user_tel, user_profile_img,
+                                 user_home_lat, user_home_lot, user_condition, user_signup
+                          FROM member
+                          WHERE ${field} LIKE ?
+                          ORDER BY user_num DESC
+                        `;
+
+        const [rows] = await db.execute(sql, [`%${keyword}%`]);
+
+        res.status(200).json({
+            totalResults: total,
+            totalPages,
+            currentPage: parseInt(page),
+            results: rows,
+        });
+
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '서버 오류', error });
+    }
+};
+

@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="db893b53-23e0-44a7-886f-00cb872d3014" name="변경" comment="DB_PORT 변경">
+    <list default="true" id="db893b53-23e0-44a7-886f-00cb872d3014" name="변경" comment="DB 테이블 명 수정">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controllers/memberController.js" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/memberController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/memberRouter.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/memberRouter.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,12 +36,12 @@
     &quot;assignee&quot;: &quot;si-mong&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/sso-eun/Team_PalpalDev",
-    "accountId": "35e5b4b5-85eb-4a10-8a79-063b2f2430e5"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/sso-eun/Team_PalpalDev&quot;,
+    &quot;accountId&quot;: &quot;35e5b4b5-85eb-4a10-8a79-063b2f2430e5&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -48,26 +50,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;sso-eun&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/user/Desktop/2025_Project/01. Project_Source/Server/Server&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Node.js.index.js.executor": "Run",
+    "Node.js.memberController.js.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "sso-eun",
+    "last_opened_file_path": "C:/Users/user/Desktop/2025_Project/01. Project_Source/Server/Server",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "vcs.Git",
+    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2025.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;bigquery&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "bigquery"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\user\Desktop\2025_Project\01. Project_Source\Server\Server\WeatherAPI" />
@@ -92,7 +97,9 @@
       <workItem from="1746816388296" duration="20000" />
       <workItem from="1746817267264" duration="2976000" />
       <workItem from="1746987921671" duration="14631000" />
-      <workItem from="1747390865069" duration="524000" />
+      <workItem from="1747390865069" duration="573000" />
+      <workItem from="1747625275055" duration="1889000" />
+      <workItem from="1747633329126" duration="3220000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <option name="closed" value="true" />
@@ -126,7 +133,15 @@
       <option name="project" value="LOCAL" />
       <updated>1747390420184</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="DB 테이블 명 수정">
+      <option name="closed" value="true" />
+      <created>1747391418850</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1747391418850</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -148,6 +163,7 @@
     <MESSAGE value="init" />
     <MESSAGE value="WeatherAPI" />
     <MESSAGE value="DB_PORT 변경" />
-    <option name="LAST_COMMIT_MESSAGE" value="DB_PORT 변경" />
+    <MESSAGE value="DB 테이블 명 수정" />
+    <option name="LAST_COMMIT_MESSAGE" value="DB 테이블 명 수정" />
   </component>
 </project>
