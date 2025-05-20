@@ -2,6 +2,9 @@
 // CSV파일 DB에 저장
 // author : eunjae
 
+// dundun_sql 비밀번호 필요함
+// 새로운 DB 데이터 열 추가해야함
+
 const fs = require('fs');
 const path = require('path');
 const iconv = require('iconv-lite');
@@ -13,7 +16,7 @@ const pool = mysql.createPool({
     host: 'svc.sel4.cloudtype.app',
     port: 31030,
     user: 'dundun',
-    password: '여기에_비밀번호', // TODO: 실제 비밀번호로 교체하세요
+    password: '여기에_비밀번호', // 실제 비밀번호
     database: 'dundunhi',
     waitForConnections: true,
     connectionLimit: 10
