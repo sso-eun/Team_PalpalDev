@@ -5,23 +5,35 @@
 // dundun_sql 비밀번호 필요함
 // 새로운 DB 데이터 열 추가해야함
 
+
+
 const fs = require('fs');
 const path = require('path');
 const iconv = require('iconv-lite');
 const csv = require('csv-parser');
 const mysql = require('mysql2/promise');
 
-// DB 연결 설정 (실제 서버 환경에 맞게 설정)
-const pool = mysql.createPool({
-    host: 'svc.sel4.cloudtype.app',
-    port: 31030,
-    user: 'dundun',
-    password: '여기에_비밀번호', // 실제 비밀번호
-    database: 'dundunhi',
-    waitForConnections: true,
-    connectionLimit: 10
-});
+// .env 파일을 읽어서 process.env 변수에 로드
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
+
+
+// 카테고리 번호 : (pl_type)
+// 0 병원
+// 1 경로당
+// 2 쉼터
+
+// 일단 로컬 서버 기준으로 작성
+// DB 연결 설정 (.env에서 로컬 DB 접속 정보 불러오기)
+const pool = mysql.createPool({
+    host: process.env.DB_LOCAL_HOST,
+    port: process.env.DB_LOCAL_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    // waitForConnections: true,
+    // connectionLimit: 10
+});
 // CSV 파일 경로 설정 (경로당용)
 const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
 
@@ -41,13 +53,13 @@ const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
                 rows.push([
                     row['시설명'],            // pl_name
                     '',                      // pl_postNumber
-                    row['소재지도로명주소'], // pl_addr
-                    '',                      // pl_detailAddr
-                    row['전화번호'],         // pl_tel
+                    row['소재지도로명주소'],    // pl_addr
+                    '.',                      // pl_detailAddr
+                    row['전화번호'],            // pl_tel
                     lat,                     // pl_lat
                     lon,                     // pl_lon
                     1,                       // pl_display (공개 여부: 1)
-                    2,                       // pl_type (경로당: 2)
+                    1,                       // pl_type (경로당: 1)
                     new Date(),             // pl_write (작성일)
                     new Date()              // pl_update (수정일)
                 ]);
@@ -57,10 +69,10 @@ const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
             console.log(`${rows.length}개 경로당 데이터 준비 완료.`);
 
             const sql = `
-        INSERT INTO place
-        (pl_name, pl_postNumber, pl_addr, pl_detailAddr, pl_tel, pl_lat, pl_lon, pl_display, pl_type, pl_write, pl_update)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+                INSERT INTO place
+                (pl_name, pl_postNumber, pl_addr, pl_detailAddr, pl_tel, pl_lat, pl_lon, pl_display, pl_type, pl_write, pl_update)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
 
             const conn = await pool.getConnection();
             try {
@@ -76,3 +88,6 @@ const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
             }
         });
 })();
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
