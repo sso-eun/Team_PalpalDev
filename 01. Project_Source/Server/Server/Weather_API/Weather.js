@@ -5,7 +5,11 @@
 const express = require('express'); // 웹서버 만들기
 const axios = require('axios');     // http 요청 보내기(기상청 API 호출)
 const xml2js = require('xml2js');   // 기상청 XML 파일 JSON으로 변환
-require('dotenv').config();         // .etv 파일에서 API 인증키 읽기 위함
+
+// .etv 파일에서 API 인증키 읽기 위함
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env.weather') });
+
 
 // 서버 객체 만들고 포트 번호를 3000으로 설정
 const app = express();
@@ -67,7 +71,6 @@ const convertToGrid = (lat, lon) => {
     const y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
     return { nx: x, ny: y };
 };
-
 
 
 // 날씨 API
