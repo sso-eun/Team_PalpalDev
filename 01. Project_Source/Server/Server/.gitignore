@@ -3,5 +3,6 @@
 package.json
 .env
 /node_modules
+.idea/workspace.xml
 Weather_API
-.idea
+
