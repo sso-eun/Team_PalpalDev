@@ -57,15 +57,7 @@ ex. 20250313_아이디어기술서양식_박소은
 12. NODE 프로젝트에서 Node_moduls, env 파일 올리지 마세요. 
 
 ----------------------------------------------------------------------
-[ Figma ] 
-- https://www.figma.com/design/kygGBTMBHsCzE10MkCdRSl/%EB%93%A0%EB%93%A0%ED%95%98%EC%9D%B4?node-id=4-4098&p=f&t=eDOnW71LXPgtDOI7-0
 
-[ Trello ] 
-- https://trello.com/b/gdvXoiS9/dundun-hi
-
-[ Server(Render, cloudeType) ] 
-- https://dundunhi.onrender.com/
-- https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app
 
 
 --------------------------------------------------------------------
