@@ -1,6 +1,6 @@
 
 // MainScreen.kt
-package com.example.dundun_hi
+package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,8 +54,7 @@ fun MainScreen(
     onMapPageClick: () -> Unit,
     onFindCultureCenter: () -> Unit,
     onKioskPageClick: () -> Unit,
-    onProfileClick: () -> Unit,
-    onGuardianProfileClick: () -> Unit
+    onProfileClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -113,14 +112,14 @@ fun MainScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // 중앙 버튼 ------------------------------------------------------------------
-        val buttonLabels = listOf("전화", "문자", "카메라", "지도")
+        val buttonLabels = listOf("전화", "내 정보", "카메라", "지도")
         buttonLabels.chunked(2).forEach { rowData ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 rowData.forEach { label ->
                     // 라벨에 따른 테두리 색 결정
                     val borderColor = when(label) {
                         "전화"   -> ButtonPhoneGreen
-                        "문자"   -> ButtonMsgTeal
+                        "내 정보"   -> ButtonMsgTeal
                         "카메라" -> ButtonCamBlue
                         "지도"   -> ButtonMapBlue
                         else     -> MaterialTheme.colorScheme.primary
@@ -138,7 +137,7 @@ fun MainScreen(
                             .clickable {
                                 when (label) {
                                     "전화"   -> onPhonePageClick()
-                                    "문자"   -> onMessagePageClick()
+                                    "내 정보"   -> onMessagePageClick()
                                     "카메라" -> onCameraPageClick()
                                     "지도"   -> onMapPageClick()
                                 }
@@ -187,12 +186,6 @@ fun MainScreen(
                 .padding(top=4.dp)
                 .clickable{onProfileClick()}
         )
-
-        Text(text="Guardian_Profile",color=Color.Black, fontSize = 18.sp,
-            modifier = Modifier
-                .padding(top=4.dp)
-                .clickable{onGuardianProfileClick()}
-        )
     }
 }
 
@@ -210,7 +203,6 @@ fun MainScreenPreview() {
         onMapPageClick = {},
         onFindCultureCenter = {},
         onKioskPageClick = {},
-        onProfileClick ={},
-        onGuardianProfileClick =  {}
+        onProfileClick ={}
     )
 }

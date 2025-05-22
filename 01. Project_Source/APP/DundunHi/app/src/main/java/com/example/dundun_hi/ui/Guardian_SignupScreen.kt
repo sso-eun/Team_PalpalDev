@@ -1,4 +1,4 @@
-package com.example.dundun_hi
+package com.example.dundun_hi.ui
 
 
 import androidx.compose.foundation.layout.Column
@@ -25,9 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun LoginScreen(
-    onLoginSuccess: () -> Unit
-) {
+fun Guardian_SignupScreen() {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
 
@@ -39,7 +37,7 @@ fun LoginScreen(
     ) {
         Text("든든하이", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
-        Text("로그인", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
+        Text("회원가입", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
         Spacer(Modifier.height(32.dp))
 
         Text("이름", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
@@ -69,16 +67,14 @@ fun LoginScreen(
         Spacer(Modifier.height(40.dp))
 
         Button(
-            onClick = { /* TODO: 실제 api호출 후 성공시 onLoginSuccess()호출 */
-                        onLoginSuccess()
-                      },
+            onClick = { /* TODO: 로그인 처리 */ },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp),
+                .height(70.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
         ) {
-            Text("로그인하기", color = Color.White, fontSize = 30.sp)
+            Text("휴대폰으로 본인인증하기", color = Color.White, fontSize = 25.sp)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.dundun_hi
+package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

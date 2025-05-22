@@ -1,0 +1,25 @@
+<!-- res/drawable/ic_call.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 전화를 뜻하는 핸드셋 아이콘 -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M6.62,10.79
+            C8.06,13.62 10.38,15.94 13.21,17.38
+            l2.2,-2.2
+            c0.27,-0.27 0.67,-0.36 1.02,-0.24
+            c1.12,0.37 2.33,0.57 3.57,0.57
+            c0.55,0 1,0.45 1,1
+            v3.5
+            c0,0.55 -0.45,1 -1,1
+            C10.07,22 2,13.93 2,3.5
+            c0,-0.55 0.45,-1 1,-1
+            H6.5
+            c0.55,0 1,0.45 1,1
+            c0,1.23 0.2,2.45 0.57,3.57
+            c0.11,0.35 0.03,0.74 -0.25,1.02
+            L6.62,10.79z"/>
+</vector>

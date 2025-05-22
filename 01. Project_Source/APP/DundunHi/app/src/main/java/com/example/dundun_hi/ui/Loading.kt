@@ -1,12 +1,18 @@
-// Loading.kt
 package com.example.dundun_hi
 
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -17,13 +23,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun LoadingScreen(navController: NavController, userName: String) {
+    val decodedUserName = URLDecoder.decode(userName, StandardCharsets.UTF_8.toString())
+
     LaunchedEffect(Unit) {
-        delay(3000) // 3초 대기 후 메인 화면으로 이동
-        navController.navigate("main") {
-            popUpTo("signup") { inclusive = true } // 스택 정리
+        delay(3000)
+        navController.navigate("main/$userName") {
+            popUpTo("signup") { inclusive = true }
         }
     }
 
@@ -50,7 +60,7 @@ fun LoadingScreen(navController: NavController, userName: String) {
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "$userName 환영합니다!",
+                text = "$decodedUserName 환영합니다!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -59,7 +69,7 @@ fun LoadingScreen(navController: NavController, userName: String) {
 
             Button(
                 onClick = {
-                    navController.navigate("main") {
+                    navController.navigate("main/$userName") {
                         popUpTo("signup") { inclusive = true }
                     }
                 },

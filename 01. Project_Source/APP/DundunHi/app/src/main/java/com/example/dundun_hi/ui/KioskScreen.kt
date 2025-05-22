@@ -1,8 +1,9 @@
 // KioskScreen.kt
-package com.example.dundun_hi
+package com.example.dundun_hi.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -32,7 +33,7 @@ import com.example.dundun_hi.ui.theme.DundunHiTheme
 import com.example.dundun_hi.ui.theme.Sky
 
 class KioskScreenActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             DundunHiTheme {

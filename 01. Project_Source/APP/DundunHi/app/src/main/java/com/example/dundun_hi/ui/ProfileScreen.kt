@@ -1,8 +1,7 @@
-package com.example.dundun_hi
+package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,10 +15,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import com.example.dundun_hi.R
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -30,7 +29,7 @@ fun ProfileScreen(navController: NavController) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "든든하이",
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -45,34 +44,43 @@ fun ProfileScreen(navController: NavController) {
 
         // ───── 프로필 카드 ─────
         Card(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(225.dp)
+                .height(220.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(Color.LightGray, shape = CircleShape),
-                    contentAlignment = Alignment.BottomEnd
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_camera_small),
-                        contentDescription = "카메라",
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Box(
+                        contentAlignment = Alignment.BottomEnd,
+                        modifier = Modifier.size(80.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .background(Color(0xFFCCCCCC), CircleShape)
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_camera_small),
+                            contentDescription = "카메라",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .offset(x = 4.dp, y = 4.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("김숙자", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("010-1234-5678", fontSize = 16.sp)
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("김숙자", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color.LightGray, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("010-1234-5678", fontSize = 16.sp)
             }
         }
 
@@ -80,11 +88,12 @@ fun ProfileScreen(navController: NavController) {
 
         // ───── 위치 카드 ─────
         Card(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(152.dp)
+                .height(130.dp)
         ) {
             Column {
                 Row(
@@ -98,17 +107,13 @@ fun ProfileScreen(navController: NavController) {
                         contentDescription = "위치",
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text("위치", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.weight(1f))
                     Image(
                         painter = painterResource(id = R.drawable.ic_plus),
-                        contentDescription = "위치 추가",
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable {
-                                navController.navigate("location") // ← 추가됨
-                            }
+                        contentDescription = "추가",
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -118,9 +123,9 @@ fun ProfileScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),
-                    contentAlignment = Alignment.CenterStart
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("외출 중 입니다.", fontSize = 16.sp, textAlign = TextAlign.Start)
+                    Text("외출 중 입니다.", fontSize = 16.sp, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -129,11 +134,12 @@ fun ProfileScreen(navController: NavController) {
 
         // ───── 알림 카드 ─────
         Card(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(453.dp)
+                .height(260.dp)
         ) {
             Column {
                 Row(
@@ -147,17 +153,13 @@ fun ProfileScreen(navController: NavController) {
                         contentDescription = "알림",
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text("알림", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.weight(1f))
                     Image(
                         painter = painterResource(id = R.drawable.ic_plus),
-                        contentDescription = "알림 추가",
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable {
-                                navController.navigate("alert")
-                            }
+                        contentDescription = "추가",
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
