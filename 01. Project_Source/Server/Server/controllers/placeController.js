@@ -3,8 +3,8 @@
 // author: eunjae
 
 // test
-// http://localhost:3000/api/places?category=hospital&lat=36.63&lon=127.45&range=0.5
-// http://localhost:3000/api/places?category=senior_center&lat=36.63&lon=127.45&range=1
+// http://localhost:3000/places?category=hospital&lat=36.63&lon=127.45&range=0.5
+// http://localhost:3000/places?category=senior_center&lat=36.63&lon=127.45&range=1
 
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });

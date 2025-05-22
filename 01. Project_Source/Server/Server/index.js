@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const memberRouter = require('./routes/memberRouter');
+const weatherRouter = require('./routes/weatherRouter');
 
 // 250517_은재_라우터 등록
 const placeRouter = require('./routes/placeRouter');
@@ -31,7 +32,8 @@ app.use('/member', memberRouter);
 
 // 250517_은재
 // /api/places로 들어온 요청을 .placeRouter에 넘기는 거임
-app.use('/api/places', placeRouter);
+app.use('/places', placeRouter);
+app.use('/weather', weatherRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
