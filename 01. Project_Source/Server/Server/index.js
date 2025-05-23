@@ -2,10 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const memberRouter = require('./routes/memberRouter');
-const weatherRouter = require('./routes/weatherRouter');
 
 // 250517_은재_라우터 등록
+const weatherRouter = require('./routes/weatherRouter');
 const placeRouter = require('./routes/placeRouter');
+const cultureRouter = require('./routes/cultureRouter');
 
 // index.js
 // const http = require('http');
@@ -30,13 +31,25 @@ app.get('/', (req, res) => {
 // /member
 app.use('/member', memberRouter);
 
-// 250517_은재
+// 250517_은재_추가
 // /api/places로 들어온 요청을 .placeRouter에 넘기는 거임
 app.use('/places', placeRouter);
 app.use('/weather', weatherRouter);
+app.use('/culture_center', cultureRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+// 디버깅용 추후 삭제 예정
+process.on('uncaughtException', (err) => {
+    console.error('[uncaughtException]', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[unhandledRejection]', reason);
+});
+
+console.log(`✅ Server running on http://localhost:${PORT}`);
 

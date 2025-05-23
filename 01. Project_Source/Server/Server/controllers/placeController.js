@@ -1,7 +1,6 @@
 // 2025-05-21
 // 사용자 위치 기반 장소 API (DB 기반으로 리팩토링 완료)
 // author: eunjae
-
 // test
 // http://localhost:3000/places?category=hospital&lat=36.63&lon=127.45&range=0.5
 // http://localhost:3000/places?category=senior_center&lat=36.63&lon=127.45&range=1
@@ -22,7 +21,7 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
 });
 
-// 장소 API - GET /api/places?category=hospital&lat=36.63&lon=127.45&range=1
+// 장소
 exports.getPlaces = async (req, res) => {
     const { category, lat, lon, range } = req.query;
 
