@@ -5,8 +5,6 @@
 // dundun_sql 비밀번호 필요함
 // 새로운 DB 데이터 열 추가해야함
 
-
-
 // 파일 시스템 및 경로, 인코딩, CSV 파싱, DB 모듈 불러오기
 const fs = require('fs');
 const path = require('path');
