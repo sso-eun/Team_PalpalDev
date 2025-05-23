@@ -1,0 +1,232 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="db893b53-23e0-44a7-886f-00cb872d3014" name="변경" comment="파일업로드 API &#10;회원 일정 API 4종 &#10;신규)config로 db, multer 통합 관리">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../../.." value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;si-mong&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/sso-eun/Team_PalpalDev&quot;,
+    &quot;accountId&quot;: &quot;35e5b4b5-85eb-4a10-8a79-063b2f2430e5&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2wna80WtvSCp5CO1WxT00fMpk6c" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Node.js.index.js.executor&quot;: &quot;Run&quot;,
+    &quot;Node.js.memberController.js.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;sso-eun&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/user/Desktop/2025_Project/01. Project_Source/Server/Server&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\WebStorm 2025.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;bigquery&quot;
+    ]
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Project\Palpal_dev\01. Project_Source\Server\Server\config" />
+      <recent name="C:\Users\user\Desktop\2025_Project\01. Project_Source\Server\Server\WeatherAPI" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-WS-251.23774.424" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="디폴트 작업">
+      <changelist id="db893b53-23e0-44a7-886f-00cb872d3014" name="변경" comment="" />
+      <created>1746679629988</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1746679629988</updated>
+      <workItem from="1746679632952" duration="632000" />
+      <workItem from="1746680297132" duration="2867000" />
+      <workItem from="1746816388296" duration="20000" />
+      <workItem from="1746817267264" duration="2976000" />
+      <workItem from="1746987921671" duration="14631000" />
+      <workItem from="1747390865069" duration="573000" />
+      <workItem from="1747625275055" duration="1889000" />
+      <workItem from="1747633329126" duration="5442000" />
+      <workItem from="1747646896809" duration="28000" />
+      <workItem from="1747792841569" duration="212000" />
+      <workItem from="1747811195114" duration="1159000" />
+      <workItem from="1747818052044" duration="54000" />
+      <workItem from="1747877722928" duration="662000" />
+      <workItem from="1747879392402" duration="619000" />
+      <workItem from="1747886701525" duration="792000" />
+      <workItem from="1747889501563" duration="4425000" />
+      <workItem from="1747901103213" duration="3421000" />
+      <workItem from="1747978850314" duration="2200000" />
+    </task>
+    <task id="LOCAL-00001" summary="init">
+      <option name="closed" value="true" />
+      <created>1746680397811</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1746680397811</updated>
+    </task>
+    <task id="LOCAL-00002" summary="WeatherAPI">
+      <option name="closed" value="true" />
+      <created>1747145950851</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1747145950851</updated>
+    </task>
+    <task id="LOCAL-00003" summary="DB_PORT 변경">
+      <option name="closed" value="true" />
+      <created>1747390336918</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1747390336918</updated>
+    </task>
+    <task id="LOCAL-00004" summary="DB_PORT 변경">
+      <option name="closed" value="true" />
+      <created>1747390420184</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1747390420184</updated>
+    </task>
+    <task id="LOCAL-00005" summary="DB 테이블 명 수정">
+      <option name="closed" value="true" />
+      <created>1747391418850</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1747391418850</updated>
+    </task>
+    <task id="LOCAL-00006" summary="- 회원 API (2) 추가 &#10;- 회원 전체 검색(페이지네이션 o)&#10;- 회원 단일 검색 &#10;- 특정 회원 검색(분류필드 &amp;&amp; 키워드, 페이지네이션 o)">
+      <option name="closed" value="true" />
+      <created>1747644260844</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1747644260844</updated>
+    </task>
+    <task id="LOCAL-00007" summary="- 회원 검색 API 수정&#10; - user_type, user_condition 검색 분기 처리&#10;- 신규 API 3종 명세서 업데이트_250519">
+      <option name="closed" value="true" />
+      <created>1747646669605</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1747646669605</updated>
+    </task>
+    <task id="LOCAL-00008" summary="- 신규 API 3종 명세서 업데이트_250519">
+      <option name="closed" value="true" />
+      <created>1747646912394</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1747646912394</updated>
+    </task>
+    <task id="LOCAL-00009" summary="2025_05_22 팔팔데브 스크럼">
+      <option name="closed" value="true" />
+      <created>1747877765472</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1747877765472</updated>
+    </task>
+    <task id="LOCAL-00010" summary="2025_05_22 팔팔데브 스크럼">
+      <option name="closed" value="true" />
+      <created>1747879409926</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1747879409926</updated>
+    </task>
+    <task id="LOCAL-00011" summary="파일업로드 API &#10;회원 일정 API 4종 &#10;신규)config로 db, multer 통합 관리">
+      <option name="closed" value="true" />
+      <created>1747982739231</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1747982739231</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="WeatherAPIspec" />
+    <MESSAGE value="init" />
+    <MESSAGE value="WeatherAPI" />
+    <MESSAGE value="DB_PORT 변경" />
+    <MESSAGE value="DB 테이블 명 수정" />
+    <MESSAGE value="- 회원 API (2) 추가 &#10;- 회원 전체 검색(페이지네이션 o)&#10;- 회원 단일 검색 &#10;- 특정 회원 검색(분류필드 &amp;&amp; 키워드, 페이지네이션 o)" />
+    <MESSAGE value="- 회원 검색 API 수정&#10; - user_type, user_condition 검색 분기 처리&#10;- 신규 API 3종 명세서 업데이트_250519" />
+    <MESSAGE value="- 신규 API 3종 명세서 업데이트_250519" />
+    <MESSAGE value="2025_05_22 팔팔데브 스크럼" />
+    <MESSAGE value="파일업로드 API &#10;회원 일정 API 4종 &#10;신규)config로 db, multer 통합 관리" />
+    <option name="LAST_COMMIT_MESSAGE" value="파일업로드 API &#10;회원 일정 API 4종 &#10;신규)config로 db, multer 통합 관리" />
+  </component>
+</project>
