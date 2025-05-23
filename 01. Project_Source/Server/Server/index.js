@@ -1,7 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
 const memberRouter = require('./routes/memberRouter');
+const memberDateRouter = require('./routes/memberDateRouter');
+const uploadRouter = require('./routes/uploadRouter');
 
 // index.js
 // const http = require('http');
@@ -25,6 +28,9 @@ app.get('/', (req, res) => {
 
 // /member
 app.use('/member', memberRouter);
+app.use('/date', memberDateRouter);
+app.use('/upload', uploadRouter);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
