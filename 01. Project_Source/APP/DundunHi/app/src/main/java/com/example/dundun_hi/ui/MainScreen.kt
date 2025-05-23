@@ -180,12 +180,6 @@ fun MainScreen(
             )
             if (index == 0) Spacer(modifier = Modifier.height(12.dp))
         }
-
-        Text(text="profile",color=Color.Black, fontSize = 18.sp,
-            modifier = Modifier
-                .padding(top=4.dp)
-                .clickable{onProfileClick()}
-        )
     }
 }
 

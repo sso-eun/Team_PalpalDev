@@ -18,9 +18,7 @@ import com.example.dundun_hi.model.SharedPhoto
 import com.example.dundun_hi.ui.*
 import com.example.dundun_hi.ui.login.LoginScreen
 import com.example.dundun_hi.ui.login.LoginViewModel
-import com.example.dundun_hi.ui.screen.CallScreen
-import com.example.dundun_hi.ui.screen.CallViewModel
-import com.example.dundun_hi.ui.screen.LastPhotoScreen
+import com.example.dundun_hi.ui.screen.*
 import com.example.dundun_hi.ui.signup.SignupResult
 import com.example.dundun_hi.ui.signup.SignupScreen
 import com.example.dundun_hi.ui.signup.SignupViewModel
@@ -38,7 +36,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = "home"
                     ) {
-                        // ───── 기본 플로우 ─────
+                        // ───── 홈 화면 ─────
                         composable("home") {
                             HomeScreen(
                                 onLoginClick = { navController.navigate("login") },
@@ -52,7 +50,7 @@ class MainActivity : ComponentActivity() {
                             val loginVm: LoginViewModel = viewModel()
                             LoginScreen(
                                 vm = loginVm,
-                                onLoginSuccess = { userNum ->
+                                onLoginSuccess = {
                                     navController.navigate("main") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -74,6 +72,7 @@ class MainActivity : ComponentActivity() {
                                             popUpTo("signup") { inclusive = true }
                                         }
                                     }
+
                                     is SignupResult.Error -> {
                                         Toast.makeText(
                                             this@MainActivity,
@@ -81,6 +80,7 @@ class MainActivity : ComponentActivity() {
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
+
                                     else -> {}
                                 }
                             }
@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
                                 highTemp = 25,
                                 lowTemp = 7,
                                 onPhonePageClick = { navController.navigate("call") },
-                                onMessagePageClick = { navController.navigate("profile") }, // ✅ 수정됨
+                                onMessagePageClick = { navController.navigate("profile") },
                                 onCameraPageClick = { navController.navigate("camera") },
                                 onMapPageClick = {},
                                 onFindCultureCenter = {},
@@ -112,10 +112,32 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ───── 서브 화면들 ─────
-                        composable("kiosk") { KioskScreen() }
-                        composable("camera") { CameraScreen(navController) }
+                        // ───── 프로필 화면 ─────
+                        composable("profile") {
+                            ProfileScreen(navController)
+                        }
 
+                        // ───── 알림 기록 화면 ─────
+                        composable("alarm") {
+                            AlarmRecordScreen(navController = navController)
+                        }
+
+                        // ───── 알림 추가 화면 ─────
+                        composable("add_alarm") {
+                            AddAlarmScreen()
+                        }
+
+                        // ───── 활동 내역 화면 ─────
+                        composable("activity_history") {
+                            ActivityHistoryScreen()
+                        }
+
+                        // ───── 카메라 화면 ─────
+                        composable("camera") {
+                            CameraScreen(navController)
+                        }
+
+                        // ───── 최근 사진 화면 ─────
                         composable("lastphoto") {
                             val dummyList = listOf(
                                 SharedPhoto(R.drawable.img1, fromMe = true),
@@ -128,7 +150,10 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable("profile") { ProfileScreen() }
+                        // ───── 키오스크 화면 ─────
+                        composable("kiosk") {
+                            KioskScreen()
+                        }
 
                         // ───── 빠른전화 화면 ─────
                         composable("call") {

@@ -1,7 +1,9 @@
+//ProfileScreen.kt
 package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,23 +17,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.dundun_hi.R
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFE6F0FA))
             .padding(16.dp)
     ) {
-        // ───── 상단 타이틀 ─────
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "든든하이",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("든든하이", fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 painter = painterResource(id = R.drawable.ic_home),
@@ -42,26 +40,19 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ───── 프로필 카드 ─────
+        // 프로필 카드
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(4.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
+            modifier = Modifier.fillMaxWidth().height(220.dp)
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        contentAlignment = Alignment.BottomEnd,
-                        modifier = Modifier.size(80.dp)
-                    ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(80.dp)) {
                         Box(
                             modifier = Modifier
                                 .size(80.dp)
@@ -70,9 +61,7 @@ fun ProfileScreen() {
                         Image(
                             painter = painterResource(id = R.drawable.ic_camera_small),
                             contentDescription = "카메라",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .offset(x = 4.dp, y = 4.dp)
+                            modifier = Modifier.size(24.dp).offset(x = 4.dp, y = 4.dp)
                         )
                     }
 
@@ -86,21 +75,17 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ───── 위치 카드 ─────
+        // 위치 카드
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(4.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp)
+            modifier = Modifier.fillMaxWidth().height(130.dp)
         ) {
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_location),
@@ -113,16 +98,16 @@ fun ProfileScreen() {
                     Image(
                         painter = painterResource(id = R.drawable.ic_plus),
                         contentDescription = "추가",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable { navController.navigate("activity_history") } // ✅ 위치에서 이동
                     )
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("외출 중 입니다.", fontSize = 16.sp, textAlign = TextAlign.Center)
@@ -132,21 +117,17 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ───── 알림 카드 ─────
+        // 알림 카드
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(4.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(260.dp)
+            modifier = Modifier.fillMaxWidth().height(260.dp)
         ) {
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_alarm),
@@ -159,7 +140,9 @@ fun ProfileScreen() {
                     Image(
                         painter = painterResource(id = R.drawable.ic_plus),
                         contentDescription = "추가",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable { navController.navigate("alarm") } // ✅ 여기서 이동
                     )
                 }
 
