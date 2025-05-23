@@ -1,22 +1,11 @@
 // 2025-05-16
 // Member_API
 // author : Soeun
+const db = require('../config/database'); // 상대 경로 주의
 
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
-
-// DB 연결 설정
-const db = mysql.createPool({
-    // host: process.env.DB_LOCAL_HOST,
-    // port: process.env.DB_LOCAL_PORT,
-    host: process.env.DB_SERVER_HOST,
-    port: process.env.DB_SERVER_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-});
 
 // 회원가입 API
+// 회원 선택값 필드 없어도 되게끔 수정 필요.
 exports.signup = async (req, res) => {
     const {
         user_type,
@@ -353,3 +342,5 @@ exports.searchMembers = async (req, res) => {
     }
 };
 
+
+//
