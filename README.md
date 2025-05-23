@@ -54,17 +54,10 @@ ex. 20250313_아이디어기술서양식_박소은
 9. 브랜치 명은 작업자를 알아볼 수 있는 간결한 네임을 지향합니다. (ex.SSO-EUN)
 10. 마스터 병합 시 **반드시** 카카오톡 등의 메신저로 팀원들에게 병합사실을 알리고, 각 담당들은 PULL 전 본인 코드 백업이나 병합 범위 확인 후 PULL 진행합니다.
 11. **병합 실수 등으로 인해 다른 팀원의 소스나 마스터 브랜치 훼손을 주의합니다. ☠️☠️**
+12. NODE 프로젝트에서 Node_moduls, env 파일 올리지 마세요. 
 
 ----------------------------------------------------------------------
-[ Figma ] 
-- https://www.figma.com/design/kygGBTMBHsCzE10MkCdRSl/%EB%93%A0%EB%93%A0%ED%95%98%EC%9D%B4?node-id=4-4098&p=f&t=eDOnW71LXPgtDOI7-0
 
-[ Trello ] 
-- https://trello.com/b/gdvXoiS9/dundun-hi
-
-[ Server(Render, cloudeType) ] 
-- https://dundunhi.onrender.com/
-- https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app
 
 
 --------------------------------------------------------------------

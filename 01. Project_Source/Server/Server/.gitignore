@@ -3,8 +3,10 @@
 package.json
 .env
 /node_modules
+.idea/workspace.xml
 Weather_API
 .idea
 firebaseKey.json
 config
 .idea/workspace.xml
+

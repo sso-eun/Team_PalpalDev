@@ -6,6 +6,9 @@ const memberRouter = require('./routes/memberRouter');
 const memberDateRouter = require('./routes/memberDateRouter');
 const uploadRouter = require('./routes/uploadRouter');
 
+// 250517_은재_라우터 등록
+const placeRouter = require('./routes/placeRouter');
+
 // index.js
 // const http = require('http');
 //
@@ -32,7 +35,12 @@ app.use('/date', memberDateRouter);
 app.use('/upload', uploadRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 250517_은재
+// /api/places로 들어온 요청을 .placeRouter에 넘기는 거임
+app.use('/api/places', placeRouter);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
