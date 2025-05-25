@@ -36,7 +36,8 @@ exports.getPlaces = async (req, res) => {
     // 카테고리 → pl_type 매핑
     let pl_type;
     if (category === 'hospital') pl_type = 0;
-    else if (category === 'senior_center') pl_type = 1;
+    else if (category === 'shelter') pl_type = 1;
+    else if (category === 'care') pl_type = 2;
     else return res.status(400).json({ error: '지원하지 않는 category입니다.' });
 
     try {
