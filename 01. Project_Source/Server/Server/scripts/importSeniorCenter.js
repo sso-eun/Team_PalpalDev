@@ -59,7 +59,7 @@ const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
                     lat,                     // pl_lat
                     lon,                     // pl_lon
                     1,                       // pl_display (공개 여부: 1)
-                    1,                       // pl_type (경로당: 1)
+                    2,                       // pl_type (보호센터: 2)
                     new Date(),             // pl_write (작성일)
                     new Date()              // pl_update (수정일)
                 ]);
