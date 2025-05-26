@@ -1,10 +1,9 @@
 // 2025-05-21
 // 사용자 위치 기반 장소 API (DB 기반으로 리팩토링 완료)
 // author: eunjae
-
 // test
-// http://localhost:3000/api/places?category=hospital&lat=36.63&lon=127.45&range=0.5
-// http://localhost:3000/api/places?category=senior_center&lat=36.63&lon=127.45&range=1
+// http://localhost:3000/places?category=hospital&lat=36.63&lon=127.45&range=0.5
+// http://localhost:3000/places?category=senior_center&lat=36.63&lon=127.45&range=1
 
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
@@ -22,7 +21,7 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
 });
 
-// 장소 API - GET /api/places?category=hospital&lat=36.63&lon=127.45&range=1
+// 유저 근처 장소 가져오기
 exports.getPlaces = async (req, res) => {
     const { category, lat, lon, range } = req.query;
 
@@ -37,7 +36,8 @@ exports.getPlaces = async (req, res) => {
     // 카테고리 → pl_type 매핑
     let pl_type;
     if (category === 'hospital') pl_type = 0;
-    else if (category === 'senior_center') pl_type = 1;
+    else if (category === 'shelter') pl_type = 1;
+    else if (category === 'care') pl_type = 2;
     else return res.status(400).json({ error: '지원하지 않는 category입니다.' });
 
     try {
@@ -72,3 +72,189 @@ exports.getPlaces = async (req, res) => {
         return res.status(500).json({ error: '서버 오류' });
     }
 };
+
+// 2025-05-25
+// CRUD For admin use
+// 전체 조회
+exports.getAllPlacesForAdmin = async (req, res) => {
+    try {
+        const conn = await pool.getConnection();
+        const [rows] = await conn.query("SELECT * FROM place");
+        conn.release();
+        return res.json(rows);
+    } catch (err) {
+        console.error('조회 실패:', err);
+        return res.status(500).json({ error: '서버 오류' });
+    }
+};
+
+// 장소 등록
+// pl_name, pl_addr, pl_tel, pl_lat, pl_lon, pl_type는 필수로 받아와야함
+exports.createPlace = async (req, res) => {
+    const {
+        pl_name,
+        pl_postNumber,
+        pl_addr,
+        pl_detailAddr,
+        pl_tel,
+        pl_lat,
+        pl_lon,
+        pl_type,
+        pl_display
+    } = req.body;
+
+    // 필수값 체크
+    if (
+        !pl_name ||
+        !pl_addr ||
+        !pl_tel ||
+        pl_lat == null ||
+        pl_lon == null ||
+        pl_type == null
+    ) {
+        return res.status(400).json({
+            error: '필수 항목(pl_name, pl_addr, pl_tel, pl_lat, pl_lon, pl_type)이 누락됨'
+        });
+    }
+
+    try {
+        const conn = await pool.getConnection();
+        await conn.query(
+            `INSERT INTO place
+             (pl_name, pl_postNumber, pl_addr, pl_detailAddr, pl_tel, pl_lat, pl_lon, pl_type, pl_display, pl_write, pl_update)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+            [
+                pl_name,
+                pl_postNumber || '',
+                pl_addr,
+                pl_detailAddr || '',
+                pl_tel,
+                pl_lat,
+                pl_lon,
+                pl_type,
+                pl_display ?? 1
+            ]
+        );
+        conn.release();
+        return res.json({ status: "success", message: "장소 등록 완료" });
+    } catch (err) {
+        console.error('등록 실패:', err);
+        return res.status(500).json({ error: '서버 오류' });
+    }
+};
+
+// 장소 삭제
+exports.deletePlace = async (req, res) => {
+    const { pl_no } = req.params;
+
+    try {
+        const conn = await pool.getConnection();
+        const [result] = await conn.query(`DELETE FROM place WHERE pl_no = ?`, [pl_no]);
+        conn.release();
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "pl_no에 해당하는 장소 없음" });
+        }
+
+        return res.json({ status: "deleted", message: "장소 삭제 완료" });
+    } catch (err) {
+        console.error('삭제 실패:', err);
+        return res.status(500).json({ error: '서버 오류' });
+    }
+};
+
+
+// 장소 일부 수정 (PATCH)
+exports.patchPlace = async (req, res) => {
+    const { pl_no } = req.params;
+    const updateFields = req.body;
+
+    if (!pl_no) {
+        return res.status(400).json({ error: 'pl_no 누락' });
+    }
+
+    if (!updateFields || Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ error: '수정할 필드가 없습니다' });
+    }
+
+    // 허용된 필드만 업데이트 허용
+    const allowedFields = [
+        'pl_name', 'pl_postNumber', 'pl_addr', 'pl_detailAddr',
+        'pl_tel', 'pl_lat', 'pl_lon', 'pl_type', 'pl_display'
+    ];
+    const validUpdates = Object.keys(updateFields)
+        .filter(key => allowedFields.includes(key));
+
+    if (validUpdates.length === 0) {
+        return res.status(400).json({ error: '유효한 수정 필드가 없습니다' });
+    }
+
+    try {
+        const conn = await pool.getConnection();
+
+        const setClause = validUpdates
+            .map(field => `${field} = ?`)
+            .join(', ');
+        const values = validUpdates.map(field => updateFields[field]);
+
+        const sql = `UPDATE place SET ${setClause}, pl_update = NOW() WHERE pl_no = ?`;
+
+        const [result] = await conn.query(sql, [...values, pl_no]);
+        conn.release();
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: '해당 pl_no의 장소를 찾을 수 없습니다' });
+        }
+
+        return res.json({ status: 'patched', message: '장소 일부 수정 완료' });
+    } catch (err) {
+        console.error('장소 일부 수정 실패:', err);
+        return res.status(500).json({ error: '서버 오류' });
+    }
+};
+
+// 전체 데이터를 모두 작성해야하는 방식
+// // 장소 수정
+// exports.updatePlace = async (req, res) => {
+//     const { pl_no } = req.params;
+//     const {
+//         pl_name,
+//         pl_postNumber,
+//         pl_addr,
+//         pl_detailAddr,
+//         pl_tel,
+//         pl_lat,
+//         pl_lon,
+//         pl_type,
+//         pl_display
+//     } = req.body;
+//
+//     try {
+//         const conn = await pool.getConnection();
+//         const [result] = await conn.query(
+//             `UPDATE place SET
+//                 pl_name = ?,
+//                 pl_postNumber = ?,
+//                 pl_addr = ?,
+//                 pl_detailAddr = ?,
+//                 pl_tel = ?,
+//                 pl_lat = ?,
+//                 pl_lon = ?,
+//                 pl_type = ?,
+//                 pl_display = ?,
+//                 pl_update = NOW()
+//              WHERE pl_no = ?`,
+//             [pl_name, pl_postNumber || '', pl_addr, pl_detailAddr || '', pl_tel || '', pl_lat, pl_lon, pl_type, pl_display, pl_no]
+//         );
+//         conn.release();
+//
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ error: "pl_no에 해당하는 장소 없음" });
+//         }
+//
+//         return res.json({ status: "updated", message: "장소 수정 완료" });
+//     } catch (err) {
+//         console.error('수정 실패:', err);
+//         return res.status(500).json({ error: '서버 오류' });
+//     }
+// };
