@@ -1,7 +1,18 @@
 // 2025-05-16
 // Member_DATE_API
 // author : Soeun
-const db = require('../config/database');
+// const db = require('../config/database');
+const mysql = require("mysql2/promise");
+
+const db = mysql.createPool({
+    // host: process.env.DB_LOCAL_HOST,
+    // port: process.env.DB_LOCAL_PORT,
+    host: process.env.DB_SERVER_HOST,
+    port: process.env.DB_SERVER_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
 
 //생성
 exports.createUserDate = async (req, res) => {
