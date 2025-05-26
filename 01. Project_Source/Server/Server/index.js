@@ -50,13 +50,13 @@ app.listen(PORT, () => {
 
 
 // 디버깅용 추후 삭제 예정
-// process.on('uncaughtException', (err) => {
-//     console.error('[uncaughtException]', err);
-// });
-//
-// process.on('unhandledRejection', (reason, promise) => {
-//     console.error('[unhandledRejection]', reason);
-// });
-//
-// console.log(`Server running on http://localhost:${PORT}`);
+process.on('uncaughtException', (err) => {
+    console.error('[uncaughtException]', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[unhandledRejection]', reason);
+});
+
+console.log(`Server running on http://localhost:${PORT}`);
 
