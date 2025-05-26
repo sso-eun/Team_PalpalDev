@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/item_card_background">
+
+    <!-- 상단: 귀가/외출 텍스트 + 아이콘 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:weightSum="1">
+
+        <TextView
+            android:id="@+id/typeText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:text="귀가"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginEnd="4dp" />
+
+        <ImageView
+            android:id="@+id/typeIcon"
+            android:layout_width="24dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="250dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_door_alt" />
+    </LinearLayout>
+
+    <!-- 날짜 및 시간 -->
+    <TextView
+        android:id="@+id/dateTimeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="04/01 오후 5:30"
+        android:textSize="16sp"
+        android:layout_marginTop="4dp"
+        android:textColor="#444444" />
+</LinearLayout>

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E6F0FA"
+    android:padding="16dp">
+
+    <!--홈버튼로고 -->
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:text="든든하이"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/homeIcon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/ic_home"
+        android:contentDescription="홈 아이콘"
+        app:layout_constraintStart_toEndOf="@id/title_text"
+        app:layout_constraintTop_toTopOf="@id/title_text"
+        app:layout_constraintBottom_toBottomOf="@id/title_text" />
+
+    <!-- 프로필 전체 블록 -->
+    <LinearLayout
+        android:id="@+id/profile_main_container"
+        android:layout_width="313dp"
+        android:layout_height="170dp"
+        android:layout_marginTop="16dp"
+        android:background="#FFFFFF"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text">
+
+        <!-- 프로필 사진과 카메라 아이콘 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/profile_image"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_menu_user"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/camera_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_camera"
+                app:layout_constraintBottom_toBottomOf="@id/profile_image"
+                app:layout_constraintEnd_toEndOf="@id/profile_image" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- 이름 -->
+        <TextView
+            android:id="@+id/name_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="김숙자"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- 전화번호 -->
+        <TextView
+            android:id="@+id/phone_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp"
+            android:text="010-1234-5678"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 위치 전체 블록 -->
+    <LinearLayout
+        android:id="@+id/location_main_container"
+        android:layout_width="316dp"
+        android:layout_height="129dp"
+        android:layout_marginTop="16dp"
+        android:background="#FFFFFF"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_main_container">
+
+        <!-- 위치 라벨과 아이콘 블록 -->
+        <LinearLayout
+            android:id="@+id/location_label_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/location_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="위치"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/location_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:src="@android:drawable/ic_menu_mylocation" />
+
+            <ImageView
+                android:id="@+id/add_location_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="end"
+                android:layout_marginStart="200dp"
+                android:src="@android:drawable/ic_menu_add" />
+        </LinearLayout>
+
+        <!-- 구분선 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginBottom="8dp"
+            android:background="#E0E0E0" />
+
+        <!-- 위치 섹션 -->
+        <TextView
+            android:id="@+id/location_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="외출 중 입니다."
+            android:textAlignment="center"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 알림 전체 블록 -->
+    <LinearLayout
+        android:id="@+id/notification_main_container"
+        android:layout_width="319dp"
+        android:layout_height="293dp"
+        android:layout_marginTop="16dp"
+        android:background="#FFFFFF"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location_main_container">
+
+        <!-- 알림 라벨과 아이콘 블록 -->
+        <LinearLayout
+            android:id="@+id/notification_label_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/notification_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="알림"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/notification_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:src="@android:drawable/ic_menu_info_details" />
+
+            <ImageView
+                android:id="@+id/add_notification_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="end"
+                android:layout_marginStart="200dp"
+                android:src="@android:drawable/ic_menu_add" />
+        </LinearLayout>
+
+        <!-- 구분선 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginBottom="8dp"
+            android:background="#E0E0E0" />
+
+        <!-- 알림 섹션 -->
+        <LinearLayout
+            android:id="@+id/notification_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 알림 섹션 1 -->
+            <TextView
+                android:id="@+id/notification_text_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="04/11 오후 3시 30분\n청주 문화센터 노래 교실"
+                android:textSize="16sp" />
+
+            <!-- 구분선 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="#E0E0E0" />
+
+            <!-- 알림 섹션 2 -->
+            <TextView
+                android:id="@+id/notification_text_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="04/11 오후 3시 30분\n청주 문화센터 노래 교실"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
