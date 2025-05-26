@@ -28,8 +28,8 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const pool = mysql.createPool({
     host: process.env.DB_LOCAL_HOST,
     port: process.env.DB_LOCAL_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER_MY,
+    password: process.env.DB_PASSWORD_MY,
     database: process.env.DB_NAME,
     // waitForConnections: true,
     // connectionLimit: 10

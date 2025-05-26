@@ -14,11 +14,19 @@ const { getDistance } = require('../utils/distance');
 // DB에서 가져오는 방식으로 변겅함
 // DB 커넥션 풀 설정
 const pool = mysql.createPool({
+    // 로컬 DB
     host: process.env.DB_LOCAL_HOST,
     port: process.env.DB_LOCAL_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER_MY,
+    password: process.env.DB_PASSWORD_MY,
     database: process.env.DB_NAME,
+
+    // Dundun DB
+    // host: process.env.DB_SERVER_HOST,
+    // port: process.env.DB_SERVER_PORT,
+    // user: process.env.DB_USER,
+    // password: process.env.DB_PASSWORD,
+    // database: process.env.DB_NAME,
 });
 
 // 유저 근처 장소 가져오기
@@ -90,6 +98,7 @@ exports.getAllPlacesForAdmin = async (req, res) => {
 
 // 장소 등록
 // pl_name, pl_addr, pl_tel, pl_lat, pl_lon, pl_type는 필수로 받아와야함
+// 나머지는 NULL로 채워 넣음
 exports.createPlace = async (req, res) => {
     const {
         pl_name,
@@ -168,7 +177,8 @@ exports.deletePlace = async (req, res) => {
 exports.patchPlace = async (req, res) => {
     const { pl_no } = req.params;
     const updateFields = req.body;
-
+    
+    // pl_no는 필수 파라미터
     if (!pl_no) {
         return res.status(400).json({ error: 'pl_no 누락' });
     }
@@ -178,6 +188,10 @@ exports.patchPlace = async (req, res) => {
     }
 
     // 허용된 필드만 업데이트 허용
+    // 하나만 수정하고 싶으면 하나만 body에 작성해주면 됨
+    // ex)
+    // { "pl_name":"수정 병원" }
+
     const allowedFields = [
         'pl_name', 'pl_postNumber', 'pl_addr', 'pl_detailAddr',
         'pl_tel', 'pl_lat', 'pl_lon', 'pl_type', 'pl_display'

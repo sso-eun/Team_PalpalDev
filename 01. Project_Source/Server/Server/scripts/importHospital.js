@@ -26,10 +26,11 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // DB 연결 설정 (.env에서 로컬 DB 접속 정보 불러오기)
 const pool = mysql.createPool({
+    // local DB
     host: process.env.DB_LOCAL_HOST,
     port: process.env.DB_LOCAL_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER_MY,
+    password: process.env.DB_PASSWORD_MY,
     database: process.env.DB_NAME,
     // waitForConnections: true,
     // connectionLimit: 10
