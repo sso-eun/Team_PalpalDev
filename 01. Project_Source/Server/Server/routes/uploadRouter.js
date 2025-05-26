@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../config/multerConfig'); // multer 설정
+const upload = require('../controllers/multerConfig'); // multer 설정
 const uploadController = require('../controllers/uploadController');
 
 
