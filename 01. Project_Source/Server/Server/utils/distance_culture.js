@@ -1,5 +1,11 @@
+// 2025-05-23
+// calculate distancs
+// author : eunjae
+
+// Haversine: 하버사인 공식 이용
 function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // 지구 반지름 (단위: meter)
+    // 지구 반지름 (단위: meter)
+    const R = 6371e3; 
     const toRad = angle => angle * (Math.PI / 180);
 
     const φ1 = toRad(lat1);
@@ -12,7 +18,8 @@ function getDistance(lat1, lon1, lat2, lon2) {
         Math.sin(Δλ / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // meter
+    // meter 단위 거리
+    return R * c; 
 }
 
 module.exports = { getDistance };
