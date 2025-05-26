@@ -1,0 +1,9 @@
+git bash 클론 하는법
+
+push하기 전에는 pull  status는 현재 상태를 물어봄(최신인지 변경 했는지)
+저장소에 이쓴ㄴ걸 땡기는것
+저장소는 다 따로 해야지 원본을 지킴
+
+cd c://
+cd Project:
+git clone 저장소 주소.git
