@@ -2,7 +2,7 @@
 // Member_API
 // author : Soeun
 // const db = require('../config/database'); // 상대 경로 주의
-
+const bcrypt = require('bcrypt');
 const mysql = require("mysql2/promise");
 const db = mysql.createPool({
     // host: process.env.DB_LOCAL_HOST,
