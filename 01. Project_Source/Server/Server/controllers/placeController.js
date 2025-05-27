@@ -14,13 +14,22 @@ const { getDistance } = require('../utils/distance');
 // DB에서 가져오는 방식으로 변겅함
 // DB 커넥션 풀 설정
 const pool = mysql.createPool({
+    // 로컬 DB
     host: process.env.DB_LOCAL_HOST,
     port: process.env.DB_LOCAL_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER_MY,
+    password: process.env.DB_PASSWORD_MY,
     database: process.env.DB_NAME,
+
+    // Dundun DB
+    // host: process.env.DB_SERVER_HOST,
+    // port: process.env.DB_SERVER_PORT,
+    // user: process.env.DB_USER,
+    // password: process.env.DB_PASSWORD,
+    // database: process.env.DB_NAME,
 });
 
+// 앱 요청
 // 유저 근처 장소 가져오기
 exports.getPlaces = async (req, res) => {
     const { category, lat, lon, range } = req.query;
@@ -90,6 +99,7 @@ exports.getAllPlacesForAdmin = async (req, res) => {
 
 // 장소 등록
 // pl_name, pl_addr, pl_tel, pl_lat, pl_lon, pl_type는 필수로 받아와야함
+// 나머지는 NULL로 채워 넣음
 exports.createPlace = async (req, res) => {
     const {
         pl_name,
@@ -166,22 +176,32 @@ exports.deletePlace = async (req, res) => {
 
 // 장소 일부 수정 (PATCH)
 exports.patchPlace = async (req, res) => {
+    // 클라이언트가 보낸 장소 번호 추출
     const { pl_no } = req.params;
+    
+    // 클라이언트가 보내준 필드 -> 수정할 내용
     const updateFields = req.body;
-
+    
+    // pl_no는 필수 파라미터
     if (!pl_no) {
         return res.status(400).json({ error: 'pl_no 누락' });
     }
-
+    // body가 비었을 경우 -> 수정할 내용이 없음
     if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({ error: '수정할 필드가 없습니다' });
     }
 
     // 허용된 필드만 업데이트 허용
+    // 하나만 수정하고 싶으면 하나만 body에 작성해주면 됨
+    // ex)
+    // { "pl_name":"수정 병원" }
+
     const allowedFields = [
         'pl_name', 'pl_postNumber', 'pl_addr', 'pl_detailAddr',
         'pl_tel', 'pl_lat', 'pl_lon', 'pl_type', 'pl_display'
     ];
+    
+    // 실제로 요청한 필드에서 필터링해서 추출
     const validUpdates = Object.keys(updateFields)
         .filter(key => allowedFields.includes(key));
 
@@ -190,6 +210,7 @@ exports.patchPlace = async (req, res) => {
     }
 
     try {
+        // DB 커넥션
         const conn = await pool.getConnection();
 
         const setClause = validUpdates
