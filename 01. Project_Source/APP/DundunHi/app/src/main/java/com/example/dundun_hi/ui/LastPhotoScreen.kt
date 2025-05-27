@@ -1,3 +1,4 @@
+//LastPhotoScreen.kt
 package com.example.dundun_hi.ui.screen
 
 import androidx.compose.foundation.Image

@@ -1,4 +1,4 @@
-//Guardian_Screen
+//GuardianScreen.kt
 package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.clickable

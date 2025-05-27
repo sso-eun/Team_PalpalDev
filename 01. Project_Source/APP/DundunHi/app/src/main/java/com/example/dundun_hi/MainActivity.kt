@@ -105,11 +105,16 @@ class MainActivity : ComponentActivity() {
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { navController.navigate("profile") },
                                 onCameraPageClick = { navController.navigate("camera") },
-                                onMapPageClick = {},
+                                onMapPageClick = { navController.navigate("map") }, // ✅ 지도 버튼 연결
                                 onFindCultureCenter = {},
                                 onKioskPageClick = { navController.navigate("kiosk") },
                                 onProfileClick = { navController.navigate("profile") }
                             )
+                        }
+
+                        // ───── 지도 화면 ─────
+                        composable("map") {
+                            MapScreen() // ✅ MapScreen 호출
                         }
 
                         // ───── 프로필 화면 ─────

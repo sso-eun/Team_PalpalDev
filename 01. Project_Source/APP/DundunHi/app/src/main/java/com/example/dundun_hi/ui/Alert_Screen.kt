@@ -1,4 +1,4 @@
-//Alert_Screen.kt
+//Alert_Screen
 package com.example.dundun_hi.ui.screen
 
 import androidx.compose.foundation.BorderStroke

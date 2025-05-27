@@ -1,4 +1,4 @@
-//Enter_Exit.kt
+//Enter_Exit
 package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.Image
