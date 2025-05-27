@@ -5,8 +5,6 @@
 // dundun_sql 비밀번호 필요함
 // 새로운 DB 데이터 열 추가해야함
 
-
-
 const fs = require('fs');
 const path = require('path');
 const iconv = require('iconv-lite');
@@ -16,20 +14,26 @@ const mysql = require('mysql2/promise');
 // .env 파일을 읽어서 process.env 변수에 로드
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-
-
 // 카테고리 번호 : (pl_type)
 // 0 병원
-// 1 경로당
-// 2 쉼터
+// 1 쉼터
+// 2 보호센터
 
 // 일단 로컬 서버 기준으로 작성
 // DB 연결 설정 (.env에서 로컬 DB 접속 정보 불러오기)
 const pool = mysql.createPool({
-    host: process.env.DB_LOCAL_HOST,
-    port: process.env.DB_LOCAL_PORT,
+    // local DB
+    // host: process.env.DB_LOCAL_HOST,
+    // port: process.env.DB_LOCAL_PORT,
+    // user: process.env.DB_USER_MY,
+    // password: process.env.DB_PASSWORD_MY,
+
+    // Dundun DB
+    host: process.env.DB_SERVER_HOST,
+    port: process.env.DB_SERVER_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
+
     database: process.env.DB_NAME,
     // waitForConnections: true,
     // connectionLimit: 10
