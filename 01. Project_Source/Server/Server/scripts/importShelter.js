@@ -1,8 +1,7 @@
-// 2025-05-20
-// CSV파일 DB에 저장
+// 2025-05-27
+// load Shelter.csv to DB
 // author : eunjae
 
-// dundun_sql 비밀번호 필요함
 // 새로운 DB 데이터 열 추가해야함
 
 const fs = require('fs');
@@ -22,33 +21,36 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 // 일단 로컬 서버 기준으로 작성
 // DB 연결 설정 (.env에서 로컬 DB 접속 정보 불러오기)
 const pool = mysql.createPool({
-    // local DB
-    // host: process.env.DB_LOCAL_HOST,
-    // port: process.env.DB_LOCAL_PORT,
-    // user: process.env.DB_USER_MY,
-    // password: process.env.DB_PASSWORD_MY,
+    // Local DB
+    host: process.env.DB_LOCAL_HOST,
+    port: process.env.DB_LOCAL_PORT,
+    user: process.env.DB_USER_MY,
+    password: process.env.DB_PASSWORD_MY,
 
     // Dundun DB
-    host: process.env.DB_SERVER_HOST,
-    port: process.env.DB_SERVER_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    // host: process.env.DB_SERVER_HOST,
+    // port: process.env.DB_SERVER_PORT,
+    // user: process.env.DB_USER,
+    // password: process.env.DB_PASSWORD,
 
     database: process.env.DB_NAME,
+
     // waitForConnections: true,
     // connectionLimit: 10
 });
 // CSV 파일 경로 설정 (경로당용)
-const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
+const filePath = path.join(__dirname, '../data/cheongju_shelter_2025.CSV');
 
 (async () => {
     const rows = [];
 
     // CSV 파일을 CP949로 디코딩해서 한 줄씩 파싱
     fs.createReadStream(filePath)
-        .pipe(iconv.decodeStream('cp949'))
+        // .pipe(iconv.decodeStream('cp949'))
+        .pipe(iconv.decodeStream('utf8'))
         .pipe(csv({ separator: ',' }))
         .on('data', (row) => {
+            console.log(row);
             const lat = parseFloat(row['위도']);
             const lon = parseFloat(row['경도']);
 
@@ -57,20 +59,20 @@ const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
                 rows.push([
                     row['시설명'],            // pl_name
                     '',                      // pl_postNumber
-                    row['소재지도로명주소'],    // pl_addr
+                    row['시설주소'],    // pl_addr
                     '.',                      // pl_detailAddr
-                    row['전화번호'],            // pl_tel
+                    '',            // pl_tel
                     lat,                     // pl_lat
                     lon,                     // pl_lon
                     1,                       // pl_display (공개 여부: 1)
-                    2,                       // pl_type (보호센터: 2)
+                    1,                       // pl_type (쉼터: 1)
                     new Date(),             // pl_write (작성일)
                     new Date()              // pl_update (수정일)
                 ]);
             }
         })
         .on('end', async () => {
-            console.log(`${rows.length}개 경로당 데이터 준비 완료.`);
+            console.log(`${rows.length}개 쉼터 데이터 준비 완료.`);
 
             const sql = `
                 INSERT INTO place
@@ -83,7 +85,7 @@ const filePath = path.join(__dirname, '../data/cheongju_SeniorCenter_2024.CSV');
                 for (const row of rows) {
                     await conn.query(sql, row);
                 }
-                console.log('경로당 데이터 DB 삽입 완료');
+                console.log('쉼터 데이터 DB 삽입 완료');
             } catch (err) {
                 console.error('삽입 중 오류:', err);
             } finally {

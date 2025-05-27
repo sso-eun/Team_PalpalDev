@@ -23,9 +23,10 @@ router.get('/', notificationController.getAllNotifications);
 // 알림 등록
 router.post('/register', notificationController.createNotification);
 // 전체 알림 목록 조회
+// 데이터가 200라면 200개를 한 번에 조회
 router.get('/getAll', notificationController.getAllNotifications);
 // 페이지로 조회
-router.get('/getAllPage', notificationController.getAllNotificationsPage);
+router.get('/getPage', notificationController.getAllNotificationsPage);
 // 알림 수정
 router.put('/edit/:nt_no', notificationController.updateNotification);
 // 알림 삭제
