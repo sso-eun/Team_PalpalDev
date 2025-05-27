@@ -29,6 +29,7 @@ const pool = mysql.createPool({
     // database: process.env.DB_NAME,
 });
 
+// 앱 요청
 // 유저 근처 장소 가져오기
 exports.getPlaces = async (req, res) => {
     const { category, lat, lon, range } = req.query;
@@ -175,14 +176,17 @@ exports.deletePlace = async (req, res) => {
 
 // 장소 일부 수정 (PATCH)
 exports.patchPlace = async (req, res) => {
+    // 클라이언트가 보낸 장소 번호 추출
     const { pl_no } = req.params;
+    
+    // 클라이언트가 보내준 필드 -> 수정할 내용
     const updateFields = req.body;
     
     // pl_no는 필수 파라미터
     if (!pl_no) {
         return res.status(400).json({ error: 'pl_no 누락' });
     }
-
+    // body가 비었을 경우 -> 수정할 내용이 없음
     if (!updateFields || Object.keys(updateFields).length === 0) {
         return res.status(400).json({ error: '수정할 필드가 없습니다' });
     }
@@ -196,6 +200,8 @@ exports.patchPlace = async (req, res) => {
         'pl_name', 'pl_postNumber', 'pl_addr', 'pl_detailAddr',
         'pl_tel', 'pl_lat', 'pl_lon', 'pl_type', 'pl_display'
     ];
+    
+    // 실제로 요청한 필드에서 필터링해서 추출
     const validUpdates = Object.keys(updateFields)
         .filter(key => allowedFields.includes(key));
 
@@ -204,6 +210,7 @@ exports.patchPlace = async (req, res) => {
     }
 
     try {
+        // DB 커넥션
         const conn = await pool.getConnection();
 
         const setClause = validUpdates
