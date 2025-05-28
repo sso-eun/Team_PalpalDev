@@ -1,6 +1,6 @@
 //디버깅용 추후 삭제 예정
-console.log('DB Host:', process.env.DB_LOCAL_HOST);
-console.log('PORT:', process.env.PORT);
+// console.log('DB Host:', process.env.DB_LOCAL_HOST);
+// console.log('PORT:', process.env.PORT);
 
 require('dotenv').config();
 const express = require('express');
