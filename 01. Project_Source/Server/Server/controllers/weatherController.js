@@ -36,6 +36,7 @@ const convertToGrid = (lat, lon) => {
     const olon = OLON * DEGRAD;
     const olat = OLAT * DEGRAD;
 
+    // 격자 변환 수식
     let sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
     sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
 
@@ -64,16 +65,19 @@ const convertToGrid = (lat, lon) => {
 router.get('/', async (req, res) => {
     let { nx, ny, lat, lon, base_date, base_time } = req.query;
 
+    // 필수 파라미터 검사
     if (!base_date || !base_time) {
         return res.status(400).json({ error: 'base_date, base_time 파라미터가 필요합니다.' });
     }
 
+    // 위도/경도 -> 격자 좌표 변환 (공공데이터에서 x좌표와 y좌표를 필요로 함)
     if (lat && lon) {
         const grid = convertToGrid(parseFloat(lat), parseFloat(lon));
         nx = grid.nx;
         ny = grid.ny;
     }
-
+    
+    // 변환 실패 시 에러
     if (!nx || !ny) {
         return res.status(400).json({ error: 'nx, ny 또는 lat, lon 중 하나가 필요합니다.' });
     }
@@ -87,21 +91,29 @@ router.get('/', async (req, res) => {
 
         // 디버깅용
         // 추후 삭제 예정
-        // console.log('요청 URL:', fullUrl);
-        // console.log('기상청 응답 원본:', response.data);
+        console.log('사용 중인 SERVICE_KEY_WT:', process.env.SERVICE_KEY_WT);
+        console.log('요청 URL:', fullUrl);
 
+        // 기상청 API로 GET 요청 전송
         const response = await axios.get(fullUrl);
+
+        console.log('기상청 응답 원본:', response.data);
+
+        // 응답 XML 데이터를 JSON 형태로 파싱
         const result = await xml2js.parseStringPromise(response.data, { explicitArray: false });
 
+        // 디버깅용
+        console.log('파싱 결과', result);
+
+        // 응답 구조 중 item 배열 추출 (필요한 데이터만 추출)
         const items = result?.response?.body?.items?.item;
         if (!items) {
             return res.status(500).json({ error: '기상청 응답 형식이 예상과 다릅니다.' });
         }
-
         // 디버깅용
-        // 추후 삭제 예정
-        // console.log('파싱 결과:', result);
 
+
+        // 클라이언트에 보낼 날씨 정보 객체, 초기화
         const weatherData = {
             currentTemp: null,
             sky: null,
@@ -109,6 +121,7 @@ router.get('/', async (req, res) => {
             maxTemp: null,
         };
 
+        // 각 항목 순회하면서 필요한 정보만 추출
         for (const item of Array.isArray(items) ? items : [items]) {
             const category = item.category;
             const value = item.fcstValue;

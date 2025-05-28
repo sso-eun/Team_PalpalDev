@@ -32,6 +32,8 @@ const pool = mysql.createPool({
 // 앱 요청
 // 유저 근처 장소 가져오기
 exports.getPlaces = async (req, res) => {
+    
+    // 요청 파라미터
     const { category, lat, lon, range } = req.query;
 
     if (!lat || !lon) {
@@ -49,6 +51,7 @@ exports.getPlaces = async (req, res) => {
     else if (category === 'care') pl_type = 2;
     else return res.status(400).json({ error: '지원하지 않는 category입니다.' });
 
+    // DB에서 해당 카테고리에 맞는 장소 불러온다.
     try {
         const conn = await pool.getConnection();
         const [rows] = await conn.query(
