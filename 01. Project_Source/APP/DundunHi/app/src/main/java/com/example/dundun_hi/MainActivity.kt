@@ -2,7 +2,6 @@ package com.example.dundun_hi
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -44,35 +43,48 @@ import com.example.dundun_hi.ui.signup.SignupViewModel
 import com.example.dundun_hi.ui.theme.DundunHiTheme
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             DundunHiTheme {
                 Surface(Modifier.fillMaxSize()) {
+                    // 1) Activity-scoped WeatherViewModel 생성
+                    val weatherVM: WeatherViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                @Suppress("UNCHECKED_CAST")
+                                return WeatherViewModel(
+                                    WeatherRepository(
+                                        WeatherService(RetrofitClient.weatherApi)
+                                    )
+                                ) as T
+                            }
+                        }
+                    )
 
-                    /* ───── 네비게이션 컨트롤러 ───── */
+                    // 2) 앱 시작하자마자 날씨 한 번 로드
+                    LaunchedEffect(Unit) {
+                        weatherVM.load(lat = 37.5665, lon = 126.9780)
+                    }
+
                     val navController = rememberNavController()
 
                     NavHost(
                         navController = navController,
                         startDestination = "home"
                     ) {
-
-                        /* ─────────── Home ─────────── */
+                        // ───── Home ─────
                         composable("home") {
                             HomeScreen(
-                                onLoginClick   = { navController.navigate("login") },
-                                onSignupClick  = { navController.navigate("signup") },
+                                onLoginClick    = { navController.navigate("login") },
+                                onSignupClick   = { navController.navigate("signup") },
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
 
-                        /* ─────────── Login ─────────── */
+                        // ───── Login ─────
                         composable("login") {
                             val loginVm: LoginViewModel = viewModel()
-
                             LoginScreen(
                                 vm = loginVm,
                                 onLoginSuccess = { userId ->
@@ -82,62 +94,44 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             )
-
                         }
 
-                        /* ────────── Signup ─────────── */
+                        // ───── Signup ─────
                         composable("signup") {
-                            val vm: SignupViewModel = viewModel()
-                            val state by vm.state.collectAsState()
+                            val signupVm: SignupViewModel = viewModel()
+                            val state by signupVm.state.collectAsState()
 
-                            SignupScreen { req -> vm.signup(req) }
+                            SignupScreen { req -> signupVm.signup(req) }
 
                             LaunchedEffect(state) {
                                 when (state) {
-                                    is SignupResult.Success -> {
-                                        val success = state as SignupResult.Success
-
-                                        // 🔴 아직도 번호를 쓰고 있을 가능성
-                                        // val encoded = Uri.encode(success.userNum)
-
-                                        // ✅ 아이디(userId)만 인코딩해서 넘깁니다
-                                        val encoded = Uri.encode(success.userId)
-
-                                        navController.navigate("loading/$encoded") {
+                                    is SignupResult.Success ->
+                                        navController.navigate("main/${Uri.encode((state as SignupResult.Success).userId)}") {
                                             popUpTo("signup") { inclusive = true }
                                         }
-                                    }
-                                    is SignupResult.Error -> { /* 토스트 */ }
+                                    is SignupResult.Error ->
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            (state as SignupResult.Error).reason,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     else -> Unit
                                 }
                             }
                         }
 
-                        /* ────── Loading (3초) ─────── */
-                        composable(
-                            route = "loading/{userName}",
-                            arguments = listOf(navArgument("userName") {
-                                type = NavType.StringType
-                                defaultValue = ""
-                            })
-                        ) { backEntry ->
-                            val encoded = backEntry.arguments?.getString("userName") ?: ""
-                            LoadingScreen(
-                                navController = navController,
-                                userName      = encoded           // 내부에서 URL decode
-                            )
-                        }
-
-                        /* ───────── Guardian ───────── */
+                        // ───── Guardian ─────
                         composable("guardian") {
                             GuardianScreen(
-                                onSubmit     = { _, _ -> },
+                                onSubmit      = { _, _ -> },
                                 onSignupClick = { navController.navigate("guardian_signup") }
                             )
                         }
-                        composable("guardian_signup") { Guardian_SignupScreen() }
+                        composable("guardian_signup") {
+                            Guardian_SignupScreen()
+                        }
 
-                        /* ────────── Main ──────────── */
+                        // ───── Main ─────
                         composable(
                             route = "main/{userName}",
                             arguments = listOf(navArgument("userName") {
@@ -145,112 +139,99 @@ class MainActivity : ComponentActivity() {
                                 defaultValue = ""
                             })
                         ) { backEntry ->
+                            val name = Uri.decode(backEntry.arguments?.getString("userName") ?: "손님")
 
-                            /* 1) 사용자 이름 추출 */
-                            val name = Uri.decode(
-                                backEntry.arguments?.getString("userName") ?: "손님"
-                            )
-
-                            /* 2) 날씨 ViewModel 설정 */
-                            val weatherVM: WeatherViewModel = viewModel(
-                                factory = object : ViewModelProvider.Factory {
-                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                        @Suppress("UNCHECKED_CAST")
-                                        return WeatherViewModel(
-                                            WeatherRepository(
-                                                WeatherService(RetrofitClient.weatherApi)
-                                            )
-                                        ) as T
-                                    }
-                                }
-                            )
+                            // 이미 로드된 날씨 상태 구독
                             val weatherState by weatherVM.uiState.collectAsState()
 
-                            /* 3) 날씨 로드 */
-                            LaunchedEffect(Unit) {
-                                weatherVM.load(lat = 37.5665, lon = 126.9780)
-                            }
-
-                            /* 4) 에러 토스트 */
+                            // 에러 발생 시 Toast
                             LaunchedEffect(weatherState) {
                                 if (weatherState is WeatherUiState.Error) {
-                                    val err = (weatherState as WeatherUiState.Error).error
-                                    Log.e("Weather", "조회 실패", err)
                                     Toast.makeText(
                                         this@MainActivity,
-                                        "날씨 조회 실패: ${err.message}",
+                                        "날씨 조회 실패",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             }
 
-
-
-                            /* 5) MainScreen */
+                            // 성공 시 데이터 파싱
                             val success = weatherState as? WeatherUiState.Success
-                            val temp = success?.data?.currentTempInt ?: 0
-                            val max  = success?.data?.maxTempInt     ?: 0
-                            val min  = success?.data?.minTempInt     ?: 0
-
-//                            val temp  = (weatherState as? WeatherUiState.Success)?.data?.currentTemp?.toIntOrNull() ?: 0
-//                            val max  = (weatherState as? WeatherUiState.Success)?.data?.maxTemp?.toIntOrNull() ?: 0
-//                            val min   = (weatherState as? WeatherUiState.Success)?.data?.minTemp?.toIntOrNull() ?: 0
+                            val temp  = success?.data?.currentTemp
+                                ?.toDoubleOrNull()?.toInt() ?: 0
+                            val max   = success?.data?.maxTemp
+                                ?.toDoubleOrNull()?.toInt() ?: 0
+                            val min   = success?.data?.minTemp
+                                ?.toDoubleOrNull()?.toInt() ?: 0
 
                             MainScreen(
-                                userName          = "${name}님",
-                                temperature       = temp,
+                                userName         = "${name}님",
+                                temperature      = temp,
                                 maxTemp          = max,
-                                minTemp           = min,
-                                onPhonePageClick  = { navController.navigate("call") },
-                                onMessagePageClick= {},
-                                onCameraPageClick = { navController.navigate("camera") },
-                                onMapPageClick    = {},
-                                onFindCultureCenter = {},
-                                onKioskPageClick  = { navController.navigate("kiosk") },
-                                onProfileClick    = { navController.navigate("profile") }
+                                minTemp          = min,
+                                onPhonePageClick   = { navController.navigate("call") },
+                                onMessagePageClick = { /* TODO */ },
+                                onCameraPageClick  = { navController.navigate("camera") },
+                                onMapPageClick     = { /* TODO */ },
+                                onFindCultureCenter = { /* TODO */ },
+                                onKioskPageClick   = { navController.navigate("kiosk") },
+                                onProfileClick     = { navController.navigate("profile") }
                             )
                         }
 
-                        /* ───────── Sub Screens ────── */
-                        composable("kiosk")  { KioskScreen() }
-                        composable("camera") { CameraScreen(navController) }
+                        // ───── Kiosk ─────
+                        composable("kiosk") {
+                            KioskScreen()
+                        }
 
+                        // ───── Camera ─────
+                        composable("camera") {
+                            CameraScreen(navController)
+                        }
+
+                        // ───── LastPhoto ─────
                         composable("lastphoto") {
                             val dummy = listOf(
                                 SharedPhoto(R.drawable.img1, true),
                                 SharedPhoto(R.drawable.img2, false),
                                 SharedPhoto(R.drawable.img3, true)
                             )
-                            LastPhotoScreen(dummy) { }
+                            LastPhotoScreen(
+                                photos     = dummy,
+                                onAddPhoto = { /* TODO */ }
+                            )
                         }
 
-                        composable("profile") { ProfileScreen() }
+                        // ───── Profile ─────
+                        composable("profile") {
+                            ProfileScreen()
+                        }
 
+                        // ───── Call ─────
                         composable("call") {
-                            val callVM: CallViewModel = viewModel()
-                            val shortcuts by callVM.shortcuts.collectAsState()
-
+                            val callVm: CallViewModel = viewModel()
+                            val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
-                                contacts = shortcuts,
+                                contacts      = shortcuts,
                                 onAddShortcut = { idx ->
                                     navController.navigate("call_setup/$idx")
                                 }
                             )
                         }
 
+                        // ───── Call Setup ─────
                         composable("call_setup/{index}") { back ->
-                            val callVM: CallViewModel = viewModel()
+                            val callVm: CallViewModel = viewModel()
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
-
                             SetupShortcutScreen(
                                 index = idx,
                                 onDone = {
-                                    callVM.loadShortcuts()
+                                    callVm.loadShortcuts()
                                     navController.popBackStack()
                                 }
                             )
                         }
-                    } // ── NavHost 끝 ──
+                    }
                 }
             }
         }
