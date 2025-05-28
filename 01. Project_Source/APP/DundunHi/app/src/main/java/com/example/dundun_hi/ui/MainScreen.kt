@@ -46,8 +46,8 @@ import com.example.dundun_hi.ui.theme.Sky
 fun MainScreen(
     userName: String,
     temperature: Int,
-    highTemp: Int,
-    lowTemp: Int,
+    maxTemp: Int,
+    minTemp: Int,
     onPhonePageClick: () -> Unit,
     onMessagePageClick: () -> Unit,
     onCameraPageClick: () -> Unit,
@@ -103,9 +103,9 @@ fun MainScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("${temperature}°C", fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("최고: ${highTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
-                    Text("최저: ${lowTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
+                    Spacer(modifier= Modifier.height(4.dp))
+                    Text("최고: ${maxTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
+                    Text("최저: ${minTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
                 }
             }
         }
@@ -195,8 +195,8 @@ fun MainScreenPreview() {
     MainScreen(
         userName = "길동님",
         temperature = 19,
-        highTemp = 25,
-        lowTemp = 7,
+        maxTemp = 25,
+        minTemp = 7,
         onPhonePageClick = {},
         onMessagePageClick = {},
         onCameraPageClick = {},

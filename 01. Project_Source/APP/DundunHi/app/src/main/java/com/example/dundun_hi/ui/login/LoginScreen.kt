@@ -28,7 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (userNum: String) -> Unit,
+    onLoginSuccess: (String) -> Unit,
     vm: LoginViewModel = viewModel()
 ) {
     var name by remember { mutableStateOf("") }
@@ -38,10 +38,9 @@ fun LoginScreen(
     val loginRes by vm.loginState
     val errorMsg by vm.error
 
-    // 로그인 성공 시 상위로 userNum 전달
     loginRes?.let {
         LaunchedEffect(it) {
-            onLoginSuccess(it.userNum)
+            onLoginSuccess(name)
         }
     }
 

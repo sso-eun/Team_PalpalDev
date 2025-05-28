@@ -33,7 +33,7 @@ fun LoadingScreen(navController: NavController, userName: String) {
     LaunchedEffect(Unit) {
         delay(3000)
         navController.navigate("main/$userName") {
-            popUpTo("signup") { inclusive = true }
+            popUpTo("loading") { inclusive = true }
         }
     }
 
