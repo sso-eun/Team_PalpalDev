@@ -9,6 +9,7 @@ const path = require('path');
 const memberRouter = require('./routes/memberRouter');
 const memberDateRouter = require('./routes/memberDateRouter');
 const uploadRouter = require('./routes/uploadRouter');
+const sendRouter = require('./routes/sendAuthRouter');
 
 // 250517_은재_라우터 등록
 const weatherRouter = require('./routes/weatherRouter');
@@ -41,6 +42,7 @@ app.use('/member', memberRouter);
 app.use('/date', memberDateRouter);
 app.use('/upload', uploadRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/send',sendRouter);
 
 // 250517_은재_추가
 // /api/places로 들어온 요청을 .placeRouter에 넘기는 거임
