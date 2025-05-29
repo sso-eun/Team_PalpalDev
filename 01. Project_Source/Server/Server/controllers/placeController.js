@@ -15,41 +15,50 @@ const { getDistance } = require('../utils/distance');
 // DB 커넥션 풀 설정
 const pool = mysql.createPool({
     // 로컬 DB
-    host: process.env.DB_LOCAL_HOST,
-    port: process.env.DB_LOCAL_PORT,
-    user: process.env.DB_USER_MY,
-    password: process.env.DB_PASSWORD_MY,
-    database: process.env.DB_NAME,
+    // host: process.env.DB_LOCAL_HOST,
+    // port: process.env.DB_LOCAL_PORT,
+    // user: process.env.DB_USER_MY,
+    // password: process.env.DB_PASSWORD_MY,
+    // database: process.env.DB_NAME,
 
     // Dundun DB
-    // host: process.env.DB_SERVER_HOST,
-    // port: process.env.DB_SERVER_PORT,
-    // user: process.env.DB_USER,
-    // password: process.env.DB_PASSWORD,
-    // database: process.env.DB_NAME,
+    host: process.env.DB_SERVER_HOST,
+    port: process.env.DB_SERVER_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
 });
 
 // 앱 요청
 // 유저 근처 장소 가져오기
 exports.getPlaces = async (req, res) => {
-    
+
     // 요청 파라미터
     const { category, lat, lon, range } = req.query;
-
-    if (!lat || !lon) {
-        return res.status(400).json({ error: 'lat, lon 필수' });
-    }
 
     const userLat = parseFloat(lat);
     const userLon = parseFloat(lon);
     const searchRadius = parseFloat(range) || 1;
 
+    if (isNaN(userLat) || isNaN(userLon)) {
+        return res.status(400).json({ error: 'lat, lon은 유효한 숫자여야 합니다.' });
+    }
     // 카테고리 → pl_type 매핑
-    let pl_type;
-    if (category === 'hospital') pl_type = 0;
-    else if (category === 'shelter') pl_type = 1;
-    else if (category === 'care') pl_type = 2;
-    else return res.status(400).json({ error: '지원하지 않는 category입니다.' });
+    // let pl_type;
+    // if (category === 'hospital') pl_type = 0;
+    // else if (category === 'shelter') pl_type = 1;
+    // else if (category === 'care') pl_type = 2;
+
+    const CATEGORY_MAP = {
+        'hospital': 0,
+        'shelter': 1,
+        'care': 2
+    };
+
+    const pl_type = CATEGORY_MAP[category];
+    if (pl_type === undefined) {
+        return res.status(400).json({ error: '지원하지 않는 category입니다.' });
+    }
 
     // DB에서 해당 카테고리에 맞는 장소 불러온다.
     try {
@@ -67,19 +76,22 @@ exports.getPlaces = async (req, res) => {
         );
         conn.release();
 
-        // 거리 계산 후 필터링 및 정렬
+        // 각 장소에 대해 사용자와의 거리 계산
+        // getDistance() 외부 파일에 함수 존재
         const result = rows
             .map(place => ({
                 ...place,
                 distance: getDistance(userLat, userLon, place.lat, place.lon)
             }))
-            .filter(p => p.distance <= searchRadius)
-            .sort((a, b) => a.distance - b.distance);
+
+            .filter(p => p.distance <= searchRadius)        // 반경 범위 내 장소만 필터링
+            .sort((a, b) => a.distance - b.distance);       // 거리 오름차순 정렬(가까운 순으로)
 
         console.log(`[응답] ${category} ${result.length}개 반환 (반경 ${searchRadius}km 내)`);
         return res.json(result);
 
     } catch (err) {
+        // Db 조회 실패시 500서버 오류 반환
         console.error('DB 조회 실패:', err);
         return res.status(500).json({ error: '서버 오류' });
     }
@@ -88,14 +100,54 @@ exports.getPlaces = async (req, res) => {
 // 2025-05-25
 // CRUD For admin use
 // 전체 조회
+// exports.getAllPlacesForAdmin = async (req, res) => {
+//     try {
+//         const conn = await pool.getConnection();
+//         const [rows] = await conn.query("SELECT * FROM place");
+//         conn.release();
+//         return res.json(rows);
+//     } catch (err) {
+//         console.error('조회 실패:', err);
+//         return res.status(500).json({ error: '서버 오류' });
+//     }
+// };
+
+// 2025-05-27 조회 방식 update
+// read all notification & pagiNation
 exports.getAllPlacesForAdmin = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const unit = parseInt(req.query.limit) || 10; // 여기까진 OK
+
+    if (page < 1 || unit < 1) {
+        return res.status(400).json({ error: 'page와 limit은 1 이상의 정수여야 합니다.' });
+    }
+
+    const offset = (page - 1) * unit;
+
     try {
         const conn = await pool.getConnection();
-        const [rows] = await conn.query("SELECT * FROM place");
+
+        // 전체 개수 조회 (총 페이지 계산용)
+        const [[{ count }]] = await conn.query("SELECT COUNT(*) AS count FROM place");
+
+        // 실제 데이터 조회
+        const [rows] = await conn.query(
+            "SELECT * FROM place ORDER BY pl_no DESC LIMIT ? OFFSET ?",
+            [unit, offset]
+        );
+
         conn.release();
-        return res.json(rows);
+
+        return res.json({
+            currentPage: page,
+            unit: unit,
+            totalCount: count,
+            totalPages: Math.ceil(count / unit),
+            data: rows
+        });
+
     } catch (err) {
-        console.error('조회 실패:', err);
+        console.error('페이지네이션 조회 실패:', err);
         return res.status(500).json({ error: '서버 오류' });
     }
 };
