@@ -1,7 +1,12 @@
+// MapScreen.kt
 package com.example.dundun_hi.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.location.Location
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +24,19 @@ import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.compose.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import java.net.HttpURLConnection
+import java.net.URL
+
+data class PlaceInfo(
+    val name: String,
+    val address: String,
+    val phone: String,
+    val lat: Double,
+    val lon: Double
+)
 
 @OptIn(ExperimentalNaverMapApi::class)
 @SuppressLint("MissingPermission")
@@ -29,10 +47,11 @@ fun MapScreen() {
 
     var currentLocation by remember { mutableStateOf<LatLng?>(null) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
+    var placeInfos by remember { mutableStateOf<List<PlaceInfo>>(emptyList()) }
+    var selectedPlace by remember { mutableStateOf<PlaceInfo?>(null) }
 
-    val defaultLocation = LatLng(36.6357, 127.4581) // 충북대
+    val defaultLocation = LatLng(36.6357, 127.4581)
 
-    // 현재 위치 가져오기
     LaunchedEffect(Unit) {
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let {
@@ -45,20 +64,82 @@ fun MapScreen() {
         position = CameraPosition(currentLocation ?: defaultLocation, 15.0)
     }
 
+    LaunchedEffect(selectedCategory) {
+        if (selectedCategory != null && currentLocation != null) {
+            placeInfos = getPlacesFromAPI(
+                context = context,
+                category = selectedCategory!!,
+                lat = currentLocation!!.latitude,
+                lon = currentLocation!!.longitude
+            )
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         NaverMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState
         ) {
-            Marker(
-                state = rememberMarkerState(position = defaultLocation),
-                captionText = "충북대학교"
-            )
             currentLocation?.let {
                 Marker(
                     state = rememberMarkerState(position = it),
                     captionText = "내 위치"
                 )
+            }
+
+            placeInfos.forEach { place ->
+                Marker(
+                    state = rememberMarkerState(position = LatLng(place.lat, place.lon)),
+                    onClick = {
+                        selectedPlace = place
+                        true
+                    }
+                )
+            }
+        }
+
+        selectedPlace?.let { place ->
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(place.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text(place.address, fontSize = 14.sp)
+                    Text("전화번호: ${place.phone}", fontSize = 14.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFF4CAF50), RoundedCornerShape(8.dp))
+                                .clickable {
+                                    val gmmIntentUri = Uri.parse("geo:0,0?q=${place.lat},${place.lon}(${place.name})")
+                                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                                    mapIntent.setPackage("com.google.android.apps.maps")
+                                    context.startActivity(mapIntent)
+                                }
+                                .padding(horizontal = 24.dp, vertical = 10.dp)
+                        ) {
+                            Text("길찾기", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFF81C784), RoundedCornerShape(8.dp))
+                                .clickable {
+                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${place.phone}"))
+                                    context.startActivity(intent)
+                                }
+                                .padding(horizontal = 24.dp, vertical = 10.dp)
+                        ) {
+                            Text("전화하기", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             }
         }
 
@@ -68,27 +149,15 @@ fun MapScreen() {
                 .padding(top = 32.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            LargeCategoryButton(
-                text = "병원",
-                color = Color(0xFF4CAF50),
-                icon = "➕",
-                isSelected = selectedCategory == "병원",
-                onClick = { selectedCategory = "병원" }
-            )
-            LargeCategoryButton(
-                text = "경로당",
-                color = Color(0xFF00796B),
-                icon = "\uD83C\uDFE0",
-                isSelected = selectedCategory == "경로당",
-                onClick = { selectedCategory = "경로당" }
-            )
-            LargeCategoryButton(
-                text = "쉼터",
-                color = Color(0xFF039BE5),
-                icon = "\u2744",
-                isSelected = selectedCategory == "쉼터",
-                onClick = { selectedCategory = "쉼터" }
-            )
+            LargeCategoryButton("병원", Color(0xFF4CAF50), "➕", selectedCategory == "hospital") {
+                selectedCategory = "hospital"
+            }
+            LargeCategoryButton("경로당", Color(0xFF00796B), "\uD83C\uDFE0", selectedCategory == "shelter") {
+                selectedCategory = "shelter"
+            }
+            LargeCategoryButton("쉼터", Color(0xFF039BE5), "❄", selectedCategory == "care") {
+                selectedCategory = "care"
+            }
         }
     }
 }
@@ -110,11 +179,49 @@ fun LargeCategoryButton(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "$icon $text",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
+        Text("$icon $text", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = color)
+    }
+}
+
+suspend fun getPlacesFromAPI(
+    context: android.content.Context,
+    category: String,
+    lat: Double,
+    lon: Double
+): List<PlaceInfo> {
+    return withContext(Dispatchers.IO) {
+        val url = URL("https://dundunhi.onrender.com/places?category=$category&lat=$lat&lon=$lon&range=0.5")
+        val conn = url.openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.setRequestProperty("Content-Type", "application/json")
+
+        return@withContext try {
+            val code = conn.responseCode
+            val isStream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val response = isStream.bufferedReader().use { it.readText() }
+
+            Log.d("API_HTTP_CODE", "$code")
+            Log.d("API_RAW_RESPONSE", response)
+
+            val jsonArray = JSONArray(response)
+            List(jsonArray.length()) { i ->
+                val item = jsonArray.getJSONObject(i)
+                PlaceInfo(
+                    name = item.getString("name"),
+                    address = item.getString("address"),
+                    phone = item.getString("phone"),
+                    lat = item.getDouble("lat"),
+                    lon = item.getDouble("lon")
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "장소 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+            }
+            emptyList()
+        } finally {
+            conn.disconnect()
+        }
     }
 }

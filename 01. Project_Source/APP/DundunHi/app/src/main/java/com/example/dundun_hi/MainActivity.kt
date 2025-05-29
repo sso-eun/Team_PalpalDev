@@ -1,5 +1,8 @@
+// MainActivity.kt
 package com.example.dundun_hi
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -10,6 +13,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,16 +32,25 @@ import com.example.dundun_hi.ui.theme.DundunHiTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                1001
+            )
+        }
+
         setContent {
             DundunHiTheme {
                 Surface(Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = "home"
-                    ) {
-                        // ───── 홈 화면 ─────
+                    NavHost(navController = navController, startDestination = "home") {
                         composable("home") {
                             HomeScreen(
                                 onLoginClick = { navController.navigate("login") },
@@ -44,8 +58,6 @@ class MainActivity : ComponentActivity() {
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
-
-                        // ───── 로그인 화면 ─────
                         composable("login") {
                             val loginVm: LoginViewModel = viewModel()
                             LoginScreen(
@@ -57,36 +69,24 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
-                        // ───── 회원가입 화면 ─────
                         composable("signup") {
                             val vm: SignupViewModel = viewModel()
                             val state by vm.state.collectAsState()
-
                             SignupScreen { req -> vm.signup(req) }
-
                             LaunchedEffect(state) {
                                 when (state) {
-                                    is SignupResult.Success -> {
-                                        navController.navigate("main") {
-                                            popUpTo("signup") { inclusive = true }
-                                        }
+                                    is SignupResult.Success -> navController.navigate("main") {
+                                        popUpTo("signup") { inclusive = true }
                                     }
-
-                                    is SignupResult.Error -> {
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            (state as SignupResult.Error).reason,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-
+                                    is SignupResult.Error -> Toast.makeText(
+                                        this@MainActivity,
+                                        (state as SignupResult.Error).reason,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     else -> {}
                                 }
                             }
                         }
-
-                        // ───── 보호자 관련 ─────
                         composable("guardian") {
                             GuardianScreen(
                                 onSubmit = { _, _ -> },
@@ -94,8 +94,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("guardian_signup") { Guardian_SignupScreen() }
-
-                        // ───── 메인 화면 ─────
                         composable("main") {
                             MainScreen(
                                 userName = "길동님",
@@ -105,86 +103,43 @@ class MainActivity : ComponentActivity() {
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { navController.navigate("profile") },
                                 onCameraPageClick = { navController.navigate("camera") },
-                                onMapPageClick = { navController.navigate("map") }, // ✅ 지도 버튼 연결
+                                onMapPageClick = { navController.navigate("map") },
                                 onFindCultureCenter = {},
                                 onKioskPageClick = { navController.navigate("kiosk") },
                                 onProfileClick = { navController.navigate("profile") }
                             )
                         }
-
-                        // ───── 지도 화면 ─────
-                        composable("map") {
-                            MapScreen() // ✅ MapScreen 호출
-                        }
-
-                        // ───── 프로필 화면 ─────
-                        composable("profile") {
-                            ProfileScreen(navController)
-                        }
-
-                        // ───── 알림 기록 화면 ─────
-                        composable("alarm") {
-                            AlarmRecordScreen(navController = navController)
-                        }
-
-                        // ───── 알림 추가 화면 ─────
-                        composable("add_alarm") {
-                            AddAlarmScreen()
-                        }
-
-                        // ───── 활동 내역 화면 ─────
-                        composable("activity_history") {
-                            ActivityHistoryScreen()
-                        }
-
-                        // ───── 카메라 화면 ─────
-                        composable("camera") {
-                            CameraScreen(navController)
-                        }
-
-                        // ───── 최근 사진 화면 ─────
+                        composable("map") { MapScreen() }
+                        composable("profile") { ProfileScreen(navController) }
+                        composable("alarm") { AlarmRecordScreen(navController) }
+                        composable("add_alarm") { AddAlarmScreen() }
+                        composable("activity_history") { ActivityHistoryScreen() }
+                        composable("camera") { CameraScreen(navController) }
                         composable("lastphoto") {
-                            val dummyList = listOf(
-                                SharedPhoto(R.drawable.img1, fromMe = true),
-                                SharedPhoto(R.drawable.img2, fromMe = false),
-                                SharedPhoto(R.drawable.img3, fromMe = true)
-                            )
                             LastPhotoScreen(
-                                photos = dummyList,
-                                onAddPhoto = { /* TODO */ }
+                                photos = listOf(
+                                    SharedPhoto(R.drawable.img1, fromMe = true),
+                                    SharedPhoto(R.drawable.img2, fromMe = false),
+                                    SharedPhoto(R.drawable.img3, fromMe = true)
+                                ),
+                                onAddPhoto = {}
                             )
                         }
-
-                        // ───── 키오스크 화면 ─────
-                        composable("kiosk") {
-                            KioskScreen()
-                        }
-
-                        // ───── 빠른전화 화면 ─────
+                        composable("kiosk") { KioskScreen() }
                         composable("call") {
                             val viewModel: CallViewModel = viewModel()
                             val shortcuts by viewModel.shortcuts.collectAsState()
-
-                            CallScreen(
-                                contacts = shortcuts,
-                                onAddShortcut = { idx ->
-                                    navController.navigate("call_setup/$idx")
-                                }
-                            )
+                            CallScreen(contacts = shortcuts) { idx ->
+                                navController.navigate("call_setup/$idx")
+                            }
                         }
-
-                        // ───── 단축키 설정 화면 ─────
-                        composable("call_setup/{index}") { back ->
+                        composable("call_setup/{index}") { backStack ->
                             val viewModel: CallViewModel = viewModel()
-                            val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
-
-                            SetupShortcutScreen(
-                                index = idx,
-                                onDone = {
-                                    viewModel.loadShortcuts()
-                                    navController.popBackStack()
-                                }
-                            )
+                            val idx = backStack.arguments?.getString("index")?.toIntOrNull() ?: 0
+                            SetupShortcutScreen(index = idx) {
+                                viewModel.loadShortcuts()
+                                navController.popBackStack()
+                            }
                         }
                     }
                 }
