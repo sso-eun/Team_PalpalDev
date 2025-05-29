@@ -50,7 +50,6 @@ fun LastPhotoScreen(
     }
 }
 
-/* ───── ChatBubble: 파일 안에서만 쓰이므로 private ───── */
 @Composable
 private fun ChatBubble(
     surfaceColor: Color,

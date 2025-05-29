@@ -63,7 +63,7 @@ fun MainScreen(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // 타이틀-----------------------------------------------------------------------
+        // 타이틀
         Text(
             text = "든든하이",
             style = MaterialTheme.typography.titleLarge,
@@ -71,7 +71,7 @@ fun MainScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 인사 + 날씨 카드 ---------------------------------------------------------------
+        // 인사 + 날씨 카드
         Surface(
             tonalElevation = 4.dp,
             shape = RoundedCornerShape(12.dp),
@@ -152,7 +152,7 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 키오스크, 문화센터 ------------------------------------------------------------------
+        // 키오스크, 문화센터
         val items = listOf(
             "문화센터 찾기" to onFindCultureCenter,
             "키오스크" to onKioskPageClick

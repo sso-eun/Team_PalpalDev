@@ -34,7 +34,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.dundun_hi.ui.theme.DundunHiTheme
 
-/* ───────── 실제 NavController 버전 ───────── */
 @Composable
 fun CameraScreen(navController: NavController) {
     CameraScreenContent(
@@ -42,7 +41,6 @@ fun CameraScreen(navController: NavController) {
     )
 }
 
-/* ───────── 순수 UI만 담은 Content ───────── */
 @Composable
 private fun CameraScreenContent(
     onLastPhotoClick: () -> Unit
@@ -96,7 +94,6 @@ private fun CameraScreenContent(
     }
 }
 
-/* ───────── 공용 카드 컴포저블 ───────── */
 @Composable
 private fun SurfaceCard(
     label: String,
