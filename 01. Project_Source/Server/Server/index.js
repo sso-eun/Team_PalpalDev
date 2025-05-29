@@ -10,6 +10,7 @@ const memberRouter = require('./routes/memberRouter');
 const memberDateRouter = require('./routes/memberDateRouter');
 const uploadRouter = require('./routes/uploadRouter');
 const sendRouter = require('./routes/sendAuthRouter');
+const talkRouter = require('./routes/talkRouter');
 
 // 250517_은재_라우터 등록
 const weatherRouter = require('./routes/weatherRouter');
@@ -39,10 +40,16 @@ app.get('/', (req, res) => {
 
 // /member
 app.use('/member', memberRouter);
+// 멤버 일정
 app.use('/date', memberDateRouter);
+// 파일업로드
 app.use('/upload', uploadRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/send',sendRouter);
+//sms 인증
+app.use('/code_auth',sendRouter);
+// 멤버 대화내역
+app.use('/talk', talkRouter);
+
 
 // 250517_은재_추가
 // /api/places로 들어온 요청을 .placeRouter에 넘기는 거임
