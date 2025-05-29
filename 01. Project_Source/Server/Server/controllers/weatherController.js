@@ -12,7 +12,6 @@ const router = express.Router();
 // const path = require('path');
 // require('dotenv').config({ path: path.join(__dirname, '.env.weather') });
 
-
 // 서버 객체 만들고 포트 번호를 3000으로 설정
 const app = express();
 const port = 3000;
