@@ -1,11 +1,9 @@
-// MapScreen.kt
 package com.example.dundun_hi.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.location.Location
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
+import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.compose.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -50,18 +49,16 @@ fun MapScreen() {
     var placeInfos by remember { mutableStateOf<List<PlaceInfo>>(emptyList()) }
     var selectedPlace by remember { mutableStateOf<PlaceInfo?>(null) }
 
+    val cameraPositionState = rememberCameraPositionState()
     val defaultLocation = LatLng(36.6357, 127.4581)
 
     LaunchedEffect(Unit) {
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let {
                 currentLocation = LatLng(it.latitude, it.longitude)
+                cameraPositionState.move(CameraUpdate.toCameraPosition(CameraPosition(currentLocation!!, 15.0)))
             }
         }
-    }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition(currentLocation ?: defaultLocation, 15.0)
     }
 
     LaunchedEffect(selectedCategory) {
@@ -103,59 +100,69 @@ fun MapScreen() {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
-                    .background(Color.White, RoundedCornerShape(16.dp))
-                    .padding(16.dp)
+                    .background(Color.White, RoundedCornerShape(20.dp))
+                    .padding(28.dp)
             ) {
-                Column(horizontalAlignment = Alignment.Start) {
-                    Text(place.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(Modifier.height(4.dp))
-                    Text(place.address, fontSize = 14.sp)
-                    Text("전화번호: ${place.phone}", fontSize = 14.sp)
-                    Spacer(Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(place.name, fontWeight = FontWeight.Bold, fontSize = 24.sp) // 🔼 이름 크게
+                    Spacer(Modifier.height(10.dp))
+                    Text(place.address, fontSize = 20.sp)
+                    Text("전화번호: ${place.phone}", fontSize = 20.sp)
+                    Spacer(Modifier.height(20.dp))
+
+                    val buttonColor = Color(0xFF4CAF50)
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF4CAF50), RoundedCornerShape(8.dp))
+                                .background(buttonColor, RoundedCornerShape(12.dp))
                                 .clickable {
-                                    val gmmIntentUri = Uri.parse("geo:0,0?q=${place.lat},${place.lon}(${place.name})")
+                                    val gmmIntentUri =
+                                        Uri.parse("geo:0,0?q=${place.lat},${place.lon}(${place.name})")
                                     val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
                                     mapIntent.setPackage("com.google.android.apps.maps")
                                     context.startActivity(mapIntent)
                                 }
-                                .padding(horizontal = 24.dp, vertical = 10.dp)
+                                .padding(horizontal = 32.dp, vertical = 16.dp)
                         ) {
-                            Text("길찾기", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("길찾기", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
 
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF81C784), RoundedCornerShape(8.dp))
+                                .background(buttonColor, RoundedCornerShape(12.dp))
                                 .clickable {
                                     val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${place.phone}"))
                                     context.startActivity(intent)
                                 }
-                                .padding(horizontal = 24.dp, vertical = 10.dp)
+                                .padding(horizontal = 32.dp, vertical = 16.dp)
                         ) {
-                            Text("전화하기", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("전화하기", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
                     }
                 }
             }
         }
 
+
+
+        // 카테고리 버튼
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LargeCategoryButton("병원", Color(0xFF4CAF50), "➕", selectedCategory == "hospital") {
+            LargeCategoryButton("🏥", "병원", Color(0xFF4CAF50), selectedCategory == "hospital") {
                 selectedCategory = "hospital"
             }
-            LargeCategoryButton("경로당", Color(0xFF00796B), "\uD83C\uDFE0", selectedCategory == "shelter") {
+            LargeCategoryButton("🏠", "경로당", Color(0xFF00796B), selectedCategory == "shelter") {
                 selectedCategory = "shelter"
             }
-            LargeCategoryButton("쉼터", Color(0xFF039BE5), "❄", selectedCategory == "care") {
+            LargeCategoryButton("❄", "쉼터", Color(0xFF039BE5), selectedCategory == "care") {
                 selectedCategory = "care"
             }
         }
@@ -164,22 +171,28 @@ fun MapScreen() {
 
 @Composable
 fun LargeCategoryButton(
-    text: String,
-    color: Color,
     icon: String,
+    label: String,
+    color: Color,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) Color(0xFFE0E0E0) else Color.White
+    val backgroundColor = if (isSelected) color else Color.White
+    val textColor = if (isSelected) Color.White else color
 
     Box(
         modifier = Modifier
-            .background(color = backgroundColor, shape = RoundedCornerShape(24.dp))
+            .background(backgroundColor, RoundedCornerShape(32.dp))
             .clickable { onClick() }
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 28.dp, vertical = 18.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text("$icon $text", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = color)
+        Text(
+            text = "$icon $label",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
     }
 }
 
@@ -195,14 +208,8 @@ suspend fun getPlacesFromAPI(
         conn.requestMethod = "GET"
         conn.setRequestProperty("Content-Type", "application/json")
 
-        return@withContext try {
-            val code = conn.responseCode
-            val isStream = if (code in 200..299) conn.inputStream else conn.errorStream
-            val response = isStream.bufferedReader().use { it.readText() }
-
-            Log.d("API_HTTP_CODE", "$code")
-            Log.d("API_RAW_RESPONSE", response)
-
+        try {
+            val response = conn.inputStream.bufferedReader().readText()
             val jsonArray = JSONArray(response)
             List(jsonArray.length()) { i ->
                 val item = jsonArray.getJSONObject(i)
