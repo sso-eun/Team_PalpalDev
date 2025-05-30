@@ -47,6 +47,8 @@ app.use('/upload', uploadRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //sms 인증
 app.use('/code_auth',sendRouter);
+//render 서버에서 _ 감지 불능으로 _제거용 주소 추가.
+app.use('/codeauth',sendRouter);
 // 멤버 대화내역
 app.use('/talk', talkRouter);
 
