@@ -43,7 +43,6 @@ import com.example.dundun_hi.ui.login.LoginViewModel
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.screen.LastPhotoScreen
 import com.example.dundun_hi.ui.signup.AuthPhoneScreen
-import com.example.dundun_hi.ui.signup.SignupResult
 import com.example.dundun_hi.ui.signup.SignupScreen
 import com.example.dundun_hi.ui.signup.SignupViewModel
 import com.example.dundun_hi.ui.signup.VerifyCodeScreen
@@ -170,35 +169,69 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate("verify_code")
                             })
                         }
+                        // MainActivity.kt 에서 NavHost 내부
                         composable("verify_code") {
-                            VerifyCodeScreen(onVerified = {
-                                navController.navigate("signup")
-                            })
+                            // 뷰모델 가져오기
+                            val signupVm: SignupViewModel = viewModel()
+                            // onVerified 콜백만 넘겨주고 navController는 여기서 직접 씁니다.
+                            VerifyCodeScreen(
+                                viewModel  = signupVm,
+                                onVerified = {
+                                    navController.navigate("signup")
+                                }
+                            )
                         }
 
-                        // Signup
+                        // 3) 최종 회원가입 화면 (이전 enter_profile 자리에)
                         composable("signup") {
                             val signupVm: SignupViewModel = viewModel()
-                            val state by signupVm.state.collectAsState()
-
-                            SignupScreen { req -> signupVm.signup(req) }
-
-                            LaunchedEffect(state) {
-                                when (state) {
-                                    is SignupResult.Success ->
-                                        navController.navigate("main/${Uri.encode((state as SignupResult.Success).userId)}") {
-                                            popUpTo("signup") { inclusive = true }
-                                        }
-                                    is SignupResult.Error ->
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            (state as SignupResult.Error).reason,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    else -> Unit
+                            SignupScreen(
+                                viewModel       = signupVm,
+                                onSignupSuccess = {
+                                    // 가입 성공 후 로딩 페이지로
+                                    navController.navigate("loading/${Uri.encode(signupVm.lastUserId)}") {
+                                        popUpTo("signup") { inclusive = true }
+                                    }
                                 }
-                            }
+                            )
                         }
+
+                        composable(
+                            route = "loading/{userId}",
+                            arguments = listOf(navArgument("userId") {
+                                type = NavType.StringType
+                            })
+                        ) { backEntry ->
+                            val userId = backEntry.arguments?.getString("userId") ?: ""
+                            LoadingScreen(
+                                navController = navController,
+                                userId        = userId
+                            )
+                        }
+
+//                        // Signup
+//                        composable("signup") {
+//                            val signupVm: SignupViewModel = viewModel()
+//                            val state by signupVm.state.collectAsState()
+//
+//                            SignupScreen { req -> signupVm.signup(req) }
+//
+//                            LaunchedEffect(state) {
+//                                when (state) {
+//                                    is SignupResult.Success ->
+//                                        navController.navigate("main/${Uri.encode((state as SignupResult.Success).userId)}") {
+//                                            popUpTo("signup") { inclusive = true }
+//                                        }
+//                                    is SignupResult.Error ->
+//                                        Toast.makeText(
+//                                            this@MainActivity,
+//                                            (state as SignupResult.Error).reason,
+//                                            Toast.LENGTH_SHORT
+//                                        ).show()
+//                                    else -> Unit
+//                                }
+//                            }
+//                        }
 
                         // Guardian
                         composable("guardian") {

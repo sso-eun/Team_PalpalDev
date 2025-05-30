@@ -27,15 +27,18 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun LoadingScreen(navController: NavController, userName: String) {
-    val decodedUserName = URLDecoder.decode(userName, StandardCharsets.UTF_8.toString())
+fun LoadingScreen(navController: NavController, userId: String) {
+    val decodedUserName = URLDecoder.decode(userId, StandardCharsets.UTF_8.toString())
 
     LaunchedEffect(Unit) {
         delay(3000)
-        navController.navigate("main/$userName") {
-            popUpTo("loading") { inclusive = true }
+        navController.navigate("main/$userId") {
+            popUpTo("loading/{userId}") {  // ← 라우트 템플릿과 똑같이
+                inclusive = true
+            }
         }
     }
+
 
     Box(
         modifier = Modifier
@@ -69,8 +72,9 @@ fun LoadingScreen(navController: NavController, userName: String) {
 
             Button(
                 onClick = {
-                    navController.navigate("main/$userName") {
-                        popUpTo("signup") { inclusive = true }
+                    navController.navigate("main/$userId") {
+                        popUpTo("loading/{userId}") {
+                            inclusive = true}
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
