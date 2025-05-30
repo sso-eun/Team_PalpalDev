@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,13 +22,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+/**
+ * 한 화면에서 SMS 인증 전체 처리
+ * 1) 전화번호 입력 → sendCode()
+ * 2) 인증번호 입력 → verifyCode()
+ * 성공 시 onNext() 호출
+ */
 @Composable
-fun VerifyCodeScreen(
+fun CombinedAuthScreen(
     viewModel: SignupViewModel = viewModel(),
-    onVerified: () -> Unit
+    onNext: () -> Unit
 ) {
-    var code by remember { mutableStateOf("") }
-    val result by viewModel.verifyCodeResult.collectAsState()
+    var phone by remember { mutableStateOf("") }
+    var code  by remember { mutableStateOf("") }
+
+    val sendResult   by viewModel.sendCodeResult.collectAsState()
+    val verifyResult by viewModel.verifyCodeResult.collectAsState()
 
     Column(
         modifier = Modifier
@@ -37,39 +45,52 @@ fun VerifyCodeScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("인증번호를 입력하세요", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(16.dp))
+        // 1) 전화번호 입력 & 발송
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it.filter { c -> c.isDigit() } },
+            label = { Text("전화번호") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp)
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = { viewModel.sendVerificationCode(phone) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text("인증번호 받기")
+        }
+        // 발송 실패 메시지
 
+        Spacer(Modifier.height(24.dp))
+
+        // 2) 인증번호 입력 & 확인
         OutlinedTextField(
             value = code,
-            onValueChange = { input -> code = input.filter { it.isDigit() } },
+            onValueChange = { code = it.filter { c -> c.isDigit() } },
             label = { Text("인증번호") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp)
         )
-        Spacer(Modifier.height(16.dp))
-
+        Spacer(Modifier.height(8.dp))
         Button(
             onClick = { viewModel.verifyAuthCode(code) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text("인증번호 확인하기")
+            Text("인증번호 확인")
         }
-        Spacer(Modifier.height(12.dp))
+        // 검증 실패 메시지
 
-        //result가 바뀔때 onresponse마다 실행되도록 key에 reuslt를 사요해야됨
-        result?.let {
-            if (it.rsCode == 200) {
-                LaunchedEffect(result) { onVerified() }
-            } else {
-                Text(
-                    text = it.message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+    }
+
+    // 인증 성공 시 onNext() 호출
+    LaunchedEffect(verifyResult) {
+        if (verifyResult?.rsCode == 200) {
+            onNext()
         }
     }
 }

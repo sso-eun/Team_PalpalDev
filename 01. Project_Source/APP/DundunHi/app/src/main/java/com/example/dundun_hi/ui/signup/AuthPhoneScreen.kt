@@ -68,7 +68,6 @@ fun AuthPhoneScreen(
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(text = "전화번호 인증하기")
-            //dddddddddddddd
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -77,7 +76,7 @@ fun AuthPhoneScreen(
         sendResult?.let { result: CodeAuthSendResponse ->
             if (result.rsCode == 200) {
                 // 성공 시 다음 화면으로 이동
-                LaunchedEffect(Unit) {
+                LaunchedEffect(sendResult) {
                     onNext()
                 }
             } else {
