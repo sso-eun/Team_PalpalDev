@@ -36,7 +36,11 @@ object RetrofitClient {
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 
+    //날씨api
     val weatherApi: WeatherApi = retrofit.create(WeatherApi::class.java)
+    //sms인증 서비스
+    val codeAuthService: CodeAuthService   = retrofit.create(CodeAuthService::class.java)
+
 
 
 }

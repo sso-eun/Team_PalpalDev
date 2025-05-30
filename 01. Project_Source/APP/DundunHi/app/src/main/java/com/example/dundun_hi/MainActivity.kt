@@ -1,7 +1,10 @@
 package com.example.dundun_hi
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +14,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,18 +42,48 @@ import com.example.dundun_hi.ui.login.LoginScreen
 import com.example.dundun_hi.ui.login.LoginViewModel
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.screen.LastPhotoScreen
+import com.example.dundun_hi.ui.signup.AuthPhoneScreen
 import com.example.dundun_hi.ui.signup.SignupResult
 import com.example.dundun_hi.ui.signup.SignupScreen
 import com.example.dundun_hi.ui.signup.SignupViewModel
+import com.example.dundun_hi.ui.signup.VerifyCodeScreen
 import com.example.dundun_hi.ui.theme.DundunHiTheme
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val REQUEST_LOCATION = 1001
+    }
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 런타임 위치 권한 요청
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                REQUEST_LOCATION
+            )
+        }
+
+        // FusedLocationProviderClient 초기화
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         setContent {
             DundunHiTheme {
                 Surface(Modifier.fillMaxSize()) {
-                    // 1) Activity-scoped WeatherViewModel 생성
+                    // WeatherViewModel 생성 (Activity scope)
                     val weatherVM: WeatherViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -62,9 +97,42 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    // 2) 앱 시작하자마자 날씨 한 번 로드
+                    // 앱 시작 시 한 번만 위치 기반 날씨 로드
                     LaunchedEffect(Unit) {
-                        weatherVM.load(lat = 37.5665, lon = 126.9780)
+                        if (ContextCompat.checkSelfPermission(
+                                this@MainActivity,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            fusedLocationClient.lastLocation
+                                .addOnSuccessListener { location ->
+                                    if (location != null) {
+
+                                        Log.d("LocationDebug", "latitude=${location.latitude}, longitude=${location.longitude}")
+
+                                        // 2) 토스트로 잠깐 띄워 보기
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "위도: ${location.latitude}, 경도: ${location.longitude}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        weatherVM.load(
+                                            lat = location.latitude,
+                                            lon = location.longitude
+                                        )
+                                    } else {
+                                        // 위치 못 구했으면 기본 좌표로
+                                        weatherVM.load(lat = 37.5665, lon = 126.9780)
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    weatherVM.load(lat = 37.5665, lon = 126.9780)
+                                }
+                        } else {
+                            // 권한 없으면 기본 좌표로
+                            weatherVM.load(lat = 37.5665, lon = 126.9780)
+                        }
                     }
 
                     val navController = rememberNavController()
@@ -73,16 +141,16 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = "home"
                     ) {
-                        // ───── Home ─────
+                        // Home
                         composable("home") {
                             HomeScreen(
                                 onLoginClick    = { navController.navigate("login") },
-                                onSignupClick   = { navController.navigate("signup") },
+                                onSignupClick   = { navController.navigate("auth_phone") },
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
 
-                        // ───── Login ─────
+                        // Login
                         composable("login") {
                             val loginVm: LoginViewModel = viewModel()
                             LoginScreen(
@@ -96,7 +164,19 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ───── Signup ─────
+                        // Auth Phone
+                        composable("auth_phone") {
+                            AuthPhoneScreen(onNext = {
+                                navController.navigate("verify_code")
+                            })
+                        }
+                        composable("verify_code") {
+                            VerifyCodeScreen(onVerified = {
+                                navController.navigate("signup")
+                            })
+                        }
+
+                        // Signup
                         composable("signup") {
                             val signupVm: SignupViewModel = viewModel()
                             val state by signupVm.state.collectAsState()
@@ -120,7 +200,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // ───── Guardian ─────
+                        // Guardian
                         composable("guardian") {
                             GuardianScreen(
                                 onSubmit      = { _, _ -> },
@@ -131,7 +211,7 @@ class MainActivity : ComponentActivity() {
                             Guardian_SignupScreen()
                         }
 
-                        // ───── Main ─────
+                        // Main
                         composable(
                             route = "main/{userName}",
                             arguments = listOf(navArgument("userName") {
@@ -141,10 +221,9 @@ class MainActivity : ComponentActivity() {
                         ) { backEntry ->
                             val name = Uri.decode(backEntry.arguments?.getString("userName") ?: "손님")
 
-                            // 이미 로드된 날씨 상태 구독
                             val weatherState by weatherVM.uiState.collectAsState()
 
-                            // 에러 발생 시 Toast
+                            // Error toast
                             LaunchedEffect(weatherState) {
                                 if (weatherState is WeatherUiState.Error) {
                                     Toast.makeText(
@@ -155,7 +234,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            // 성공 시 데이터 파싱
+                            // Parse data
                             val success = weatherState as? WeatherUiState.Success
                             val temp  = success?.data?.currentTemp
                                 ?.toDoubleOrNull()?.toInt() ?: 0
@@ -179,35 +258,18 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ───── Kiosk ─────
-                        composable("kiosk") {
-                            KioskScreen()
-                        }
-
-                        // ───── Camera ─────
-                        composable("camera") {
-                            CameraScreen(navController)
-                        }
-
-                        // ───── LastPhoto ─────
+                        // 기타
+                        composable("kiosk") { KioskScreen() }
+                        composable("camera") { CameraScreen(navController) }
                         composable("lastphoto") {
                             val dummy = listOf(
                                 SharedPhoto(R.drawable.img1, true),
                                 SharedPhoto(R.drawable.img2, false),
                                 SharedPhoto(R.drawable.img3, true)
                             )
-                            LastPhotoScreen(
-                                photos     = dummy,
-                                onAddPhoto = { /* TODO */ }
-                            )
+                            LastPhotoScreen(photos = dummy, onAddPhoto = { /* TODO */ })
                         }
-
-                        // ───── Profile ─────
-                        composable("profile") {
-                            ProfileScreen()
-                        }
-
-                        // ───── Call ─────
+                        composable("profile") { ProfileScreen() }
                         composable("call") {
                             val callVm: CallViewModel = viewModel()
                             val shortcuts by callVm.shortcuts.collectAsState()
@@ -218,8 +280,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
-                        // ───── Call Setup ─────
                         composable("call_setup/{index}") { back ->
                             val callVm: CallViewModel = viewModel()
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
