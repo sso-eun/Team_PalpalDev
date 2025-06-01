@@ -200,7 +200,12 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // Signup (이름·집 상태)
+                        // Guardian login-----------------------------------------------------------------------------
+                        composable("guardian") {
+                            GuardianScreen(onSubmit = { _, _ -> },
+                                onSignupClick = { navController.navigate("auth") }) }
+
+                        // Guardian_signup---------------------------------------------------------------------------
                         composable("guardian_signup") {
                             val state by signupVm.state.collectAsState()
                             SignupScreen(
@@ -276,8 +281,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Guardian & 기타
-                        composable("guardian") { GuardianScreen(onSubmit = { _, _ -> }, onSignupClick = { navController.navigate("guardian_signup") }) }
+
 
                         composable("kiosk") { KioskScreen() }
                         composable("camera") { CameraScreen(navController) }
