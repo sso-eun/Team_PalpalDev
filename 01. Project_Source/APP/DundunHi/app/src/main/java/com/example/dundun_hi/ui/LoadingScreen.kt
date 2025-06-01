@@ -1,4 +1,4 @@
-package com.example.dundun_hi
+package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,15 +30,15 @@ import java.nio.charset.StandardCharsets
 fun LoadingScreen(navController: NavController, userId: String) {
     val decodedUserName = URLDecoder.decode(userId, StandardCharsets.UTF_8.toString())
 
-    LaunchedEffect(Unit) {
+    // userId 변경 시에만 LaunchedEffect 실행되도록 수정
+    LaunchedEffect(userId) {
         delay(3000)
         navController.navigate("main/$userId") {
-            popUpTo("loading/{userId}") {  // ← 라우트 템플릿과 똑같이
+            popUpTo("loadingScreen/{userId}") {
                 inclusive = true
             }
         }
     }
-
 
     Box(
         modifier = Modifier
@@ -73,8 +73,9 @@ fun LoadingScreen(navController: NavController, userId: String) {
             Button(
                 onClick = {
                     navController.navigate("main/$userId") {
-                        popUpTo("loading/{userId}") {
-                            inclusive = true}
+                        popUpTo("loadingScreen/{userId}") {
+                            inclusive = true
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),

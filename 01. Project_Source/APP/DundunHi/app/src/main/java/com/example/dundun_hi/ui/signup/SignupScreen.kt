@@ -1,5 +1,6 @@
 package com.example.dundun_hi.ui.signup
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -119,12 +120,9 @@ fun SignupScreen(
     }
 
     LaunchedEffect(state) {
-        when (state) {
-            is SignupResult.Success -> onSignupSuccess()
-            is SignupResult.Error -> {
-                Toast.makeText(ctx, (state as SignupResult.Error).reason, Toast.LENGTH_SHORT).show()
-            }
-            else -> {}
+        if (state is SignupResult.Success) {
+            Log.d("SignupFlow", "SignupScreen LaunchedEffect: state is Success")
+            onSignupSuccess()
         }
     }
 }
