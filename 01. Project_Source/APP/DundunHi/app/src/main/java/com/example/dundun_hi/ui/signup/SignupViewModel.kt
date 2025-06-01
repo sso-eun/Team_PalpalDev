@@ -22,7 +22,8 @@ class SignupViewModel(
     // 잠시만 번호 지정 나중에 주석처리한거로 바꾸기!____---------------------------------------------------
     var lastTelNum: String = "01032135963"
         private set
-    // 1) 마지막에 보낸 전화번호 저장
+
+//    //1) 마지막에 보낸 전화번호 저장
 //    var lastTelNum: String = ""
 //        private set
 
@@ -30,7 +31,7 @@ class SignupViewModel(
     private val _sendCodeResult = MutableStateFlow<CodeAuthSendResponse?>(null)
     val sendCodeResult: StateFlow<CodeAuthSendResponse?> = _sendCodeResult
 
-    // 3) 인증번호 검증 결과 (★ 이 부분이 누락되어 있었습니다)
+    // 3) 인증번호 검증 결과
     private val _verifyCodeResult = MutableStateFlow<CodeAuthVerifyResponse?>(null)
     val verifyCodeResult: StateFlow<CodeAuthVerifyResponse?> = _verifyCodeResult
 
@@ -68,12 +69,18 @@ class SignupViewModel(
     var lastUserId: String = ""
         private set
 
+
+    // 회원가입 후 로딩-> 메인 ----------------------------------------------------------------
+    //이거 해결한다고 2일은 걸렸다
+    // lastUserId에 resp.userId가 아닌 req.user_id를 넣어야됨(statevalue에도)
+    // 왜냐하면 resp에 userId가 정의되어있지만 서버에서 실제로 보내는 값은 userNum이랑 message밖에 없어서
+    // 계속 비어있는 값을 지니고 있어서 안넘어갔던거임
     fun signup(req: SignupRequest) = viewModelScope.launch {
         try {
             val resp = repo.signup(req)
-            if (resp.message == "success") {
-                lastUserId = resp.userId
-                _state.value = SignupResult.Success(resp.userId, resp.userNum)
+            if (resp.message == "회원가입 성공") {
+                lastUserId = req.user_id
+                _state.value = SignupResult.Success(lastUserId, resp.userNum)
             } else {
                 _state.value = SignupResult.Error(resp.message)
             }
@@ -82,3 +89,4 @@ class SignupViewModel(
         }
     }
 }
+

@@ -32,14 +32,14 @@ import androidx.compose.ui.unit.sp
 import com.example.dundun_hi.data.SignupRequest
 
 @Composable
-fun SignupScreen(
+fun Guardian_SignupScreen(
     viewModel: SignupViewModel,
     onSignupSuccess: () -> Unit
 ) {
     val ctx = LocalContext.current
 
     var name by remember { mutableStateOf("") }
-    // SMS 인증에서 ViewModel에 저장된 전화번호 사용
+
     val phone = viewModel.lastTelNum
 
     // 0 = 집, 1 = 외출
@@ -128,7 +128,8 @@ fun SignupScreen(
                 } else {
                     viewModel.signup(
                         SignupRequest(
-                            user_type       = 0,
+                            //usertype이 일반 유저 회원가입이랑 유일한 다른점
+                            user_type       = 1,
                             user_id         = name,
                             user_pw         = phone,
                             user_tel        = phone,

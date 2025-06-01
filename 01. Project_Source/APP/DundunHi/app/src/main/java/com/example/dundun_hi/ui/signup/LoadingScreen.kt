@@ -1,4 +1,4 @@
-package com.example.dundun_hi.ui
+package com.example.dundun_hi.ui.signup
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -63,7 +63,7 @@ fun LoadingScreen(navController: NavController, userId: String) {
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "$decodedUserName 환영합니다!",
+                text = "${decodedUserName}님 환영합니다!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -85,7 +85,7 @@ fun LoadingScreen(navController: NavController, userId: String) {
                     .height(48.dp)
             ) {
                 Text(
-                    text = "3초뒤 메인페이지 이동",
+                    text = "잠시뒤 메인페이지 이동",
                     color = Color.White,
                     fontSize = 16.sp
                 )

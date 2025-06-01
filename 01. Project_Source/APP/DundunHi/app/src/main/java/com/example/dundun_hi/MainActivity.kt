@@ -31,11 +31,8 @@ import com.example.dundun_hi.model.WeatherUiState
 import com.example.dundun_hi.model.WeatherViewModel
 import com.example.dundun_hi.network.RetrofitClient
 import com.example.dundun_hi.network.WeatherService
-import com.example.dundun_hi.ui.GuardianScreen
-import com.example.dundun_hi.ui.Guardian_SignupScreen
 import com.example.dundun_hi.ui.HomeScreen
 import com.example.dundun_hi.ui.KioskScreen
-import com.example.dundun_hi.ui.LoadingScreen
 import com.example.dundun_hi.ui.MainScreen
 import com.example.dundun_hi.ui.ProfileScreen
 import com.example.dundun_hi.ui.SetupShortcutScreen
@@ -43,6 +40,9 @@ import com.example.dundun_hi.ui.login.LoginScreen
 import com.example.dundun_hi.ui.login.LoginViewModel
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.screen.LastPhotoScreen
+import com.example.dundun_hi.ui.signup.CombinedAuthScreen
+import com.example.dundun_hi.ui.signup.GuardianScreen
+import com.example.dundun_hi.ui.signup.LoadingScreen
 import com.example.dundun_hi.ui.signup.SignupResult
 import com.example.dundun_hi.ui.signup.SignupScreen
 import com.example.dundun_hi.ui.signup.SignupViewModel
@@ -93,7 +93,44 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    // 앱 시작 날씨 로드 (생략)
+                    // 앱 시작 시 한 번만 위치 기반 날씨 로드 ----------------------------------------------------------------------------
+                    // 이거 없으면 날씨 아예 안뜸
+                    LaunchedEffect(Unit) {
+                        if (ContextCompat.checkSelfPermission(
+                                this@MainActivity,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            fusedLocationClient.lastLocation
+                                .addOnSuccessListener { location ->
+                                    if (location != null) {
+
+                                        Log.d("LocationDebug", "latitude=${location.latitude}, longitude=${location.longitude}")
+
+                                        // 2) 토스트로 잠깐 띄워 보기
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "위도: ${location.latitude}, 경도: ${location.longitude}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        weatherVM.load(
+                                            lat = location.latitude,
+                                            lon = location.longitude
+                                        )
+                                    } else {
+                                        // 위치 못 구했으면 기본 좌표로
+                                        weatherVM.load(lat = 37.5665, lon = 126.9780)
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    weatherVM.load(lat = 37.5665, lon = 126.9780)
+                                }
+                        } else {
+                            // 권한 없으면 기본 좌표로
+                            weatherVM.load(lat = 37.5665, lon = 126.9780)
+                        }
+                    }
 
                     // 회원가입 플로우용 ViewModel
                     val signupVm: SignupViewModel = viewModel()
@@ -107,7 +144,9 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 onLoginClick = { navController.navigate("login") },
-                                onSignupClick = { navController.navigate("signup") },
+                                onSignupClick = { navController.navigate("auth") },
+                                //바로 회원가입가기 할려면 이거 고치기
+                               // onSignupClick = { navController.navigate("signup") },
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
@@ -125,6 +164,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+//                       //─── Combined Auth ───
+                        composable("auth") {
+                            CombinedAuthScreen(
+                                viewModel = signupVm,
+                                onNext = { navController.navigate("signup") }
+                            )
+                        }
+
+
                         // Signup (이름·집 상태)
                         composable("signup") {
                             val state by signupVm.state.collectAsState()
@@ -132,9 +180,41 @@ class MainActivity : ComponentActivity() {
                                 viewModel = signupVm,
                                 onSignupSuccess = {
                                     val userId = signupVm.lastUserId
-                                    Log.d("SignupFlow", "Navigating to loadingScreen with userId=$userId")
+
+                                    Log.d("SignupFlow", "Navigating to mainScreen with userId=$userId")
                                     navController.navigate("loadingScreen/$userId") {
+
+                                        // 회원가입 성공 시 로딩화면이 아닌 메인 화면으로 바로 이동하도록 변경
+                                        //navController.navigate("main/${Uri.encode(userId)}") {
                                         popUpTo("signup") { inclusive = true }
+
+                                    }
+                                }
+                            )
+                            if (state is SignupResult.Error) {
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    (state as SignupResult.Error).reason,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        // Signup (이름·집 상태)
+                        composable("guardian_signup") {
+                            val state by signupVm.state.collectAsState()
+                            SignupScreen(
+                                viewModel = signupVm,
+                                onSignupSuccess = {
+                                    val userId = signupVm.lastUserId
+
+                                    Log.d("SignupFlow", "Navigating to mainScreen with userId=$userId")
+                                    navController.navigate("loadingScreen/$userId") {
+
+                                        // 회원가입 성공 시 로딩화면이 아닌 메인 화면으로 바로 이동하도록 변경
+                                        //navController.navigate("main/${Uri.encode(userId)}") {
+                                        popUpTo("guardian_signup") { inclusive = true }
+
                                     }
                                 }
                             )
@@ -198,7 +278,7 @@ class MainActivity : ComponentActivity() {
 
                         // Guardian & 기타
                         composable("guardian") { GuardianScreen(onSubmit = { _, _ -> }, onSignupClick = { navController.navigate("guardian_signup") }) }
-                        composable("guardian_signup") { Guardian_SignupScreen() }
+
                         composable("kiosk") { KioskScreen() }
                         composable("camera") { CameraScreen(navController) }
                         composable("lastphoto") {
