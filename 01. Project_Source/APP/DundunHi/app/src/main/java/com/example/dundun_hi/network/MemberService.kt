@@ -1,5 +1,7 @@
 package com.example.dundun_hi.network
 
+import com.example.dundun_hi.data.FindIdRequest
+import com.example.dundun_hi.data.FindIdResponse
 import com.example.dundun_hi.data.LoginRequest
 import com.example.dundun_hi.data.LoginResponse
 import com.example.dundun_hi.data.SignupRequest
@@ -17,5 +19,8 @@ interface MemberService {
     //signup
     @POST("/member/signup")
     suspend fun signup(@Body req: SignupRequest): Response<SignupResponse>
+
+    @POST("member/findid")
+    suspend fun findId(@Body req: FindIdRequest): Response<FindIdResponse>
 
 }

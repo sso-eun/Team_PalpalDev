@@ -1,4 +1,4 @@
-package com.example.dundun_hi.ui.signup
+package com.example.dundun_hi.ui.login
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun GuardianScreen(
+    onGuardianFindIdClick:()->Unit,
     onSubmit: (name: String, phone: String) -> Unit = { _, _ -> },
     onSignupClick:()->Unit
 ) {
@@ -114,5 +115,17 @@ fun GuardianScreen(
                  .padding(top=4.dp)
                  .clickable{onSignupClick()}
         )
+        Spacer(Modifier.height(20.dp))
+        Text(text="가입한 이름을 까먹으셨나요?", color=Color.Gray, fontSize=18.sp)
+        Spacer(Modifier.height(8.dp))
+        Text(text="이름 찾기",color=Color.Black, fontSize = 18.sp,
+            modifier = Modifier
+                .padding(top=4.dp)
+                .clickable{onGuardianFindIdClick()}
+        )
+
+
     }
 }
+
+

@@ -36,12 +36,15 @@ import com.example.dundun_hi.ui.KioskScreen
 import com.example.dundun_hi.ui.MainScreen
 import com.example.dundun_hi.ui.ProfileScreen
 import com.example.dundun_hi.ui.SetupShortcutScreen
+import com.example.dundun_hi.ui.login.FindIdScreen
+import com.example.dundun_hi.ui.login.FindIdViewModel
+import com.example.dundun_hi.ui.login.GuardianScreen
+import com.example.dundun_hi.ui.login.Guardian_FindIdScreen
 import com.example.dundun_hi.ui.login.LoginScreen
 import com.example.dundun_hi.ui.login.LoginViewModel
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.screen.LastPhotoScreen
 import com.example.dundun_hi.ui.signup.CombinedAuthScreen
-import com.example.dundun_hi.ui.signup.GuardianScreen
 import com.example.dundun_hi.ui.signup.LoadingScreen
 import com.example.dundun_hi.ui.signup.SignupResult
 import com.example.dundun_hi.ui.signup.SignupScreen
@@ -145,8 +148,8 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 onLoginClick = { navController.navigate("login") },
                                 onSignupClick = { navController.navigate("auth") },
-                                //바로 회원가입가기 할려면 이거 고치기
-                               // onSignupClick = { navController.navigate("signup") },
+//                                //바로 회원가입가기 할려면 이거 고치기
+//                               onSignupClick = { navController.navigate("signup") },
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
@@ -160,9 +163,13 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("main/${Uri.encode(userId)}") {
                                         popUpTo("login") { inclusive = true }
                                     }
+                                },
+                                onFindIdClick = {
+                                    navController.navigate("find_id")
                                 }
                             )
                         }
+
 
 //                       //─── Combined Auth ───
                         composable("auth") {
@@ -203,7 +210,8 @@ class MainActivity : ComponentActivity() {
                         // Guardian login-----------------------------------------------------------------------------
                         composable("guardian") {
                             GuardianScreen(onSubmit = { _, _ -> },
-                                onSignupClick = { navController.navigate("auth") }) }
+                                onSignupClick = { navController.navigate("auth") },
+                                onGuardianFindIdClick = { navController.navigate("guardian_find_id") })}
 
                         // Guardian_signup---------------------------------------------------------------------------
                         composable("guardian_signup") {
@@ -281,7 +289,30 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable("find_id") {
+                            val findIdVm: FindIdViewModel = viewModel()
+                            FindIdScreen(
+                                viewModel = findIdVm,
+                                onIdFound = { foundId ->
+                                   //뒤로가기
+                                    navController.popBackStack()    
+                                  
+                                },
+                                onLoginClick = { navController.navigate("login") },
+                            )
+                        }
+                        composable("guardian_find_id") {
+                            val findIdVm: FindIdViewModel = viewModel()
+                            Guardian_FindIdScreen(
+                                viewModel = findIdVm,
+                                onIdFound = { foundId ->
+                                    //뒤로가기
+                                    navController.popBackStack()
 
+                                },
+                                onLoginClick = { navController.navigate("guardian") },
+                            )
+                        }
 
                         composable("kiosk") { KioskScreen() }
                         composable("camera") { CameraScreen(navController) }

@@ -1,6 +1,5 @@
 package com.example.dundun_hi.ui.login
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,11 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,23 +26,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun LoginScreen(
-    onFindIdClick:()->Unit,
-    onLoginSuccess: (String) -> Unit,
-    vm: LoginViewModel = viewModel()
+fun FindIdScreen(viewModel: FindIdViewModel = viewModel(),  // 수정: FindIdViewModel 사용
+                 onIdFound: (String) -> Unit,
+                 onLoginClick:    () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
 
-    // ViewModel이 관리하는 로그인 응답 상태
-    val loginRes by vm.loginState
-    val errorMsg by vm.error
-
-    loginRes?.let {
-        LaunchedEffect(it) {
-            onLoginSuccess(name)
-        }
-    }
+    val state by viewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -54,23 +42,11 @@ fun LoginScreen(
     ) {
         Text("든든하이", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
-        Text("로그인", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
+        Text("이름 찾기", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
         Spacer(Modifier.height(32.dp))
 
-        Text("이름", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            placeholder = { Text("이름을 입력해주세요") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-        Spacer(Modifier.height(24.dp))
-
         Text("전화번호", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = phone,
             onValueChange = { phone = it },
@@ -85,8 +61,7 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                // Retrofit 호출
-                vm.login(name.trim(), phone.trim())
+                viewModel.findIdByPhone(phone)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,27 +69,50 @@ fun LoginScreen(
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
         ) {
-            Text("로그인하기", color = Color.White, fontSize = 30.sp)
+            Text("이름 확인하기", color = Color.White, fontSize = 30.sp)
         }
 
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(30.dp))
 
-        Text(text="가입한 이름을 까먹으셨나요?", color=Color.Gray, fontSize=18.sp)
-        Spacer(Modifier.height(8.dp))
-        Text(text="이름 찾기",color=Color.Black, fontSize = 18.sp,
-            modifier = Modifier
-                .padding(top=4.dp)
-                .clickable{onFindIdClick()}
-        )
+        // 서버 요청 결과에 따른 UI 처리
+        when (state) {
 
-        // 에러 메시지 표시
-        errorMsg?.let { msg ->
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = "로그인 실패: $msg",
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+            is FindIdResult.Loading -> {
+                Text("로딩 중...", fontSize = 30.sp, color = Color.Gray)
+            }
+            is FindIdResult.Success -> {
+                val foundId = (state as FindIdResult.Success).userId
+                Spacer(Modifier.height(40.dp))
+                Text(
+                    text = "찾은 이름: $foundId",
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black
+                )
+                Spacer(Modifier.height(40.dp))
+                Button(
+                    onClick = onLoginClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                ) {
+                    Text("다시 로그인하러 가기", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
+                }
+
+            }
+            is FindIdResult.Error -> {
+                val msg = (state as FindIdResult.Error).errorMessage
+                Text(
+                    text = "오류: $msg",
+                    fontSize = 16.sp,
+                    color = Color.Red
+                )
+            }
+            else -> { /* Idle 상태일 때는 아무 것도 표시하지 않음 */ }
         }
     }
 }
+
+

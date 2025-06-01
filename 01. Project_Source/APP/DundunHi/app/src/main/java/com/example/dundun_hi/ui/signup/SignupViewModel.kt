@@ -20,8 +20,8 @@ class SignupViewModel(
     private val codeAuthRepository = CodeAuthRepository(RetrofitClient.codeAuthService)
 
     // 잠시만 번호 지정 나중에 주석처리한거로 바꾸기!____---------------------------------------------------
-   // var lastTelNum: String = "01032135963"
-   //     private set
+//    var lastTelNum: String = "0102222"
+//        private set
 
 //    //1) 마지막에 보낸 전화번호 저장
     var lastTelNum: String = ""
