@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 위치 권한 요청
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
@@ -93,7 +94,9 @@ class MainActivity : ComponentActivity() {
                                 onSignupClick = { navController.navigate("guardian_signup") }
                             )
                         }
-                        composable("guardian_signup") { Guardian_SignupScreen() }
+                        composable("guardian_signup") {
+                            Guardian_SignupScreen()
+                        }
                         composable("main") {
                             MainScreen(
                                 userName = "길동님",
@@ -109,12 +112,29 @@ class MainActivity : ComponentActivity() {
                                 onProfileClick = { navController.navigate("profile") }
                             )
                         }
-                        composable("map") { MapScreen() }
-                        composable("profile") { ProfileScreen(navController) }
-                        composable("alarm") { AlarmRecordScreen(navController) }
-                        composable("add_alarm") { AddAlarmScreen() }
-                        composable("activity_history") { ActivityHistoryScreen() }
-                        composable("camera") { CameraScreen(navController) }
+                        composable("map") {
+                            MapScreen()
+                        }
+                        composable("profile") {
+                            ProfileScreen(navController)
+                        }
+                        composable("alarm") {
+                            AlarmRecordScreen(navController)
+                        }
+
+                        composable("add_alarm") {
+                            AddAlarmScreen(navController)
+                        }
+                        composable("edit_alarm/{alertId}") { backStackEntry ->
+                            val alertId = backStackEntry.arguments?.getString("alertId") ?: ""
+                            EditAlertScreen(navController, alertId)
+                        }
+                        composable("activity_history") {
+                            ActivityHistoryScreen()
+                        }
+                        composable("camera") {
+                            CameraScreen(navController)
+                        }
                         composable("lastphoto") {
                             LastPhotoScreen(
                                 photos = listOf(
@@ -125,7 +145,9 @@ class MainActivity : ComponentActivity() {
                                 onAddPhoto = {}
                             )
                         }
-                        composable("kiosk") { KioskScreen() }
+                        composable("kiosk") {
+                            KioskScreen()
+                        }
                         composable("call") {
                             val viewModel: CallViewModel = viewModel()
                             val shortcuts by viewModel.shortcuts.collectAsState()

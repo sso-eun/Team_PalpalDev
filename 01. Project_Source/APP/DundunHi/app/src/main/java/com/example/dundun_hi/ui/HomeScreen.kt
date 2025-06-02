@@ -31,7 +31,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding()
+            .navigationBarsPadding()     // 시스템 내비게이션 바 위로
             .padding(horizontal = 24.dp),
         horizontalAlignment   = Alignment.CenterHorizontally,
         verticalArrangement   = Arrangement.Top

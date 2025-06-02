@@ -27,7 +27,7 @@ fun LastPhotoScreen(
     onAddPhoto: () -> Unit = {}
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(vertical = 16.dp)
+        contentPadding = PaddingValues(vertical = 16.dp)   // ★ PaddingValues import 필요
     ) {
         items(photos) { photo ->
             ChatBubble(
@@ -50,6 +50,7 @@ fun LastPhotoScreen(
     }
 }
 
+/* ───── ChatBubble: 파일 안에서만 쓰이므로 private ───── */
 @Composable
 private fun ChatBubble(
     surfaceColor: Color,

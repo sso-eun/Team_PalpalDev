@@ -1,4 +1,3 @@
-//Add_Alert.kt
 package com.example.dundun_hi.ui
 
 import android.app.DatePickerDialog
@@ -6,7 +5,7 @@ import android.app.TimePickerDialog
 import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -19,12 +18,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.dundun_hi.R
+import com.example.dundun_hi.data.AlertItem
+import com.example.dundun_hi.data.AlertRepository
 import java.util.*
-import androidx.compose.foundation.clickable
 
 @Composable
-fun AddAlarmScreen() {
+fun AddAlarmScreen(navController: NavController) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
@@ -52,7 +53,6 @@ fun AddAlarmScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Title
         Surface(
             color = Color(0xFFE6F4FB),
             shape = RoundedCornerShape(16.dp),
@@ -68,71 +68,70 @@ fun AddAlarmScreen() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 날짜 선택
         Text("날짜", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = {},
-            readOnly = true,
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_calendar),
-                    contentDescription = null
-                )
-            },
-            placeholder = { Text("날짜 선택하기...") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    DatePickerDialog(
-                        context,
-                        { _: DatePicker, y, m, d ->
-                            selectedDate = String.format("%04d/%02d/%02d", y, m + 1, d)
-                        },
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
-                    ).show()
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                DatePickerDialog(
+                    context,
+                    { _: DatePicker, y, m, d ->
+                        selectedDate = String.format("%04d/%02d/%02d", y, m + 1, d)
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            }
+        ) {
+            OutlinedTextField(
+                value = selectedDate,
+                onValueChange = {},
+                readOnly = true,
+                leadingIcon = {
+                    Icon(painter = painterResource(id = R.drawable.ic_calendar), contentDescription = null)
                 },
-            shape = RoundedCornerShape(12.dp)
-        )
+                placeholder = { Text("날짜 선택하기...") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                enabled = false
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 시간 선택
         Text("시간", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = selectedTime,
-            onValueChange = {},
-            readOnly = true,
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_clock),
-                    contentDescription = null
-                )
-            },
-            placeholder = { Text("시간 선택하기...") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    TimePickerDialog(
-                        context,
-                        { _: TimePicker, h, m ->
-                            selectedTime = String.format("%02d:%02d", h, m)
-                        },
-                        calendar.get(Calendar.HOUR_OF_DAY),
-                        calendar.get(Calendar.MINUTE),
-                        true
-                    ).show()
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                TimePickerDialog(
+                    context,
+                    { _: TimePicker, h, m ->
+                        selectedTime = String.format("%02d:%02d", h, m)
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    true
+                ).show()
+            }
+        ) {
+            OutlinedTextField(
+                value = selectedTime,
+                onValueChange = {},
+                readOnly = true,
+                leadingIcon = {
+                    Icon(painter = painterResource(id = R.drawable.ic_clock), contentDescription = null)
                 },
-            shape = RoundedCornerShape(12.dp)
-        )
+                placeholder = { Text("시간 선택하기...") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                enabled = false
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 내용 작성
         Text("내용작성", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -147,9 +146,15 @@ fun AddAlarmScreen() {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 추가 버튼
         Button(
-            onClick = { /* TODO: 저장 처리 */ },
+            onClick = {
+                if (selectedDate.isNotBlank() && selectedTime.isNotBlank() && contentText.isNotBlank()) {
+                    AlertRepository.alertList.add(
+                        AlertItem(date = selectedDate, time = selectedTime, content = contentText)
+                    )
+                    navController.popBackStack()
+                }
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF26C4B5)),
             modifier = Modifier.fillMaxWidth()
         ) {
