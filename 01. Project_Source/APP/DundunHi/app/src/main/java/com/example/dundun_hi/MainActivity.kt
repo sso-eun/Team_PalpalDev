@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── Login: onLoginSuccess 콜백 시그니처가 (String, String) → Unit
+                        // ─── Login: onLoginSuccess 콜백 시그니처가 (String,String) → Unit
                         composable("login") {
                             val loginVm: LoginViewModel = viewModel()
                             LoginScreen(
@@ -330,17 +330,18 @@ class MainActivity : ComponentActivity() {
                             val userId     = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
                             val userNumInt = userNumStr.toIntOrNull() ?: 0
 
-                            // ProfileViewModel 생성
+                            // ProfileViewModel 생성 (fetchUserFromServer가 public으로 변경되었으므로 Compose에서 호출 가능)
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
-                                key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                                key = "ProfileViewModel_$userNumInt",                      // 수정: ViewModel key 지정
+                                factory = ProfileViewModelFactory(repository, userNumInt)  // 수정: Factory 인자로 userNumInt 전달
                             )
 
                             ProfileScreen(
-                                viewModel = profileVm,
-                                userId    = userId,
+                                viewModel            = profileVm,   // 수정: viewModel 인자 추가
+                                userId               = userId,      // 수정: userId 인자 추가
                                 onUpdateProfileClick = {
+                                    // “수정하기” 클릭 시 UpdateProfileScreen으로 이동
                                     navController.navigate("update_profile/$userNumStr/${Uri.encode(userId)}")
                                 }
                             )
@@ -360,13 +361,17 @@ class MainActivity : ComponentActivity() {
 
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
-                                key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                                key = "ProfileViewModel_$userNumInt",                      // 수정: ViewModel key 지정
+                                factory = ProfileViewModelFactory(repository, userNumInt)  // 수정: Factory 인자로 userNumInt 전달
                             )
 
                             UpdateProfileScreen(
-                                viewModel = profileVm,
-                                userId    = userId
+                                viewModel       = profileVm,  // 수정: viewModel 인자 추가
+                                userId          = userId,     // 수정: userId 인자 추가
+                                onUpdateSuccess = {
+                                    // 수정을 마치면 popBackStack()으로 ProfileScreen(이전 화면)으로 돌아갑니다
+                                    navController.popBackStack()
+                                }
                             )
                         }
 

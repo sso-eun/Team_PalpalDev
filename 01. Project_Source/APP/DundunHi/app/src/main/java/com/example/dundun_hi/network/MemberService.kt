@@ -7,10 +7,13 @@ import com.example.dundun_hi.data.LoginResponse
 import com.example.dundun_hi.data.MemberResponse
 import com.example.dundun_hi.data.SignupRequest
 import com.example.dundun_hi.data.SignupResponse
+import com.example.dundun_hi.data.UpdateProfileRequest
+import com.example.dundun_hi.data.UpdateProfileResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 
@@ -28,5 +31,8 @@ interface MemberService {
 
     @GET("member/getmember/{user_num}")
     suspend fun getMember(@Path("user_num") userNum: Int): MemberResponse
+
+    @PUT("/member/profile/{user_num}")
+    suspend fun updateProfile(@Path("user_num") userNum: Int, @Body request: UpdateProfileRequest): Response<UpdateProfileResponse>
 
 }

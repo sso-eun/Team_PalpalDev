@@ -14,4 +14,16 @@ class RealUserRepository : UserRepository {
     override suspend fun getUserByNum(userNum: Int): MemberResponse {
         return memberService.getMember(userNum)
     }
+
+    override suspend fun updateUserProfile(
+        userNum: Int,
+        request: UpdateProfileRequest
+    ): UpdateProfileResponse {
+        val response = memberService.updateProfile(userNum, request)
+        if (response.isSuccessful) {
+            return response.body()!!
+        } else {
+            throw Exception("HTTP ${response.code()} : 프로필 수정 실패")
+        }
+    }
 }

@@ -2,8 +2,8 @@
 
 package com.example.dundun_hi.ui.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,21 +32,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.dundun_hi.R
 
 /**
  * ProfileScreen: 보기 전용 프로필 화면
  *
- * @param viewModel ProfileViewModel을 주입받아 userNum:Int로 서버 데이터를 조회
- * @param userId    로그인된 사용자 ID(또는 이름) → 화면 상단에 표시
- * @param onUpdateProfileClick 수정하기 버튼 클릭 시 호출되는 콜백
+ * @param viewModel            ProfileViewModel 인스턴스
+ * @param userId               로그인된 사용자 ID(또는 실제 이름)
+ * @param onUpdateProfileClick “수정하기” 버튼 클릭 시 호출될 콜백
  */
 @Composable
 fun ProfileScreen(
@@ -53,11 +50,17 @@ fun ProfileScreen(
     userId: String,
     onUpdateProfileClick: () -> Unit
 ) {
-    // ViewModel에서 내려오는 사용자 정보
+    // 1) ViewModel 상태(State) 구독
     val userTel by remember { derivedStateOf { viewModel.userTel } }
     val userProfileImg by remember { derivedStateOf { viewModel.userProfileImg } }
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
-    // (필요하다면 위치(lat/lon)도 읽어올 수 있습니다: viewModel.userHomeLat, viewModel.userHomeLon)
+    val isLoading by remember { derivedStateOf { viewModel.isLoading } }
+    val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
+
+    // 2) 화면이 Compose에 처음 렌더링될 때(fetchUserFromServer 호출)
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserFromServer()
+    }
 
     Column(
         modifier = Modifier
@@ -81,7 +84,7 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp)
+                .height(250.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -97,43 +100,45 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
                 ) {
-                    Text("수정하기", fontSize = 20.sp)
+                    Text("수정하기", fontSize = 20.sp, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 프로필 이미지 (URL이 비어 있으면 placeholder 아이콘, 아니면 AsyncImage로 로드)
+                // (1) 프로필 이미지: 테두리 1px(=1.dp) 추가
                 if (userProfileImg.isNotEmpty()) {
                     AsyncImage(
                         model = userProfileImg,
                         contentDescription = "프로필 사진",
-                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = CircleShape
+                            )
                     )
                 } else {
-                    // placeholder 회색 원 + 카메라 아이콘
+                    // 빈 사진 자리(기본 회색 원 + 테두리)
                     Box(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFCCCCCC)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_camera),
-                            contentDescription = "프로필 사진 없음",
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
+                            .background(Color(0xFFCCCCCC))
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = CircleShape
+                            )
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 실제 로그인된 userId(이름)를 여기서 표시
+                // (2) 실제 로그인된 userId(이름) 표시
                 Text(
-                    text = userId,
+                    text = "$userId",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -142,13 +147,10 @@ fun ProfileScreen(
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // 사용자 전화번호 (ViewModel에서 받아온 userTel)
-                Text(
-                    text = userTel.ifEmpty { "전화번호가 설정되지 않음" },
-                    fontSize = 16.sp
-                )
+                // (3) 전화번호: 서버에서 받아온 userTel 표시
+                Text(text = userTel, fontSize = 16.sp)
             }
         }
 
@@ -164,31 +166,48 @@ fun ProfileScreen(
                 .height(152.dp)
         ) {
             Column {
+                // “위치” 헤더
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    Text(text = "위치", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "위치",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
                     Spacer(modifier = Modifier.weight(1f))
-                    // (+) 버튼 공간은 추후 추가 가능
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
-                Box(
+                // 사용자 외출 여부를 오른쪽 끝 버튼으로 표시
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 실제 외출 상태는 서버에서 받아온 userCondition 으로 분기
                     Text(
-                        text = if (userCondition) "외출 중 입니다." else "집에 있습니다.",
+                        text = "현재 상태:",
                         fontSize = 16.sp,
-                        textAlign = TextAlign.Center
+                        color = Color.DarkGray
                     )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(
+                        onClick = { /* 필요시 클릭 이벤트 처리 */ },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                    ) {
+                        Text(
+                            text = if (userCondition) "외출중이에요" else "집에 있어요",
+                            fontSize = 14.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -213,7 +232,6 @@ fun ProfileScreen(
                 ) {
                     Text(text = "알림", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.weight(1f))
-                    // (+) 버튼 공간은 추후 추가 가능
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
