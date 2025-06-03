@@ -31,6 +31,7 @@ object RetrofitClient {
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 
+
     // 5) 서비스 인터페이스들
     val memberService: MemberService =
         retrofit.create(MemberService::class.java)

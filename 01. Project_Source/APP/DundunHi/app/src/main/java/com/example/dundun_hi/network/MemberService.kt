@@ -4,11 +4,14 @@ import com.example.dundun_hi.data.FindIdRequest
 import com.example.dundun_hi.data.FindIdResponse
 import com.example.dundun_hi.data.LoginRequest
 import com.example.dundun_hi.data.LoginResponse
+import com.example.dundun_hi.data.MemberResponse
 import com.example.dundun_hi.data.SignupRequest
 import com.example.dundun_hi.data.SignupResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 
 interface MemberService {
@@ -22,5 +25,8 @@ interface MemberService {
 
     @POST("member/findid")
     suspend fun findId(@Body req: FindIdRequest): Response<FindIdResponse>
+
+    @GET("member/getmember/{user_num}")
+    suspend fun getMember(@Path("user_num") userNum: Int): MemberResponse
 
 }
