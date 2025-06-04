@@ -11,6 +11,7 @@ import com.example.dundun_hi.data.MemberResponse
 import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UserRepository
 import com.example.dundun_hi.network.RetrofitClient
+import com.example.dundun_hi.util.distanceBetweenMeters
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
@@ -122,4 +123,50 @@ class ProfileViewModel(
             }
         }
     }
+
+    /**
+     * 현재 위치(lat,lon)와 집 위치(userHomeLat, userHomeLon)를 비교해서,
+     * threshold(meters) 이상 차이나면 “외출 중”, 이하면 “집에 있음”으로 자동 업데이트하는 흐름.
+     *
+     * @param currentLat  현재 GPS 위도
+     * @param currentLon  현재 GPS 경도
+     * @param thresholdInMeters  “집”으로 간주할 최대 거리 (meters). 이 범위를 넘으면 외출 중.
+     * @param onResult    (Boolean 변경여부) → true: 상태가 바뀌어서 서버에 PUT 요청을 보냈음, false: 변화 없음
+     */
+    fun autoUpdateConditionBasedOnLocation(
+        currentLat: Double,
+        currentLon: Double,
+        thresholdInMeters: Double = 100.0, // 예: 100m 이내는 집, 넘으면 외출
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            // 1) 두 좌표 간 거리 계산
+            val dist = distanceBetweenMeters(
+                userHomeLat, userHomeLon,
+                currentLat, currentLon
+            )
+
+            // 2) 비교 후, 새로운 상태 결정
+            val shouldBeOuting = (dist > thresholdInMeters)
+
+            // 3) 만약 서버에 저장된 userCondition과 같으면 아무것도 안 함
+            if (shouldBeOuting == userCondition) {
+                onResult(false)
+                return@launch
+            }
+
+            // 4) userCondition이 바뀌었으므로, PUT 요청을 보낸다.
+            updateProfile(
+                newTel = userTel,                     // 전화번호는 변경 없으므로 기존 값 전달
+                newProfileImg = userProfileImg,       // 프로필 이미지 역시 그대로
+                newHomeLat = userHomeLat,             // 집 위치도 그대로
+                newHomeLon = userHomeLon,
+                isOuting = shouldBeOuting
+            ) {
+                // 수정 성공 후 로컬 상태(userCondition)는 이미 updateProfile 에서 바뀜.
+                onResult(true)
+            }
+        }
+    }
 }
+

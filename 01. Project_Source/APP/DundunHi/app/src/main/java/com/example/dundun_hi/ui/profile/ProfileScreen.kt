@@ -48,7 +48,8 @@ import coil.compose.AsyncImage
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     userId: String,
-    onUpdateProfileClick: () -> Unit
+    onUpdateProfileClick: () -> Unit,
+    onUpdatePasswordClick: () -> Unit
 ) {
     // 1) ViewModel 상태(State) 구독
     val userTel by remember { derivedStateOf { viewModel.userTel } }
@@ -91,19 +92,7 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier.padding(16.dp)
             ) {
-                // “수정하기” 버튼
-                Button(
-                    onClick = onUpdateProfileClick,
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .height(45.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
-                ) {
-                    Text("수정하기", fontSize = 20.sp, color = Color.White)
-                }
 
-                Spacer(modifier = Modifier.height(12.dp))
 
                 // (1) 프로필 이미지: 테두리 1px(=1.dp) 추가
                 if (userProfileImg.isNotEmpty()) {
@@ -251,6 +240,47 @@ fun ProfileScreen(
                     }
                 }
             }
+
+
+
+        }
+
+        Column{
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ){
+                // “수정하기” 버튼
+                Button(
+                    onClick = onUpdateProfileClick,
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .height(45.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                ) {
+                    Text("프로필 수정하기", fontSize = 20.sp, color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = onUpdatePasswordClick,
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .height(45.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                ) {
+                    Text("비밀번호 수정하기", fontSize = 20.sp, color = Color.White)
+                }
+            }
+
+
+
+
         }
     }
 }

@@ -15,6 +15,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -144,7 +146,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── Login: onLoginSuccess 콜백 시그니처가 (String,String) → Unit
+                        // ─── Login: onLoginSuccess 콜백 시그니처가 (String, String) → Unit
                         composable("login") {
                             val loginVm: LoginViewModel = viewModel()
                             LoginScreen(
@@ -242,20 +244,88 @@ class MainActivity : ComponentActivity() {
                             )
                         ) { backEntry ->
                             val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
-                            val userId     = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
+                            val userId = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
+                            val userNumInt = userNumStr.toIntOrNull() ?: 0
 
+                            // ▶ ① ProfileViewModel 생성
+                            val repository: UserRepository = RealUserRepository()
+                            val profileVm: ProfileViewModel = viewModel(
+                                key = "ProfileViewModel_$userNumInt",
+                                factory = ProfileViewModelFactory(repository, userNumInt)
+                            )
+
+                            // ▶ ② 날씨 ViewModel 상태
                             val weatherState by weatherVM.uiState.collectAsState()
-                            LaunchedEffect(weatherState) {
-                                if (weatherState is WeatherUiState.Error) {
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        "날씨 조회 실패",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+
+                            // ▶ ③ “집 위치”가 서버에서 내려올 때(userHomeLat/userHomeLon이 바뀔 때) 자동 업데이트 로직 실행
+                            val hasAutoUpdated = remember { mutableStateOf(false) }
+                            LaunchedEffect(profileVm.userHomeLat, profileVm.userHomeLon) {
+                                val homeLat = profileVm.userHomeLat
+                                val homeLon = profileVm.userHomeLon
+
+                                // “집 위치”가 0.0,0.0이 아니라면 서버에서 유효 좌표가 내려온 것
+                                if (!hasAutoUpdated.value && (homeLat != 0.0 || homeLon != 0.0)) {
+                                    hasAutoUpdated.value = true
+
+                                    // 1) 권한 검사 후 현재 위치를 받아와 날씨 로드 + 상태 자동 업데이트
+                                    if (ContextCompat.checkSelfPermission(
+                                            this@MainActivity,
+                                            Manifest.permission.ACCESS_FINE_LOCATION
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        fusedLocationClient.lastLocation
+                                            .addOnSuccessListener { location ->
+                                                if (location != null) {
+                                                    val currentLat = location.latitude
+                                                    val currentLon = location.longitude
+
+                                                    // --- A) 날씨 로드 (현재 위치 기반) ---
+                                                    weatherVM.load(
+                                                        lat = currentLat,
+                                                        lon = currentLon
+                                                    )
+
+                                                    // --- B) 집 위치와 비교하여 외출/집 상태 자동 업데이트 ---
+                                                    val thresholdMeters = 100.0
+                                                    profileVm.autoUpdateConditionBasedOnLocation(
+                                                        currentLat = currentLat,
+                                                        currentLon = currentLon,
+                                                        thresholdInMeters = thresholdMeters
+                                                    ) { updated ->
+                                                        if (updated) {
+                                                            Toast.makeText(
+                                                                this@MainActivity,
+                                                                "집과의 거리를 판별하여 상태가 자동으로 변경되었습니다.",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+                                                    }
+                                                } else {
+                                                    // location == null → 기본 좌표(서울시청)로 날씨만 로드
+                                                    weatherVM.load(
+                                                        lat = 37.5665,
+                                                        lon = 126.9780
+                                                    )
+                                                }
+                                            }
+                                            .addOnFailureListener {
+                                                weatherVM.load(
+                                                    lat = 37.5665,
+                                                    lon = 126.9780
+                                                )
+                                            }
+                                    } else {
+                                        // 권한 없으면 기본 좌표로 날씨만 로드
+                                        weatherVM.load(
+                                            lat = 37.5665,
+                                            lon = 126.9780
+                                        )
+                                    }
                                 }
                             }
-                            val success = (weatherVM.uiState.collectAsState().value as? WeatherUiState.Success)
 
+                            // ▶ ④ MainScreen 실제 컴포저블
+                            val success = (weatherVM.uiState.collectAsState().value as? WeatherUiState.Success)
                             MainScreen(
                                 userName = "${userId}님",
                                 temperature = success?.data?.currentTemp?.toDoubleOrNull()?.toInt() ?: 0,
@@ -263,12 +333,12 @@ class MainActivity : ComponentActivity() {
                                 minTemp = success?.data?.minTemp?.toDoubleOrNull()?.toInt() ?: 0,
                                 onPhonePageClick  = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
-                                onCameraPageClick = { navController.navigate("camera") },
-                                onMapPageClick = { /* TODO */ },
+                                onCameraPageClick  = { navController.navigate("camera") },
+                                onMapPageClick     = { /* TODO */ },
                                 onFindCultureCenter = { /* TODO */ },
-                                onKioskPageClick = { navController.navigate("kiosk") },
-                                onProfileClick = {
-                                    // ProfileScreen으로 이동할 때에도 userNumStr, userId 둘 다 넘겨야 합니다.
+                                onKioskPageClick   = { navController.navigate("kiosk") },
+                                onProfileClick     = {
+                                    // ProfileScreen으로 이동할 때 userNumStr, userId 둘 다 넘김
                                     navController.navigate("profile/$userNumStr/${Uri.encode(userId)}")
                                 }
                             )
@@ -327,21 +397,20 @@ class MainActivity : ComponentActivity() {
                             )
                         ) { backEntry ->
                             val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
-                            val userId     = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
+                            val userId = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
                             val userNumInt = userNumStr.toIntOrNull() ?: 0
 
-                            // ProfileViewModel 생성 (fetchUserFromServer가 public으로 변경되었으므로 Compose에서 호출 가능)
+                            // ▶ ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
-                                key = "ProfileViewModel_$userNumInt",                      // 수정: ViewModel key 지정
-                                factory = ProfileViewModelFactory(repository, userNumInt)  // 수정: Factory 인자로 userNumInt 전달
+                                key = "ProfileViewModel_$userNumInt",
+                                factory = ProfileViewModelFactory(repository, userNumInt)
                             )
 
                             ProfileScreen(
-                                viewModel            = profileVm,   // 수정: viewModel 인자 추가
-                                userId               = userId,      // 수정: userId 인자 추가
+                                viewModel = profileVm,
+                                userId    = userId,
                                 onUpdateProfileClick = {
-                                    // “수정하기” 클릭 시 UpdateProfileScreen으로 이동
                                     navController.navigate("update_profile/$userNumStr/${Uri.encode(userId)}")
                                 }
                             )
@@ -356,20 +425,20 @@ class MainActivity : ComponentActivity() {
                             )
                         ) { backEntry ->
                             val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
-                            val userId     = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
+                            val userId = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
                             val userNumInt = userNumStr.toIntOrNull() ?: 0
 
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
-                                key = "ProfileViewModel_$userNumInt",                      // 수정: ViewModel key 지정
-                                factory = ProfileViewModelFactory(repository, userNumInt)  // 수정: Factory 인자로 userNumInt 전달
+                                key = "ProfileViewModel_$userNumInt",
+                                factory = ProfileViewModelFactory(repository, userNumInt)
                             )
 
                             UpdateProfileScreen(
-                                viewModel       = profileVm,  // 수정: viewModel 인자 추가
-                                userId          = userId,     // 수정: userId 인자 추가
+                                viewModel = profileVm,
+                                userId    = userId,
                                 onUpdateSuccess = {
-                                    // 수정을 마치면 popBackStack()으로 ProfileScreen(이전 화면)으로 돌아갑니다
+                                    // 수정 성공 시 이전 화면으로 돌아감
                                     navController.popBackStack()
                                 }
                             )
