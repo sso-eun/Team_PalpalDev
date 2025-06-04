@@ -15,6 +15,11 @@ router.put('/password/:user_num', memberController.updatePassword);
 router.get('/allusers', memberController.getAllMembers);
 router.get('/getmember/:user_num', memberController.getMember);
 router.get('/searchmember', memberController.searchMembers);
+router.post('/savemylist', memberController.saveMylist);
+router.put('/updatemylist', memberController.updateMyList);
+router.post('/deletemylist', memberController.deleteMyList);
+router.post('/getmylist', memberController.getMyList);
+
 
 
 

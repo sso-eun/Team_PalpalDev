@@ -48,6 +48,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //sms 인증
 app.use('/code_auth',sendRouter);
 //render 서버에서 _ 감지 불능으로 _제거용 주소 추가.
+// 25.06.04_추가_ 현재는 주소 두개 다 감지 가능. _버전 우선으로 사용 요망
 app.use('/codeauth',sendRouter);
 // 멤버 대화내역
 app.use('/talk', talkRouter);
