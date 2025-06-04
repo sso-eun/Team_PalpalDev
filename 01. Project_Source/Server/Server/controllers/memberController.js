@@ -284,9 +284,9 @@ exports.getMember = async (req, res) => {
         res.status(500).json({ message: '서버 오류', error });
     }
 };
+//end getMember
 
 //회원 검색 검색필드 + 검색어(2자이상)
-
 exports.searchMembers = async (req, res) => {
     const { field, keyword } = req.query;
     const page = parseInt(req.query.page) || 1;
@@ -353,6 +353,130 @@ exports.searchMembers = async (req, res) => {
         res.status(500).json({ message: '서버 오류', error });
     }
 };
+// search Member
 
+//멤버 연락처 저장_단일
+exports.saveMylist = async (req, res) => {
+    const { user_num, user_og_name, user_og_tel_num, user_nw_name } = req.body;
 
-//
+    const sql = `
+                INSERT INTO member_tel_list 
+                (user_num, user_og_name, user_og_tel_num, user_nw_name)
+                VALUES (?, ?, ?, ?)
+            `;
+
+    try {
+        await db.execute(sql, [user_num, user_og_name, user_og_tel_num, user_nw_name]);
+
+        return res.status(201).json({
+            rsCode: 200,
+            message: "연락처 저장 성공"
+        });
+    } catch (error) {
+        console.error("연락처 저장 실패:", error);
+        return res.status(500).json({
+            rsCode: 502,
+            message: "서버 오류",
+            error
+        });
+    }
+};
+//end saveMylist
+
+//update MyList
+exports.updateMyList = async (req, res) => {
+    const { tel_no, user_nw_name } = req.body;
+
+    const sql = `
+                UPDATE member_tel_list
+                SET user_nw_name = ?
+                WHERE tel_no = ?
+            `;
+
+    try {
+        const [result] = await db.execute(sql, [user_nw_name, tel_no]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                rsCode: 404,
+                message: "수정할 데이터가 없습니다"
+            });
+        }
+
+        return res.status(200).json({
+            rsCode: 200,
+            message: "연락처 이름 수정 성공"
+        });
+    } catch (error) {
+        console.error("연락처 이름 수정 실패:", error);
+        return res.status(500).json({
+            rsCode: 502,
+            message: "서버 오류",
+            error
+        });
+    }
+};
+//end updateMyList
+
+//delete mylist
+exports.deleteMyList = async (req, res) => {
+    const { tel_no } = req.body;
+
+    const sql = `
+        DELETE FROM member_tel_list
+        WHERE tel_no = ?
+    `;
+
+    try {
+        const [result] = await db.execute(sql, [tel_no]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                rsCode: 404,
+                message: "삭제할 데이터가 없습니다"
+            });
+        }
+
+        return res.status(200).json({
+            rsCode: 200,
+            message: "연락처 삭제 성공"
+        });
+    } catch (error) {
+        console.error("연락처 삭제 실패:", error);
+        return res.status(500).json({
+            rsCode: 502,
+            message: "서버 오류",
+            error
+        });
+    }
+};
+//end delete myList
+
+//유저넘버로 연락처 조회_페이지네이션x
+exports.getMyList = async (req, res) => {
+    const { user_num } = req.body;
+
+    const sql = `
+                    SELECT tel_no, user_num, user_og_name, user_og_tel_num, user_nw_name
+                    FROM member_tel_list
+                    WHERE user_num = ?
+                    ORDER BY user_og_name ASC
+                `;
+
+    try {
+        const [rows] = await db.execute(sql, [user_num]);
+
+        return res.status(200).json({
+            rsCode: 200,
+            message: "연락처 조회 성공",
+            data: rows
+        });
+    } catch (error) {
+        console.error("연락처 조회 실패:", error);
+        return res.status(500).json({
+            rsCode: 502,
+            message: "서버 오류",
+            error
+        });
+    }
+};
