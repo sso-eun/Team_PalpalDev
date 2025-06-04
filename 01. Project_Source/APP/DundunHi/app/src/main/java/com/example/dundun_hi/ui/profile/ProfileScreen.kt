@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,9 +41,10 @@ import coil.compose.AsyncImage
 /**
  * ProfileScreen: 보기 전용 프로필 화면
  *
- * @param viewModel            ProfileViewModel 인스턴스
- * @param userId               로그인된 사용자 ID(또는 실제 이름)
- * @param onUpdateProfileClick “수정하기” 버튼 클릭 시 호출될 콜백
+ * @param viewModel               ProfileViewModel 인스턴스
+ * @param userId                  로그인된 사용자 ID (서버에서 받아온 값)
+ * @param onUpdateProfileClick    “프로필 수정하기” 버튼 클릭 시 호출될 콜백
+ * @param onUpdatePasswordClick   “비밀번호 수정하기” 버튼 클릭 시 호출될 콜백
  */
 @Composable
 fun ProfileScreen(
@@ -51,14 +53,14 @@ fun ProfileScreen(
     onUpdateProfileClick: () -> Unit,
     onUpdatePasswordClick: () -> Unit
 ) {
-    // 1) ViewModel 상태(State) 구독
+    // ViewModel에서 상태(State)를 구독
     val userTel by remember { derivedStateOf { viewModel.userTel } }
     val userProfileImg by remember { derivedStateOf { viewModel.userProfileImg } }
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
-    // 2) 화면이 Compose에 처음 렌더링될 때(fetchUserFromServer 호출)
+    // Compose가 처음 렌더링될 때 서버에서 사용자 정보를 가져옴
     LaunchedEffect(Unit) {
         viewModel.fetchUserFromServer()
     }
@@ -92,9 +94,7 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier.padding(16.dp)
             ) {
-
-
-                // (1) 프로필 이미지: 테두리 1px(=1.dp) 추가
+                // 프로필 이미지: 테두리 추가
                 if (userProfileImg.isNotEmpty()) {
                     AsyncImage(
                         model = userProfileImg,
@@ -109,7 +109,7 @@ fun ProfileScreen(
                             )
                     )
                 } else {
-                    // 빈 사진 자리(기본 회색 원 + 테두리)
+                    // 기본 회색 원 (사진이 없을 경우)
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -125,9 +125,9 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // (2) 실제 로그인된 userId(이름) 표시
+                // 로그인된 아이디(이름) 표시
                 Text(
-                    text = "$userId",
+                    text = userId,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -138,7 +138,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // (3) 전화번호: 서버에서 받아온 userTel 표시
+                // 전화번호 표시
                 Text(text = userTel, fontSize = 16.sp)
             }
         }
@@ -173,7 +173,7 @@ fun ProfileScreen(
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
-                // 사용자 외출 여부를 오른쪽 끝 버튼으로 표시
+                // 외출 여부 버튼
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -187,7 +187,7 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Button(
-                        onClick = { /* 필요시 클릭 이벤트 처리 */ },
+                        onClick = { /* 필요하다면 클릭 이벤트 처리 */ },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
                     ) {
@@ -240,19 +240,19 @@ fun ProfileScreen(
                     }
                 }
             }
-
-
-
         }
 
-        Column{
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── 버튼들 ───────────────────────────────────────────────────────────
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-            ){
-                // “수정하기” 버튼
+            ) {
+                // “프로필 수정하기” 버튼
                 Button(
                     onClick = onUpdateProfileClick,
                     modifier = Modifier
@@ -264,8 +264,9 @@ fun ProfileScreen(
                     Text("프로필 수정하기", fontSize = 20.sp, color = Color.White)
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
+                // “비밀번호 수정하기” 버튼
                 Button(
                     onClick = onUpdatePasswordClick,
                     modifier = Modifier
@@ -277,10 +278,16 @@ fun ProfileScreen(
                     Text("비밀번호 수정하기", fontSize = 20.sp, color = Color.White)
                 }
             }
+        }
 
-
-
-
+        // (선택) 로딩/에러 처리 UI
+        if (isLoading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "로딩 중...", fontSize = 14.sp, color = Color.Gray)
+        }
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = errorMessage!!, fontSize = 14.sp, color = Color.Red)
         }
     }
 }

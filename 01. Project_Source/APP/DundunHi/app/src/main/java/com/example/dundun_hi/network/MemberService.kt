@@ -7,6 +7,8 @@ import com.example.dundun_hi.data.LoginResponse
 import com.example.dundun_hi.data.MemberResponse
 import com.example.dundun_hi.data.SignupRequest
 import com.example.dundun_hi.data.SignupResponse
+import com.example.dundun_hi.data.UpdatePasswordRequest
+import com.example.dundun_hi.data.UpdatePasswordResponse
 import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UpdateProfileResponse
 import retrofit2.Response
@@ -34,5 +36,10 @@ interface MemberService {
 
     @PUT("/member/profile/{user_num}")
     suspend fun updateProfile(@Path("user_num") userNum: Int, @Body request: UpdateProfileRequest): Response<UpdateProfileResponse>
+
+    @PUT("/member/password/{user_num}")
+    suspend fun updatePassword(@Path("user_num") userNum: String, @Body request: UpdatePasswordRequest): Response<UpdatePasswordResponse>
+
+
 
 }

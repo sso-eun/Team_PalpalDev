@@ -8,9 +8,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dundun_hi.data.MemberResponse
+import com.example.dundun_hi.data.UpdatePasswordRequest
+import com.example.dundun_hi.data.UpdatePasswordResponse
 import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UserRepository
 import com.example.dundun_hi.network.RetrofitClient
+import com.example.dundun_hi.network.RetrofitClient.memberService
 import com.example.dundun_hi.util.distanceBetweenMeters
 import kotlinx.coroutines.launch
 
@@ -168,5 +171,39 @@ class ProfileViewModel(
             }
         }
     }
+
+    fun updatePassword(
+        userNum: String,
+        currentPw: String,
+        newPw: String,
+        onResult: (success: Boolean, message: String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val requestBody = UpdatePasswordRequest(
+                    current_pw = currentPw,
+                    new_pw = newPw
+                )
+                val response = memberService.updatePassword(userNum, requestBody)
+
+                if (response.isSuccessful) {
+                    // 200~299 범위
+                    val body: UpdatePasswordResponse? = response.body()
+                    if (body != null) {
+                        onResult(true, body.message)
+                    } else {
+                        onResult(false, "서버 응답이 비어 있습니다.")
+                    }
+                } else {
+                    // HTTP 오류 (4xx, 5xx)
+                    val errorMsg = response.errorBody()?.string() ?: "알 수 없는 오류가 발생했습니다."
+                    onResult(false, errorMsg)
+                }
+            } catch (e: Exception) {
+                onResult(false, e.localizedMessage ?: "네트워크 오류가 발생했습니다.")
+            }
+        }
+    }
 }
+
 

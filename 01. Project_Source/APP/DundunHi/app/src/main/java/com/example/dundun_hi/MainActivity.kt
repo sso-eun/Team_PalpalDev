@@ -50,6 +50,7 @@ import com.example.dundun_hi.ui.login.LoginViewModel
 import com.example.dundun_hi.ui.profile.ProfileScreen
 import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.profile.ProfileViewModelFactory
+import com.example.dundun_hi.ui.profile.UpdatePasswordScreen
 import com.example.dundun_hi.ui.profile.UpdateProfileScreen
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.screen.LastPhotoScreen
@@ -240,7 +241,7 @@ class MainActivity : ComponentActivity() {
                             route = "main/{userNum}/{userId}",
                             arguments = listOf(
                                 navArgument("userNum") { type = NavType.StringType },
-                                navArgument("userId")  { type = NavType.StringType }
+                                navArgument("userId") { type = NavType.StringType }
                             )
                         ) { backEntry ->
                             val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
@@ -412,6 +413,10 @@ class MainActivity : ComponentActivity() {
                                 userId    = userId,
                                 onUpdateProfileClick = {
                                     navController.navigate("update_profile/$userNumStr/${Uri.encode(userId)}")
+                                },
+                                onUpdatePasswordClick = {
+                                    // userNumStr를 그대로 전달. 실제 로그인된 유저 번호 사용
+                                    navController.navigate("update_password/$userNumStr")
                                 }
                             )
                         }
@@ -441,6 +446,21 @@ class MainActivity : ComponentActivity() {
                                     // 수정 성공 시 이전 화면으로 돌아감
                                     navController.popBackStack()
                                 }
+                            )
+                        }
+
+                        // ─── 비밀번호 수정 화면: userNum을 NavBackStackEntry에서 꺼내서 화면에 넘김
+                        composable(
+                            route = "update_password/{userNum}",
+                            arguments = listOf(navArgument("userNum") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getString("userNum") ?: ""
+                            // ── repository를 반드시 넘겨줘야 함
+                            val repository: UserRepository = RealUserRepository()
+                            UpdatePasswordScreen(
+                                userNum = userNum,
+                                navController = navController,
+                                repository = repository   // ← 이 부분을 추가했습니다
                             )
                         }
 
