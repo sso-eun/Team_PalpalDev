@@ -76,4 +76,6 @@ dependencies {
 
     // OkHttp 로깅 인터셉터 (HttpLoggingInterceptor)
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
+    implementation ("com.google.android.gms:play-services-location:21.3.0")
 }

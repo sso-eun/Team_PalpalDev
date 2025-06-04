@@ -11,9 +11,11 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
+    // 로그인 성공 시 API에서 내려주는 전체 LoginResponse 객체
     private val _loginState = mutableStateOf<LoginResponse?>(null)
     val loginState: State<LoginResponse?> = _loginState
 
+    // 에러 메시지
     private val _error = mutableStateOf<String?>(null)
     val error: State<String?> = _error
 
@@ -24,6 +26,7 @@ class LoginViewModel : ViewModel() {
                     LoginRequest(userId, userPw)
                 )
                 if (resp.isSuccessful) {
+                    // 성공하면 LoginResponse 전체를 상태로 바꿔준다.
                     _loginState.value = resp.body()
                 } else {
                     _error.value = "HTTP ${resp.code()}"
@@ -33,5 +36,12 @@ class LoginViewModel : ViewModel() {
             }
         }
     }
+
+    /**
+     * 상태를 초기화하여, Compose 측에서 LaunchedEffect가
+     * 중복 실행되지 않도록 방지한다.
+     */
+    fun clearLoginState() {
+        _loginState.value = null
+    }
 }
-// Compose 에 맞춘 State 기반 로그인 상태 관리

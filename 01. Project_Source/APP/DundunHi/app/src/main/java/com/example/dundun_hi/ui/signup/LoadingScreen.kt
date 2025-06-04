@@ -1,4 +1,4 @@
-package com.example.dundun_hi
+package com.example.dundun_hi.ui.signup
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,13 +27,16 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun LoadingScreen(navController: NavController, userName: String) {
-    val decodedUserName = URLDecoder.decode(userName, StandardCharsets.UTF_8.toString())
+fun LoadingScreen(navController: NavController, userId: String) {
+    val decodedUserName = URLDecoder.decode(userId, StandardCharsets.UTF_8.toString())
 
-    LaunchedEffect(Unit) {
+    // userId 변경 시에만 LaunchedEffect 실행되도록 수정
+    LaunchedEffect(userId) {
         delay(3000)
-        navController.navigate("main/$userName") {
-            popUpTo("signup") { inclusive = true }
+        navController.navigate("main/$userId") {
+            popUpTo("loadingScreen/{userId}") {
+                inclusive = true
+            }
         }
     }
 
@@ -60,7 +63,7 @@ fun LoadingScreen(navController: NavController, userName: String) {
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "$decodedUserName 환영합니다!",
+                text = "${decodedUserName}님 환영합니다!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -69,8 +72,10 @@ fun LoadingScreen(navController: NavController, userName: String) {
 
             Button(
                 onClick = {
-                    navController.navigate("main/$userName") {
-                        popUpTo("signup") { inclusive = true }
+                    navController.navigate("main/$userId") {
+                        popUpTo("loadingScreen/{userId}") {
+                            inclusive = true
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
@@ -80,7 +85,7 @@ fun LoadingScreen(navController: NavController, userName: String) {
                     .height(48.dp)
             ) {
                 Text(
-                    text = "3초뒤 메인페이지 이동",
+                    text = "잠시뒤 메인페이지 이동",
                     color = Color.White,
                     fontSize = 16.sp
                 )
