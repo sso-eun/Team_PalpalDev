@@ -4,6 +4,7 @@ package com.example.dundun_hi.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,35 +24,45 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.dundun_hi.R
+import com.example.dundun_hi.data.AlertRepository
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * ProfileScreen: 보기 전용 프로필 화면
  *
  * @param viewModel               ProfileViewModel 인스턴스
  * @param userId                  로그인된 사용자 ID (서버에서 받아온 값)
- * @param onUpdateProfileClick    “프로필 수정하기” 버튼 클릭 시 호출될 콜백
- * @param onUpdatePasswordClick   “비밀번호 수정하기” 버튼 클릭 시 호출될 콜백
+ * @param onUpdateProfileClick    "프로필 수정하기" 버튼 클릭 시 호출될 콜백
+ * @param onUpdatePasswordClick   "비밀번호 수정하기" 버튼 클릭 시 호출될 콜백
+ * @param navController           NavController instance for navigation
  */
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     userId: String,
     onUpdateProfileClick: () -> Unit,
-    onUpdatePasswordClick: () -> Unit
+    onUpdatePasswordClick: () -> Unit,
+    navController: NavController
 ) {
     // ViewModel에서 상태(State)를 구독
     val userTel by remember { derivedStateOf { viewModel.userTel } }
@@ -59,6 +70,21 @@ fun ProfileScreen(
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
+
+    // 오늘 날짜의 알림만 필터링
+    val today = remember { 
+        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
+    }
+    
+    // AlertRepository의 알림 목록을 관찰
+    val alerts by remember { mutableStateOf(AlertRepository.alertList) }
+    
+    // 오늘 날짜의 알림만 필터링
+    val todayAlerts = remember(alerts) {
+        AlertRepository.alertList
+            .filter { it.date == today }
+            .sortedBy { it.time }
+    }
 
     // Compose가 처음 렌더링될 때 서버에서 사용자 정보를 가져옴
     LaunchedEffect(Unit) {
@@ -155,20 +181,41 @@ fun ProfileScreen(
                 .height(152.dp)
         ) {
             Column {
-                // “위치” 헤더
+                // "위치" 헤더
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    Text(
-                        text = "위치",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_location),
+                            contentDescription = "위치 아이콘",
+                            tint = Color(0xFF1AB277),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "위치",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_plus),
+                        contentDescription = "위치 추가",
+                        tint = Color(0xFF1AB277),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { 
+                                navController.navigate("enter_exit")
+                            }
                     )
-                    Spacer(modifier = Modifier.weight(1f))
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
@@ -219,23 +266,67 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text(text = "알림", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.weight(1f))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_alarm),
+                            contentDescription = "알림 아이콘",
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "알림",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_plus),
+                        contentDescription = "알림 추가",
+                        tint = Color(0xFF2196F3),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { 
+                                navController.navigate("alarm")
+                            }
+                    )
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
                 Column(modifier = Modifier.padding(16.dp)) {
-                    val items = listOf(
-                        "04/11 오후 3시 30분\n청주 문화센터 노래 교실",
-                        "04/11 오후 3시 30분\n청주 문화센터 노래 교실"
-                    )
-                    items.forEachIndexed { index, text ->
-                        Text(text = text, fontSize = 16.sp)
-                        if (index != items.lastIndex) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-                            Spacer(modifier = Modifier.height(8.dp))
+                    if (todayAlerts.isEmpty()) {
+                        // 오늘의 알림이 없을 경우
+                        Text(
+                            text = "오늘의 알림이 없습니다.",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        // 오늘의 알림 목록 표시
+                        todayAlerts.forEachIndexed { index, alert ->
+                            Column {
+                                Text(
+                                    text = "${alert.date} ${alert.time}",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = alert.content,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                                if (index < todayAlerts.size - 1) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            }
                         }
                     }
                 }
@@ -252,7 +343,7 @@ fun ProfileScreen(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // “프로필 수정하기” 버튼
+                // "프로필 수정하기" 버튼
                 Button(
                     onClick = onUpdateProfileClick,
                     modifier = Modifier
@@ -266,7 +357,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // “비밀번호 수정하기” 버튼
+                // "비밀번호 수정하기" 버튼
                 Button(
                     onClick = onUpdatePasswordClick,
                     modifier = Modifier

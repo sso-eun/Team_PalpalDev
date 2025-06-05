@@ -1,4 +1,3 @@
-
 // MainScreen.kt
 package com.example.dundun_hi.ui
 
@@ -46,8 +45,8 @@ import com.example.dundun_hi.ui.theme.Sky
 fun MainScreen(
     userName: String,
     temperature: Int,
-    maxTemp: Int,
-    minTemp: Int,
+    highTemp: Int,
+    lowTemp: Int,
     onPhonePageClick: () -> Unit,
     onMessagePageClick: () -> Unit,
     onCameraPageClick: () -> Unit,
@@ -103,23 +102,23 @@ fun MainScreen(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("${temperature}°C", fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier= Modifier.height(4.dp))
-                    Text("최고: ${maxTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
-                    Text("최저: ${minTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("최고: ${highTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
+                    Text("최저: ${lowTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
                 }
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
 
         // 중앙 버튼 ------------------------------------------------------------------
-        val buttonLabels = listOf("전화", "문자", "카메라", "지도")
+        val buttonLabels = listOf("전화", "내 정보", "카메라", "지도")
         buttonLabels.chunked(2).forEach { rowData ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 rowData.forEach { label ->
                     // 라벨에 따른 테두리 색 결정
                     val borderColor = when(label) {
                         "전화"   -> ButtonPhoneGreen
-                        "문자"   -> ButtonMsgTeal
+                        "내 정보"   -> ButtonMsgTeal
                         "카메라" -> ButtonCamBlue
                         "지도"   -> ButtonMapBlue
                         else     -> MaterialTheme.colorScheme.primary
@@ -137,7 +136,7 @@ fun MainScreen(
                             .clickable {
                                 when (label) {
                                     "전화"   -> onPhonePageClick()
-                                    "문자"   -> onMessagePageClick()
+                                    "내 정보"   -> onProfileClick()
                                     "카메라" -> onCameraPageClick()
                                     "지도"   -> onMapPageClick()
                                 }
@@ -180,12 +179,6 @@ fun MainScreen(
             )
             if (index == 0) Spacer(modifier = Modifier.height(12.dp))
         }
-
-        Text(text="profile",color=Color.Black, fontSize = 18.sp,
-            modifier = Modifier
-                .padding(top=4.dp)
-                .clickable{onProfileClick()}
-        )
     }
 }
 
@@ -195,8 +188,8 @@ fun MainScreenPreview() {
     MainScreen(
         userName = "길동님",
         temperature = 19,
-        maxTemp = 25,
-        minTemp = 7,
+        highTemp = 25,
+        lowTemp = 7,
         onPhonePageClick = {},
         onMessagePageClick = {},
         onCameraPageClick = {},

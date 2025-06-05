@@ -1,3 +1,4 @@
+//SetupScreen
 package com.example.dundun_hi.ui
 
 import androidx.compose.foundation.layout.Arrangement
@@ -29,8 +30,6 @@ fun SetupShortcutScreen(
     ) {
         Text(text = "단축키 설정 화면 (slot #$index)")
 
-        // TODO: 실제 연락처 목록을 보여주고,
-        //       선택하면 onDone() 콜백을 호출하도록 구현하세요.
 
         Spacer(modifier = Modifier.weight(1f))
 
