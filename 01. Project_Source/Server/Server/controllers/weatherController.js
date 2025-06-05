@@ -85,7 +85,12 @@ router.get('/', async (req, res) => {
 
         // 기상청 API 요청 URL 구성
         const baseUrl = `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst`;
-        const query = `?serviceKey=${process.env.SERVICE_KEY_WT}&pageNo=1&numOfRows=1000&dataType=XML&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}`;
+        //const query = `?serviceKey=${process.env.SERVICE_KEY_WT}&pageNo=1&numOfRows=1000&dataType=XML&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}`;
+
+        // 2025-06-05 수정
+        // 공공데이터 기상청 요청 파라미터 변경
+        const query = `?serviceKey=${process.env.SERVICE_KEY_WT}&pageNo=1&dataType=XML&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}`;
+
         const fullUrl = baseUrl + query;
 
         // 디버깅용
