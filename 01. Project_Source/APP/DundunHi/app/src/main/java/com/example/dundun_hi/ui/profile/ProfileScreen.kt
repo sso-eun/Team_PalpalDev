@@ -45,7 +45,8 @@ import coil.compose.AsyncImage
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 /**
  * ProfileScreen: 보기 전용 프로필 화면
@@ -257,7 +258,7 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(453.dp)
+                .height(100.dp)
         ) {
             Column {
                 Row(
