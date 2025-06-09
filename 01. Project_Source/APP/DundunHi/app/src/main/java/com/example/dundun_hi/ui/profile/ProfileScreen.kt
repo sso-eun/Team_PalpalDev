@@ -48,6 +48,7 @@ import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.platform.LocalContext
 
 /**
  * ProfileScreen: 보기 전용 프로필 화면
@@ -66,6 +67,9 @@ fun ProfileScreen(
     onUpdatePasswordClick: () -> Unit,
     navController: NavController
 ) {
+    val context = LocalContext.current
+    val alertRepository = remember { AlertRepository.getInstance(context) }
+    
     // ViewModel에서 상태(State)를 구독
     val userTel by remember { derivedStateOf { viewModel.userTel } }
     val userProfileImg by remember { derivedStateOf { viewModel.userProfileImg } }
@@ -79,12 +83,11 @@ fun ProfileScreen(
     }
     
     // AlertRepository의 알림 목록을 관찰
-    val alerts by remember { mutableStateOf(AlertRepository.alertList) }
+    val alerts by remember { derivedStateOf { alertRepository.alertList } }
     
     // 오늘 날짜의 알림만 필터링
     val todayAlerts = remember(alerts) {
-        AlertRepository.alertList
-            .filter { it.date == today }
+        alerts.filter { it.date == today }
             .sortedBy { it.time }
     }
 

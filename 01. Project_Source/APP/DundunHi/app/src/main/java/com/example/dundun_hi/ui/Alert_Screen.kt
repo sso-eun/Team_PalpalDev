@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,12 +31,15 @@ import androidx.lifecycle.LifecycleOwner
 
 @Composable
 fun AlarmRecordScreen(navController: NavController) {
+    val context = LocalContext.current
+    val alertRepository = remember { AlertRepository.getInstance(context) }
+    
     val fullFormat = SimpleDateFormat("yyyy/MM/dd", Locale.KOREA)
     val dayFormat = SimpleDateFormat("dd", Locale.KOREA)
     val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
 
     // AlertRepository의 상태를 관찰
-    val alerts by remember { mutableStateOf(AlertRepository.alertList) }
+    val alerts by remember { derivedStateOf { alertRepository.alertList } }
     
     // 화면 갱신을 위한 키
     var updateKey by remember { mutableStateOf(0) }
@@ -72,8 +76,7 @@ fun AlarmRecordScreen(navController: NavController) {
 
     // 선택된 날짜의 알림 목록을 가져오는 부분을 updateKey에 따라 갱신되도록 수정
     val alertsForDay = remember(alerts, selectedDate, updateKey) {
-        AlertRepository.alertList
-            .filter { it.date == selectedDate }
+        alerts.filter { it.date == selectedDate }
             .sortedBy { it.time }
     }
 
@@ -245,9 +248,9 @@ fun AlarmRecordScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                            Text("${alert.date} ${alert.time}", fontSize = 14.sp, color = Color.Black)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(alert.content, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("${alert.date} ${alert.time}", fontSize = 14.sp, color = Color.Black)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(alert.content, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
                             
                             Row {
@@ -255,7 +258,7 @@ fun AlarmRecordScreen(navController: NavController) {
                                 IconButton(
                                     onClick = {
                                         editingAlert = alert
-                                        navController.navigate("edit_alarm/${alert.id}")
+                                        navController.navigate("edit_alert/${alert.id}")
                                     }
                                 ) {
                                     Icon(
@@ -275,7 +278,7 @@ fun AlarmRecordScreen(navController: NavController) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_delete),
                                         contentDescription = "삭제",
-                                        tint = Color(0xFFE91E63)
+                                        tint = Color(0xFF2196F3)
                                     )
                                 }
                             }
@@ -299,35 +302,38 @@ fun AlarmRecordScreen(navController: NavController) {
     }
     
     // 삭제 확인 다이얼로그
-    if (showDeleteDialog) {
+    if (showDeleteDialog && alertToDelete != null) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            icon = { Icon(painter = painterResource(id = R.drawable.ic_delete), contentDescription = null) },
+            onDismissRequest = { 
+                showDeleteDialog = false
+                alertToDelete = null
+            },
             title = { Text("알림 삭제") },
             text = { Text("이 알림을 삭제하시겠습니까?") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         alertToDelete?.let { alert ->
-                            AlertRepository.deleteAlert(alert)
-                            updateKey += 1  // 화면 갱신
+                            alertRepository.deleteAlert(alert)
+                            updateKey += 1
                         }
                         showDeleteDialog = false
+                        alertToDelete = null
                     }
                 ) {
-                    Text("삭제", color = Color(0xFFE91E63))
+                    Text("삭제")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(
+                    onClick = { 
+                        showDeleteDialog = false
+                        alertToDelete = null
+                    }
+                ) {
                     Text("취소")
                 }
-            },
-            containerColor = Color.White,
-            iconContentColor = Color(0xFFE91E63),
-            titleContentColor = Color.Black,
-            textContentColor = Color.DarkGray,
-            tonalElevation = 8.dp
+            }
         )
     }
 }

@@ -252,13 +252,13 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
                             val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
-                            
+
                             // ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
                             val profileViewModel: ProfileViewModel = viewModel(
                                 factory = ProfileViewModelFactory(repository, userNum)
                             )
-                            
+
                             // 프로필 정보 로드
                             LaunchedEffect(Unit) {
                                 profileViewModel.fetchUserFromServer()
@@ -275,7 +275,7 @@ class MainActivity : ComponentActivity() {
                                 "흐림" -> 4  // OVERCAST
                                 else -> 1  // 기본값 SUNNY
                             }
-                            
+
                             MainScreen(
                                 userName = "${userId}님",
                                 userProfileImg = profileViewModel.userProfileImg,  // 프로필 이미지 전달

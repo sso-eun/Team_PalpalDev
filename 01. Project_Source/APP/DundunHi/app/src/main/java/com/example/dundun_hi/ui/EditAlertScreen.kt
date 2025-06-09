@@ -1,5 +1,7 @@
 package com.example.dundun_hi.ui
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,27 +22,17 @@ import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditAlertScreen(navController: NavController, alertId: String) {
-    val alert = remember { AlertRepository.getAlertById(alertId) }
+    val context = LocalContext.current
+    val alertRepository = remember { AlertRepository.getInstance(context) }
+    val alert = remember { alertRepository.getAlertById(alertId) }
     
     var date by remember { mutableStateOf(alert?.date ?: "") }
     var time by remember { mutableStateOf(alert?.time ?: "") }
     var content by remember { mutableStateOf(alert?.content ?: "") }
     
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-
-    // 수정 성공 여부를 추적
-    var isUpdateSuccess by remember { mutableStateOf(false) }
-
-    // 수정 성공 시 이전 화면으로 돌아가기
-    LaunchedEffect(isUpdateSuccess) {
-        if (isUpdateSuccess) {
-            navController.navigateUp()
-        }
-    }
+    val calendar = Calendar.getInstance()
 
     Box(
         modifier = Modifier
@@ -74,7 +67,17 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OutlinedButton(
-                    onClick = { showDatePicker = true },
+                    onClick = {
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                date = String.format("%04d/%02d/%02d", year, month + 1, dayOfMonth)
+                            },
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                        ).show()
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(date.ifEmpty { "날짜 선택" })
@@ -83,7 +86,17 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 OutlinedButton(
-                    onClick = { showTimePicker = true },
+                    onClick = {
+                        TimePickerDialog(
+                            context,
+                            { _, hourOfDay, minute ->
+                                time = String.format("%02d:%02d", hourOfDay, minute)
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            true
+                        ).show()
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(time.ifEmpty { "시간 선택" })
@@ -97,7 +110,9 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
                 value = content,
                 onValueChange = { content = it },
                 label = { Text("알림 내용") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp),
                 shape = RoundedCornerShape(8.dp)
             )
 
@@ -113,94 +128,16 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
                             time = time,
                             content = content
                         )
-                        AlertRepository.updateAlert(updatedAlert)
-                        isUpdateSuccess = true
+                        alertRepository.updateAlert(updatedAlert)
+                        navController.navigateUp()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = date.isNotEmpty() && time.isNotEmpty() && content.isNotEmpty()
+                enabled = date.isNotEmpty() && time.isNotEmpty() && content.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
             ) {
-                Text("수정 완료")
+                Text("수정 완료", fontSize = 16.sp, color = Color.White)
             }
-        }
-
-        // Date Picker Dialog
-        if (showDatePicker) {
-            val dateFormatter = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-            val datePickerState = rememberDatePickerState()
-            
-            AlertDialog(
-                onDismissRequest = { showDatePicker = false },
-                icon = { Icon(painter = painterResource(id = R.drawable.ic_calendar), contentDescription = null) },
-                title = { Text("날짜 선택") },
-                text = {
-                    DatePicker(
-                        state = datePickerState,
-                        showModeToggle = false
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                date = dateFormatter.format(Date(millis))
-                            }
-                            showDatePicker = false
-                        }
-                    ) {
-                        Text("확인")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
-                        Text("취소")
-                    }
-                },
-                containerColor = Color.White,
-                iconContentColor = Color(0xFF2196F3),
-                titleContentColor = Color.Black,
-                textContentColor = Color.DarkGray,
-                tonalElevation = 8.dp
-            )
-        }
-
-        // Time Picker Dialog
-        if (showTimePicker) {
-            val timePickerState = rememberTimePickerState()
-            
-            AlertDialog(
-                onDismissRequest = { showTimePicker = false },
-                icon = { Icon(painter = painterResource(id = R.drawable.ic_clock), contentDescription = null) },
-                title = { Text("시간 선택") },
-                text = {
-                    TimePicker(
-                        state = timePickerState,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            val hour = timePickerState.hour.toString().padStart(2, '0')
-                            val minute = timePickerState.minute.toString().padStart(2, '0')
-                            time = "$hour:$minute"
-                            showTimePicker = false
-                        }
-                    ) {
-                        Text("확인")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showTimePicker = false }) {
-                        Text("취소")
-                    }
-                },
-                containerColor = Color.White,
-                iconContentColor = Color(0xFF2196F3),
-                titleContentColor = Color.Black,
-                textContentColor = Color.DarkGray,
-                tonalElevation = 8.dp
-            )
         }
     }
 } 
