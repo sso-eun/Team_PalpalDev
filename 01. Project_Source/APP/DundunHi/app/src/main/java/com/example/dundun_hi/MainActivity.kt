@@ -72,6 +72,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 스플래시 화면이 표시되는 동안 하얀 배경 설정
+        window.setBackgroundDrawableResource(android.R.color.white)
+
         // ── 위치 권한 요청 (registerForActivityResult 방식) ─────────────────────────────────────────
         val locationLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -143,8 +146,19 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = "home"
+                        startDestination = "splash"
                     ) {
+                        // ─── Splash Screen
+                        composable("splash") {
+                            SplashScreen(
+                                onTimeout = {
+                                    navController.navigate("home") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
                         // ─── Home
                         composable("home") {
                             HomeScreen(
@@ -278,12 +292,12 @@ class MainActivity : ComponentActivity() {
 
                             MainScreen(
                                 userName = "${userId}님",
-                                userProfileImg = profileViewModel.userProfileImg,  // 프로필 이미지 전달
+                                userProfileImg = profileViewModel.userProfileImg,
                                 temperature = weatherData?.currentTempInt ?: 0,
                                 highTemp = weatherData?.maxTempInt ?: 0,
                                 lowTemp = weatherData?.minTempInt ?: 0,
                                 weatherState = weatherStateCode,
-                                precipitationType = 0,  // 현재 강수 타입 데이터가 없으므로 기본값 0 사용
+                                precipitationType = 0,
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
                                 onCameraPageClick = { navController.navigate("camera") },

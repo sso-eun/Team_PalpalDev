@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
@@ -31,14 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.dundun_hi.R
 import com.example.dundun_hi.ui.theme.BorderGray
 import com.example.dundun_hi.ui.theme.ButtonCamBlue
@@ -74,7 +71,7 @@ enum class PrecipitationType(val code: Int, val iconRes: Int) {
 @Composable
 fun MainScreen(
     userName: String,
-    userProfileImg: String = "",
+    userProfileImg: String,
     temperature: Int,
     highTemp: Int,
     lowTemp: Int,
@@ -118,55 +115,21 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 프로필 이미지 추가
-                if (userProfileImg.isNotEmpty()) {
-                    AsyncImage(
-                        model = userProfileImg,
-                        contentDescription = "프로필 사진",
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .border(
-                                width = 1.dp,
-                                color = Color.Gray,
-                                shape = CircleShape
-                            )
-                            .clickable(onClick = onProfileClick)
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_profile),
-                        contentDescription = "기본 프로필 이미지",
-                        tint = Color.Gray,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .border(
-                                width = 1.dp,
-                                color = Color.Gray,
-                                shape = CircleShape
-                            )
-                            .clickable(onClick = onProfileClick)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .padding(start = 16.dp)
                 ) {
                     Text("어서오세요", fontSize = 30.sp, fontWeight = FontWeight.Bold)
                     Text(userName, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
-                
                 Divider(
                     color = BorderGray,
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(1.dp)
                 )
-                
+                Spacer(modifier = Modifier.width(16.dp))
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(end = 8.dp)
@@ -287,9 +250,9 @@ fun MainScreenPreview() {
     MainScreen(
         userName = "길동님",
         userProfileImg = "",
-        temperature = 19,
-        highTemp = 25,
-        lowTemp = 7,
+        temperature = 25,
+        highTemp = 28,
+        lowTemp = 20,
         weatherState = 3, // 구름 많음 상태로 미리보기
         precipitationType = 2, // 비/눈 상태로 미리보기
         onPhonePageClick = {},
