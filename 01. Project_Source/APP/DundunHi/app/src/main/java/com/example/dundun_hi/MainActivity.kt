@@ -72,6 +72,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 스플래시 화면이 표시되는 동안 하얀 배경 설정
+        window.setBackgroundDrawableResource(android.R.color.white)
+
         // ── 위치 권한 요청 (registerForActivityResult 방식) ─────────────────────────────────────────
         val locationLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -143,8 +146,19 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = "home"
+                        startDestination = "splash"
                     ) {
+                        // ─── Splash Screen
+                        composable("splash") {
+                            SplashScreen(
+                                onTimeout = {
+                                    navController.navigate("home") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
                         // ─── Home
                         composable("home") {
                             HomeScreen(
@@ -249,102 +263,51 @@ class MainActivity : ComponentActivity() {
                                 navArgument("userNum") { type = NavType.StringType },
                                 navArgument("userId")  { type = NavType.StringType }
                             )
-                        ) { backEntry ->
-                            val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
-                            val userId = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
-                            val userNumInt = userNumStr.toIntOrNull() ?: 0
+                        ) { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
+                            val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
 
-                            // ▶ ProfileViewModel 생성
+                            // ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
-                            val profileVm: ProfileViewModel = viewModel(
-                                key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                            val profileViewModel: ProfileViewModel = viewModel(
+                                factory = ProfileViewModelFactory(repository, userNum)
                             )
 
-                            // ▶ 날씨 상태 관찰
-                            val uiState by weatherVM.uiState.collectAsState()
-
-                            // ▶ "집 위치" 자동 업데이트 로직
-                            val hasAutoUpdated = remember { mutableStateOf(false) }
-                            LaunchedEffect(profileVm.userHomeLat, profileVm.userHomeLon) {
-                                val homeLat = profileVm.userHomeLat
-                                val homeLon = profileVm.userHomeLon
-
-                                if (!hasAutoUpdated.value && (homeLat != 0.0 || homeLon != 0.0)) {
-                                    hasAutoUpdated.value = true
-
-                                    if (ContextCompat.checkSelfPermission(
-                                            this@MainActivity,
-                                            Manifest.permission.ACCESS_FINE_LOCATION
-                                        ) == PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        fusedLocationClient.lastLocation
-                                            .addOnSuccessListener { location ->
-                                                if (location != null) {
-                                                    val currentLat = location.latitude
-                                                    val currentLon = location.longitude
-
-                                                    // 1) 날씨 로드 (현재 위치 기반)
-                                                    weatherVM.load(
-                                                        lat = currentLat,
-                                                        lon = currentLon
-                                                    )
-
-                                                    // 2) 집 위치와 비교하여 상태 자동 업데이트
-                                                    val thresholdMeters = 100.0
-                                                    profileVm.autoUpdateConditionBasedOnLocation(
-                                                        currentLat = currentLat,
-                                                        currentLon = currentLon,
-                                                        thresholdInMeters = thresholdMeters
-                                                    ) { updated ->
-                                                        if (updated) {
-                                                            Toast.makeText(
-                                                                this@MainActivity,
-                                                                "집과의 거리를 판별하여 상태가 자동으로 변경되었습니다.",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-                                                        }
-                                                    }
-                                                } else {
-                                                    // location == null → 기본 좌표(서울시청)로 날씨만 로드
-                                                    weatherVM.load(
-                                                        lat = 37.5665,
-                                                        lon = 126.9780
-                                                    )
-                                                }
-                                            }
-                                            .addOnFailureListener {
-                                                weatherVM.load(
-                                                    lat = 37.5665,
-                                                    lon = 126.9780
-                                                )
-                                            }
-                                    } else {
-                                        // 권한 없으면 기본 좌표로 날씨만 로드
-                                        weatherVM.load(
-                                            lat = 37.5665,
-                                            lon = 126.9780
-                                        )
-                                    }
-                                }
+                            // 프로필 정보 로드
+                            LaunchedEffect(Unit) {
+                                profileViewModel.fetchUserFromServer()
+                            }
+                            
+                            // 날씨 상태 가져오기
+                            val weatherState by weatherVM.uiState.collectAsState()
+                            val weatherData = (weatherState as? WeatherUiState.Success)?.data
+                            
+                            // sky 값을 weatherState 코드로 변환
+                            val weatherStateCode = when (weatherData?.sky?.lowercase()) {
+                                "맑음" -> 1  // SUNNY
+                                "구름많음" -> 3  // CLOUDY
+                                "흐림" -> 4  // OVERCAST
+                                else -> 1  // 기본값 SUNNY
                             }
 
-                            // ▶ 날씨가 성공적으로 로드되었을 때 가져온 데이터
-                            val success = (uiState as? WeatherUiState.Success)
-
                             MainScreen(
-                                userName    = "${userId}님",
-                                temperature = success?.data?.currentTemp?.toDoubleOrNull()?.toInt() ?: 0,
-                                highTemp    = success?.data?.maxTemp?.toDoubleOrNull()?.toInt() ?: 0,
-                                lowTemp     = success?.data?.minTemp?.toDoubleOrNull()?.toInt() ?: 0,
-                                onPhonePageClick    = { navController.navigate("call") },
-                                onMessagePageClick  = { navController.navigate("profile/$userNumStr/${Uri.encode(userId)}") },
-                                onCameraPageClick   = { navController.navigate("camera") },
-                                onMapPageClick      = { navController.navigate("map") },
-                                onFindCultureCenter = { /* TODO */ },
-                                onKioskPageClick    = { navController.navigate("kiosk") },
-                                onProfileClick      = {
-                                    navController.navigate("profile/$userNumStr/${Uri.encode(userId)}")
+                                userName = "${userId}님",
+                                userProfileImg = profileViewModel.userProfileImg,
+                                temperature = weatherData?.currentTempInt ?: 0,
+                                highTemp = weatherData?.maxTempInt ?: 0,
+                                lowTemp = weatherData?.minTempInt ?: 0,
+                                weatherState = weatherStateCode,
+                                precipitationType = 0,
+                                onPhonePageClick = { navController.navigate("call") },
+                                onMessagePageClick = { /* TODO */ },
+                                onCameraPageClick = { navController.navigate("camera") },
+                                onMapPageClick = { navController.navigate("map") },
+                                onFindCultureCenter = { navController.navigate("culture_center") },
+                                onKioskPageClick = { navController.navigate("kiosk") },
+                                onProfileClick = { 
+                                    navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
+                                        launchSingleTop = true
+                                    }
                                 }
                             )
                         }

@@ -28,6 +28,7 @@ import java.util.*
 fun AddAlarmScreen(navController: NavController) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+    val alertRepository = remember { AlertRepository.getInstance(context) }
 
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
@@ -149,7 +150,7 @@ fun AddAlarmScreen(navController: NavController) {
         Button(
             onClick = {
                 if (selectedDate.isNotBlank() && selectedTime.isNotBlank() && contentText.isNotBlank()) {
-                    AlertRepository.alertList.add(
+                    alertRepository.addAlert(
                         AlertItem(date = selectedDate, time = selectedTime, content = contentText)
                     )
                     navController.popBackStack()

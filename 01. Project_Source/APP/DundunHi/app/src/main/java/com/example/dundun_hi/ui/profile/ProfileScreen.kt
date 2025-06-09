@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -45,8 +47,8 @@ import coil.compose.AsyncImage
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
+import androidx.compose.ui.platform.LocalContext
 
 /**
  * ProfileScreen: 보기 전용 프로필 화면
@@ -65,6 +67,9 @@ fun ProfileScreen(
     onUpdatePasswordClick: () -> Unit,
     navController: NavController
 ) {
+    val context = LocalContext.current
+    val alertRepository = remember { AlertRepository.getInstance(context) }
+    
     // ViewModel에서 상태(State)를 구독
     val userTel by remember { derivedStateOf { viewModel.userTel } }
     val userProfileImg by remember { derivedStateOf { viewModel.userProfileImg } }
@@ -78,12 +83,11 @@ fun ProfileScreen(
     }
     
     // AlertRepository의 알림 목록을 관찰
-    val alerts by remember { mutableStateOf(AlertRepository.alertList) }
+    val alerts by remember { derivedStateOf { alertRepository.alertList } }
     
     // 오늘 날짜의 알림만 필터링
     val todayAlerts = remember(alerts) {
-        AlertRepository.alertList
-            .filter { it.date == today }
+        alerts.filter { it.date == today }
             .sortedBy { it.time }
     }
 
@@ -258,9 +262,10 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(330.dp)
         ) {
             Column {
+                // 알림 헤더
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -298,7 +303,13 @@ fun ProfileScreen(
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
-                Column(modifier = Modifier.padding(16.dp)) {
+                // 알림 내용을 스크롤 가능한 영역으로 변경
+                val scrollState = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .verticalScroll(scrollState)
+                ) {
                     if (todayAlerts.isEmpty()) {
                         // 오늘의 알림이 없을 경우
                         Text(
@@ -310,7 +321,9 @@ fun ProfileScreen(
                     } else {
                         // 오늘의 알림 목록 표시
                         todayAlerts.forEachIndexed { index, alert ->
-                            Column {
+                            Column(
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
                                 Text(
                                     text = "${alert.date} ${alert.time}",
                                     fontSize = 14.sp,
