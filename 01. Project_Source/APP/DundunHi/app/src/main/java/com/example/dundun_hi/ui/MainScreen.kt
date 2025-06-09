@@ -1,4 +1,3 @@
-
 // MainScreen.kt
 package com.example.dundun_hi.ui
 
@@ -16,11 +15,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -29,11 +31,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.dundun_hi.R
 import com.example.dundun_hi.ui.theme.BorderGray
 import com.example.dundun_hi.ui.theme.ButtonCamBlue
 import com.example.dundun_hi.ui.theme.ButtonMapBlue
@@ -42,12 +48,38 @@ import com.example.dundun_hi.ui.theme.ButtonPhoneGreen
 import com.example.dundun_hi.ui.theme.LightGray
 import com.example.dundun_hi.ui.theme.Sky
 
+// 날씨 상태를 나타내는 enum class
+enum class WeatherState(val code: Int, val iconRes: Int) {
+    SUNNY(1, R.drawable.ic_weather_sunny),
+    CLOUDY(3, R.drawable.ic_weather_cloudy),
+    OVERCAST(4, R.drawable.ic_weather_overcast);
+
+    companion object {
+        fun fromCode(code: Int) = values().find { it.code == code } ?: SUNNY
+    }
+}
+
+// 강수 형태를 나타내는 enum class
+enum class PrecipitationType(val code: Int, val iconRes: Int) {
+    NONE(0, 0),
+    RAIN(1, R.drawable.ic_weather_rain),
+    SLEET(2, R.drawable.ic_weather_sleet),
+    SNOW(3, R.drawable.ic_weather_snow);
+
+    companion object {
+        fun fromCode(code: Int) = values().find { it.code == code } ?: NONE
+    }
+}
+
 @Composable
 fun MainScreen(
     userName: String,
+    userProfileImg: String = "",
     temperature: Int,
     highTemp: Int,
     lowTemp: Int,
+    weatherState: Int = 1, // 기본값은 맑음(1)
+    precipitationType: Int = 0, // 기본값은 없음(0)
     onPhonePageClick: () -> Unit,
     onMessagePageClick: () -> Unit,
     onCameraPageClick: () -> Unit,
@@ -86,24 +118,77 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 프로필 이미지 추가
+                if (userProfileImg.isNotEmpty()) {
+                    AsyncImage(
+                        model = userProfileImg,
+                        contentDescription = "프로필 사진",
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = CircleShape
+                            )
+                    )
+                } else {
+                    // 기본 회색 원 (사진이 없을 경우)
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFCCCCCC))
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = CircleShape
+                            )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 16.dp)
                 ) {
                     Text("어서오세요", fontSize = 30.sp, fontWeight = FontWeight.Bold)
                     Text(userName, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
+                
                 Divider(
                     color = BorderGray,
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(1.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${temperature}°C", fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
+                
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    ) {
+                        Text("${temperature}°C", fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            painter = painterResource(WeatherState.fromCode(weatherState).iconRes),
+                            contentDescription = "날씨 상태",
+                            modifier = Modifier.size(36.dp)
+                        )
+                        // 강수 형태가 있는 경우에만 아이콘 표시
+                        if (precipitationType > 0) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                painter = painterResource(PrecipitationType.fromCode(precipitationType).iconRes),
+                                contentDescription = "강수 형태",
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    }
                     Text("최고: ${highTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
                     Text("최저: ${lowTemp}°", fontSize = 25.sp, fontWeight = FontWeight.Light)
                 }
@@ -112,18 +197,17 @@ fun MainScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // 중앙 버튼 ------------------------------------------------------------------
-        val buttonLabels = listOf("전화", "내 정보", "카메라", "지도")
-        buttonLabels.chunked(2).forEach { rowData ->
+        val buttons = listOf(
+            Triple("전화", R.drawable.ic_phone, ButtonPhoneGreen) to onPhonePageClick,
+            Triple("내 정보", R.drawable.ic_profile, ButtonMsgTeal) to onProfileClick,
+            Triple("카메라", R.drawable.ic_camera_main, ButtonCamBlue) to onCameraPageClick,
+            Triple("지도", R.drawable.ic_map, ButtonMapBlue) to onMapPageClick
+        )
+        
+        buttons.chunked(2).forEach { rowButtons ->
             Row(modifier = Modifier.fillMaxWidth()) {
-                rowData.forEach { label ->
-                    // 라벨에 따른 테두리 색 결정
-                    val borderColor = when(label) {
-                        "전화"   -> ButtonPhoneGreen
-                        "내 정보"   -> ButtonMsgTeal
-                        "카메라" -> ButtonCamBlue
-                        "지도"   -> ButtonMapBlue
-                        else     -> MaterialTheme.colorScheme.primary
-                    }
+                rowButtons.forEach { (buttonData, onClick) ->
+                    val (label, iconRes, borderColor) = buttonData
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -134,17 +218,28 @@ fun MainScreen(
                                 color = borderColor,
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            .clickable {
-                                when (label) {
-                                    "전화"   -> onPhonePageClick()
-                                    "내 정보"   -> onMessagePageClick()
-                                    "카메라" -> onCameraPageClick()
-                                    "지도"   -> onMapPageClick()
-                                }
-                            },
+                            .background(Color.White, RoundedCornerShape(12.dp))
+                            .clickable(onClick = onClick),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(label, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = iconRes),
+                                contentDescription = label,
+                                tint = borderColor,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = label,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
                     }
                 }
             }
@@ -188,15 +283,18 @@ fun MainScreen(
 fun MainScreenPreview() {
     MainScreen(
         userName = "길동님",
+        userProfileImg = "",
         temperature = 19,
         highTemp = 25,
         lowTemp = 7,
+        weatherState = 3, // 구름 많음 상태로 미리보기
+        precipitationType = 2, // 비/눈 상태로 미리보기
         onPhonePageClick = {},
         onMessagePageClick = {},
         onCameraPageClick = {},
         onMapPageClick = {},
         onFindCultureCenter = {},
         onKioskPageClick = {},
-        onProfileClick ={}
+        onProfileClick = {}
     )
 }

@@ -1,5 +1,7 @@
 package com.example.dundun_hi.ui.signup
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +16,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,17 +25,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dundun_hi.data.SignupRequest
 
 @Composable
-fun SignupScreen(onSignup: (SignupRequest) -> Unit) {
+fun SignupScreen(
+    viewModel: SignupViewModel,
+    onSignupSuccess: () -> Unit
+) {
+    val ctx = LocalContext.current
+
     var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    // 0=집, 1=외출 (Int로 선언!)
+    // SMS 인증에서 ViewModel에 저장된 전화번호 사용
+    val phone = viewModel.lastTelNum
+
+    // 0 = 집, 1 = 외출
     var userCondition by remember { mutableStateOf(0) }
+
+    val state by viewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -39,9 +53,12 @@ fun SignupScreen(onSignup: (SignupRequest) -> Unit) {
             .padding(horizontal = 24.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Text("든든하이", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(16.dp))
-        Text("회원가입", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
+
+        Text(
+            text = "회원가입",
+            fontSize = 65.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
         Spacer(Modifier.height(32.dp))
 
         Text("이름", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
@@ -49,75 +66,98 @@ fun SignupScreen(onSignup: (SignupRequest) -> Unit) {
             value = name,
             onValueChange = { name = it },
             placeholder = { Text("이름을 입력해주세요") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
             singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-        Spacer(Modifier.height(24.dp))
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
 
-        Text("전화번호", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
-        OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
-            placeholder = { Text("전화번호를 입력해주세요") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-        Spacer(Modifier.height(40.dp))
+            )
 
-        Text("현재 집에 계신가요?", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(30.dp))
+
+        Text(
+            text = "현재 집에 계신가요?",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(Modifier.height(8.dp))
 
-        // Yes/No 버튼
         Row(Modifier.fillMaxWidth()) {
             Button(
                 onClick = { userCondition = 0 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (userCondition == 0) Color(0xFF1AB277) else Color.LightGray
+                    containerColor = if (userCondition == 0)
+                        Color(0xFF1AB277)
+                    else
+                        Color(0xFFDFDFE0)
                 ),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(28.dp)
             ) {
-                Text("예", fontSize = 20.sp, color = Color.White)
+                Text(
+                    text = "예",
+                    fontSize = 30.sp,
+                    color = Color.White
+
+                )
             }
             Spacer(Modifier.width(16.dp))
             Button(
                 onClick = { userCondition = 1 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (userCondition == 1) Color(0xFF1AB277) else Color.LightGray
+                    containerColor = if (userCondition == 1)
+                        Color(0xFF1AB277)
+                    else
+                        Color(0xFFDFDFE0)
                 ),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(28.dp)
             ) {
-                Text("아니오", fontSize = 20.sp, color = Color.White)
+                Text(
+                    text = "아니요",
+                    fontSize = 30.sp,
+                    color = Color.White
+                )
             }
         }
+        Spacer(Modifier.height(100.dp))
 
-        Spacer(Modifier.height(40.dp))
         Button(
             onClick = {
-                val req = SignupRequest(
-                    user_type       = 0,
-                    user_id         = name,
-                    user_pw         = phone,
-                    user_tel        = phone,
-                    user_profile_img= "",
-                    user_home_lat   = "",
-                    user_home_lot   = "",
-                    user_condition  = userCondition
-                )
-                onSignup(req)
+                if (name.isBlank()) {
+                    Toast.makeText(ctx, "이름을 입력해주세요", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel.signup(
+                        SignupRequest(
+                            user_type       = 0,
+                            user_id         = name,
+                            user_pw         = phone,
+                            user_tel        = phone,
+                            user_profile_img= "",
+                            user_home_lat   = "",
+                            user_home_lot   = "",
+                            user_condition  = userCondition
+                        )
+                    )
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp),
+                .height(60.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
         ) {
-            Text("회원가입 완료", color = Color.White, fontSize = 25.sp)
+            Text(
+                text = "회원가입 완료하기",
+                color = Color.White,
+                fontSize = 30.sp
+            )
+        }
+    }
+
+    LaunchedEffect(state) {
+        if (state is SignupResult.Success) {
+            Log.d("SignupFlow", "SignupScreen LaunchedEffect: state is Success")
+            onSignupSuccess()
         }
     }
 }

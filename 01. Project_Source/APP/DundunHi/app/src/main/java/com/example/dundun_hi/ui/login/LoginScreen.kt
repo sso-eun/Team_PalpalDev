@@ -1,5 +1,8 @@
+// app/src/main/java/com/example/dundun_hi/ui/login/LoginScreen.kt
+
 package com.example.dundun_hi.ui.login
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,8 +31,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (userNum: String) -> Unit,
-    vm: LoginViewModel = viewModel()
+    vm: LoginViewModel = viewModel(),
+    onLoginSuccess: (userNum: String, userId: String) -> Unit,
+    onFindIdClick: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -38,10 +42,13 @@ fun LoginScreen(
     val loginRes by vm.loginState
     val errorMsg by vm.error
 
-    // 로그인 성공 시 상위로 userNum 전달
-    loginRes?.let {
-        LaunchedEffect(it) {
-            onLoginSuccess(it.userNum)
+    loginRes?.let { response ->
+        LaunchedEffect(response) {
+            // 서버 응답에 userId가 null이므로, 여기서는 “입력한 name”을 userId로
+            val userNumStr = response.userNum
+            val userIdFromInput = name
+            onLoginSuccess(userNumStr, userIdFromInput)
+            vm.clearLoginState()
         }
     }
 
@@ -84,7 +91,7 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                // Retrofit 호출
+                // Retrofit 호출 (LoginViewModel에 userId=‘name’, userPw=‘phone’ 전달)
                 vm.login(name.trim(), phone.trim())
             },
             modifier = Modifier
@@ -95,6 +102,19 @@ fun LoginScreen(
         ) {
             Text("로그인하기", color = Color.White, fontSize = 30.sp)
         }
+
+        Spacer(Modifier.height(40.dp))
+
+        Text(text = "가입한 이름을 까먹으셨나요?", color = Color.Gray, fontSize = 18.sp)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "이름 찾기",
+            color = Color.Black,
+            fontSize = 18.sp,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .clickable { onFindIdClick() }
+        )
 
         // 에러 메시지 표시
         errorMsg?.let { msg ->

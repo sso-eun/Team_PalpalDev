@@ -1,6 +1,9 @@
 package com.example.dundun_hi.data
 
+import com.google.gson.annotations.SerializedName
+
 data class SignupResponse(
-    val message: String,
-    val user_num: String
+    @SerializedName("message")  val message: String,
+    @SerializedName("user_num") val userNum: String,
+    @SerializedName("user_id")  val userId:  String
 )

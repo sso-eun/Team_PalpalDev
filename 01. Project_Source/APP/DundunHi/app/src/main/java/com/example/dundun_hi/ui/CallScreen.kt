@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,7 +38,6 @@ import androidx.compose.ui.unit.sp
 import com.example.dundun_hi.R
 
 data class CallShortcut(val label: String, val phoneNumber: String)
-
 @Composable
 fun CallScreen(
     contacts: List<CallShortcut>,
@@ -49,7 +50,7 @@ fun CallScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .background(Color.White)
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // ── 타이틀 (왼쪽 고정)
@@ -60,13 +61,14 @@ fun CallScreen(
             modifier = Modifier.align(Alignment.Start)
         )
 
-        // ── 연락처 슬롯 (Always 3)
+        // ── 연락처 슬롯 (항상 3개)
         contacts.plus(List(3 - contacts.size) { null })
             .take(3)
             .forEachIndexed { idx, item ->
                 Card(
                     modifier = Modifier
-                        .size(width = 370.dp, height = 150.dp)
+                        .fillMaxWidth()
+                        .height(150.dp)
                         .clickable {
                             item?.let {
                                 ctx.startActivity(
@@ -105,12 +107,18 @@ fun CallScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // ── 긴급 신고 버튼들
+        // ── 긴급 신고 버튼들 (최대 180×180dp 고정 + 화면 줄어들면 비율에 맞춰 축소)
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
         ) {
             EmergencyButton(
+                modifier = Modifier
+                    .weight(1f)                             // 남는 가로 공간을 동일 비율로 나눔
+                    .aspectRatio(1f)                        // 너비 == 높이가 되도록
+                    .sizeIn(maxWidth = 180.dp, maxHeight = 180.dp), // 최대 크기 180×180dp
                 label = "119신고",
                 iconRes = R.drawable.ic_call_119,
                 borderColor = Color(0xFFF27A54)
@@ -118,6 +126,10 @@ fun CallScreen(
                 ctx.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:119")))
             }
             EmergencyButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(1f)
+                    .sizeIn(maxWidth = 180.dp, maxHeight = 180.dp),
                 label = "112신고",
                 iconRes = R.drawable.ic_call_112,
                 borderColor = Color(0xFF3B6FE0)
@@ -127,17 +139,17 @@ fun CallScreen(
         }
     }
 }
+
 @Composable
 private fun EmergencyButton(
+    modifier: Modifier = Modifier,
     label: String,
     iconRes: Int,
     borderColor: Color,
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .size(180.dp)
-            .clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(0.dp),
@@ -148,7 +160,7 @@ private fun EmergencyButton(
                 .fillMaxSize()
                 .padding(12.dp),
             verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.End    // ← 오른쪽 정렬
+            horizontalAlignment = Alignment.End
         ) {
             Text(
                 text = label,
@@ -156,12 +168,12 @@ private fun EmergencyButton(
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF222222),
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center       // 레이블은 가운데
+                textAlign = TextAlign.Center
             )
             Image(
                 painter = painterResource(iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(64.dp)    // 아이콘은 오른쪽 끝에 배치
+                modifier = Modifier.size(64.dp)
             )
         }
     }

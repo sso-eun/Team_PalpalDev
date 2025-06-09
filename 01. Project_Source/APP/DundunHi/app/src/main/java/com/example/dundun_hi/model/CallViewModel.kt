@@ -1,8 +1,9 @@
 // CallViewModel.kt
-package com.example.dundun_hi.ui.screen
+package com.example.dundun_hi.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dundun_hi.ui.screen.CallShortcut
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

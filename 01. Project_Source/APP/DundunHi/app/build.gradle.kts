@@ -76,6 +76,7 @@ dependencies {
 
     // OkHttp 로깅 인터셉터 (HttpLoggingInterceptor)
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation ("com.google.android.gms:play-services-location:21.3.0")
 
     //네이버 지도 SDK
     implementation("com.naver.maps:map-sdk:3.21.0")
