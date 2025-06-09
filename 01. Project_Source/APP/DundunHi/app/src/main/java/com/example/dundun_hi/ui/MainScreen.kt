@@ -131,19 +131,22 @@ fun MainScreen(
                                 color = Color.Gray,
                                 shape = CircleShape
                             )
+                            .clickable(onClick = onProfileClick)
                     )
                 } else {
-                    // 기본 회색 원 (사진이 없을 경우)
-                    Box(
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_profile),
+                        contentDescription = "기본 프로필 이미지",
+                        tint = Color.Gray,
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFCCCCCC))
                             .border(
                                 width = 1.dp,
                                 color = Color.Gray,
                                 shape = CircleShape
                             )
+                            .clickable(onClick = onProfileClick)
                     )
                 }
                 
