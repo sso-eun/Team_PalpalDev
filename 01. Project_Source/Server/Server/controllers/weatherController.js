@@ -89,6 +89,8 @@ router.get('/', async (req, res) => {
 
         // 2025-06-05 수정
         // 공공데이터 기상청 요청 파라미터 변경
+        // 재수정
+        // 재수정
         // const query = `?serviceKey=${process.env.SERVICE_KEY_WT}&pageNo=1&dataType=XML&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}`;
         const query = `?serviceKey=${process.env.SERVICE_KEY_WT}&pageNo=1&numOfRows=500&dataType=XML&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}`;
 
