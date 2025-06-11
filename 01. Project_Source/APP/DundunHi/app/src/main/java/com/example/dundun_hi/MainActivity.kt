@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +66,7 @@ import com.example.dundun_hi.ui.theme.DundunHiTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.example.dundun_hi.model.CallShortcut
+import android.content.Intent
 
 class MainActivity : ComponentActivity() {
 
@@ -95,9 +97,15 @@ class MainActivity : ComponentActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // CallViewModel 인스턴스 생성
+        val callVm: CallViewModel = CallViewModel(application)
+
         setContent {
             DundunHiTheme {
-                Surface(Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     // ── 날씨 ViewModel 생성 ──────────────────────────────────────────────────────────
                     val weatherVM: WeatherViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
@@ -303,7 +311,10 @@ class MainActivity : ComponentActivity() {
                                 onMessagePageClick = { /* TODO */ },
                                 onCameraPageClick = { navController.navigate("camera") },
                                 onMapPageClick = { navController.navigate("map") },
-                                onFindCultureCenter = { navController.navigate("culture_center") },
+                                onFindCultureCenter = { 
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.cjmh.or.kr/study.html"))
+                                    startActivity(intent)
+                                },
                                 onKioskPageClick = { navController.navigate("kiosk") },
                                 onProfileClick = { 
                                     navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
@@ -433,13 +444,6 @@ class MainActivity : ComponentActivity() {
 
                         // ─── CallScreen
                         composable("call") {
-                            val callVm: CallViewModel = viewModel(
-                                factory = object : ViewModelProvider.Factory {
-                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                        return CallViewModel(application) as T
-                                    }
-                                }
-                            )
                             val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
                                 contacts = shortcuts,
@@ -451,17 +455,10 @@ class MainActivity : ComponentActivity() {
 
                         // ─── SetupShortcutScreen
                         composable("call_setup/{index}") { back ->
-                            val callVm: CallViewModel = viewModel(
-                                factory = object : ViewModelProvider.Factory {
-                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                        return CallViewModel(application) as T
-                                    }
-                                }
-                            )
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
                             SetupShortcutScreen(
                                 index = idx,
-                                viewModel = callVm,  // 명시적으로 ViewModel 전달
+                                viewModel = callVm,  // 공유된 ViewModel 전달
                                 onDone = {
                                     navController.popBackStack()
                                 }
