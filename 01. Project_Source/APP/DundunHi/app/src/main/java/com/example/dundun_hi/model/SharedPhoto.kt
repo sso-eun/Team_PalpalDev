@@ -1,10 +1,13 @@
+// app/src/main/java/com/example/dundun_hi/model/SharedPhoto.kt
 package com.example.dundun_hi.model
 
-//data class SharedPhoto(
-//    val url: String,
-//    val fromMe: Boolean   // 내가 보낸 사진이면 true
-//)
+import android.net.Uri
+import java.util.UUID
+
 data class SharedPhoto(
-    val resId: Int,     // R.drawable.xxx
-    val fromMe: Boolean
+    val id: String = UUID.randomUUID().toString(),
+    val fromMe: Boolean,
+    val localUri: Uri? = null,     // 갤러리에서 고른 사진
+    val remoteUrl: String? = null, // 서버 업로드 완료 URL
+    val resId: Int? = null         // drawable 리소스(더미)
 )

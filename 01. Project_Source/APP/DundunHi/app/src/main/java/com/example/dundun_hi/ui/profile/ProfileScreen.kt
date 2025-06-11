@@ -211,16 +211,6 @@ fun ProfileScreen(
                             color = Color.Black
                         )
                     }
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_plus),
-                        contentDescription = "위치 추가",
-                        tint = Color(0xFF1AB277),
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { 
-                                navController.navigate("enter_exit")
-                            }
-                    )
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)

@@ -51,7 +51,7 @@ import com.example.dundun_hi.ui.profile.UpdateProfileScreen
 import com.example.dundun_hi.ui.ActivityHistoryScreen
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.KioskScreen
-import com.example.dundun_hi.ui.screen.LastPhotoScreen
+import com.example.dundun_hi.ui.LastPhotoScreen
 import com.example.dundun_hi.ui.signup.LoadingScreen
 import com.example.dundun_hi.ui.SetupShortcutScreen
 import com.example.dundun_hi.ui.HomeScreen
@@ -417,13 +417,16 @@ class MainActivity : ComponentActivity() {
 
                         // ─── LastPhotoScreen
                         composable("lastphoto") {
-                            val dummyPhotos = listOf(
-                                SharedPhoto(R.drawable.img1, fromMe = true),
-                                SharedPhoto(R.drawable.img2, fromMe = false),
-                                SharedPhoto(R.drawable.img3, fromMe = true)
+                            // ✅ 실제 앱에서는 DataStore/Room/Intent 등으로 받은 값 넣기
+                            val userNum    = 123   // 예: PreferenceManager.getInt("USER_NUM", 0)
+                            val guardianId = 456   // 예: PreferenceManager.getInt("GUARDIAN_ID", 0)
+
+                            LastPhotoScreen(
+                                userNum     = userNum,
+                                guardianId  = guardianId
                             )
-                            LastPhotoScreen(photos = dummyPhotos, onAddPhoto = { /* TODO */ })
                         }
+
 
                         // ─── KioskScreen
                         composable("kiosk") {
