@@ -64,6 +64,7 @@ import com.example.dundun_hi.ui.signup.LoadingScreen as SignupLoadingScreen
 import com.example.dundun_hi.ui.theme.DundunHiTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.example.dundun_hi.model.CallShortcut
 
 class MainActivity : ComponentActivity() {
 
@@ -432,7 +433,13 @@ class MainActivity : ComponentActivity() {
 
                         // ─── CallScreen
                         composable("call") {
-                            val callVm: CallViewModel = viewModel()
+                            val callVm: CallViewModel = viewModel(
+                                factory = object : ViewModelProvider.Factory {
+                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                        return CallViewModel(application) as T
+                                    }
+                                }
+                            )
                             val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
                                 contacts = shortcuts,
@@ -444,12 +451,18 @@ class MainActivity : ComponentActivity() {
 
                         // ─── SetupShortcutScreen
                         composable("call_setup/{index}") { back ->
-                            val callVm: CallViewModel = viewModel()
+                            val callVm: CallViewModel = viewModel(
+                                factory = object : ViewModelProvider.Factory {
+                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                        return CallViewModel(application) as T
+                                    }
+                                }
+                            )
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
                             SetupShortcutScreen(
                                 index = idx,
+                                viewModel = callVm,  // 명시적으로 ViewModel 전달
                                 onDone = {
-                                    callVm.loadShortcuts()
                                     navController.popBackStack()
                                 }
                             )
