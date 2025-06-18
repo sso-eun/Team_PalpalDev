@@ -248,9 +248,9 @@ fun AlarmRecordScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                            Text("${alert.date} ${alert.time}", fontSize = 14.sp, color = Color.Black)
+                            Text("${alert.date} ${alert.time}", fontSize = 18.sp, color = Color.Black)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(alert.content, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text(alert.content, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             }
                             
                             Row {

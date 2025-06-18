@@ -98,9 +98,9 @@ fun SetupShortcutScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.weight(1f))
-        
+
         Button(
             onClick = {
                 if (label.isNotBlank() && phoneNumber.isNotBlank()) {
