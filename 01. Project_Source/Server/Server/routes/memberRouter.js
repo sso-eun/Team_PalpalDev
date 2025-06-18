@@ -19,6 +19,7 @@ router.post('/savemylist', memberController.saveMylist);
 router.put('/updatemylist', memberController.updateMyList);
 router.post('/deletemylist', memberController.deleteMyList);
 router.post('/getmylist', memberController.getMyList);
+router.post('/updatetoken', memberController.updateFCM);
 
 
 
