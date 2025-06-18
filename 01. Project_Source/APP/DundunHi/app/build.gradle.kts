@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -82,4 +83,9 @@ dependencies {
     implementation("com.naver.maps:map-sdk:3.21.0")
     implementation ("com.google.android.gms:play-services-location:20.0.0")
     implementation("io.github.fornewid:naver-map-compose:1.2.3")
+
+    // Firebase BOM
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
 }
