@@ -172,7 +172,7 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 onLoginClick   = { navController.navigate("login") },
-                                onSignupClick  = { navController.navigate("signup") },
+                                onSignupClick  = { navController.navigate("auth") },
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }

@@ -47,6 +47,7 @@ import com.example.dundun_hi.ui.theme.ButtonMsgTeal
 import com.example.dundun_hi.ui.theme.ButtonPhoneGreen
 import com.example.dundun_hi.ui.theme.LightGray
 import com.example.dundun_hi.ui.theme.Sky
+import androidx.compose.ui.layout.ContentScale
 
 // 날씨 상태를 나타내는 enum class
 enum class WeatherState(val code: Int, val iconRes: Int) {
@@ -119,24 +120,11 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 프로필 이미지
-                if (userProfileImg.isNotEmpty()) {
-                    AsyncImage(
-                        model = userProfileImg,
-                        contentDescription = "프로필 사진",
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .border(
-                                width = 2.dp,
-                                color = Color.White,
-                                shape = CircleShape
-                            )
-                    )
-                } else {
+                if (userProfileImg.isNullOrEmpty()) {
                     // 기본 프로필 이미지 (사진이 없을 경우)
                     Box(
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(100.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFCCCCCC))
                             .border(
@@ -150,9 +138,23 @@ fun MainScreen(
                             painter = painterResource(id = R.drawable.ic_default_profile),
                             contentDescription = "기본 프로필",
                             tint = Color.White,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     }
+                } else {
+                    AsyncImage(
+                        model = userProfileImg,
+                        contentDescription = "프로필 사진",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(
+                                width = 2.dp,
+                                color = Color.White,
+                                shape = CircleShape
+                            ),
+                        contentScale = ContentScale.Crop
+                    )
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -161,7 +163,7 @@ fun MainScreen(
                     modifier = Modifier
                         .weight(1f)
                 ) {
-                    Text("어서오세요", fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    Text("환영해요!", fontSize = 30.sp, fontWeight = FontWeight.Bold)
                     Text(userName, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
                 Divider(
