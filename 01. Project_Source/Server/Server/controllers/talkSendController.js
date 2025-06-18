@@ -36,13 +36,13 @@ exports.list = async (req, res) => {
 
     const sql = `
                         SELECT talk_id, sender_type, sender_id, image_url, send_at, is_read, read_at
-                        FROM talk_list
-                        WHERE receiver_id = ?
-                        ORDER BY send_at DESC
+                        FROM talk_list 
+                        WHERE receiver_id = ? OR sender_id = ?
+                        ORDER BY send_at ASC
                       `;
 
     try {
-        const [rows] = await db.execute(sql, [user_num]);
+        const [rows] = await db.execute(sql, [user_num,user_num]);
         return res.status(200).json({
             rsCode :200,
             message: '조회 성공',
