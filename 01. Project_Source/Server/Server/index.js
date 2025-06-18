@@ -30,6 +30,21 @@ const notificationRouter = require('./routes/notificationRouter');
 //     console.log('Server is running on http://localhost:3000');
 // });
 
+//250612 은재 fcm 관련
+// 구글에서 제공하는 공식 라이브러리
+const admin = require('firebase-admin');
+// firebase - 서비스 계정 키 파일 경로 추가
+const serviceAccount = require('utils/FCM_ServiceAccountKey.json');
+// Firebase Admin SDK 초기화 추가
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+// 디버깅용
+console.log('Firebase Admin SDK initialized.');
+// 다른 모듈에서 admin 객체를 사용할 수 있음
+module.exports = admin;
+
+
 // 250516_소은_라우터 등록
 const app = express();
 app.use(bodyParser.json());
