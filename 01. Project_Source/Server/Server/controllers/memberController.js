@@ -480,3 +480,38 @@ exports.getMyList = async (req, res) => {
         });
     }
 };
+
+// FCM_user_token_update
+exports.updateFCM = async (req, res) => {
+    const { user_num } = req.params;
+    const updateFields = req.body;
+
+    if (!user_num) {
+        return res.status(400).json({ message: '회원 번호가 필요합니다.' });
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ message: '수정할 항목이 없습니다.' });
+    }
+
+
+    try {
+        const sql = `
+                UPDATE member
+                SET user_token = ?
+                WHERE user_num = ?
+            `;
+
+        const [result] = await db.execute(sql, [user_token, user_num]);
+
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: '회원 정보를 찾을 수 없습니다.' });
+        }
+
+        return res.status(200).json({ message: '회원정보가 성공적으로 수정되었습니다.' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: '서버 오류', error });
+    }
+};
