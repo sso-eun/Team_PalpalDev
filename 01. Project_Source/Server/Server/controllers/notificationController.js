@@ -25,7 +25,6 @@ const pool = mysql.createPool({
 // nt_title nt_content는 필수 값
 exports.createNotification = async (req, res) => {
 
-
     console.log('요청 body:', req.body);
     const { nt_title, nt_content } = req.body;
 

@@ -76,6 +76,39 @@ app.use('/weather', weatherRouter);
 app.use('/culture_center', cultureRouter);
 app.use('/notifications', notificationRouter);
 
+// FCM 라우터를 연결합니다.
+// fcmRouter.js는 project_root/routes 폴더에 있으므로 './routes/fcmRouter'로 불러옵니다.
+const fcmRouter = require('./routes/fcmRouter');
+app.use('/fcm', fcmRouter); // '/fcm' 경로로 들어오는 요청을 fcmRouter가 처리하도록 설정합니다. (예: /fcm/send-test-notifications)
+
+
+// FCM 컨트롤러를 불러옵니다.
+// controllers/fcmController.js는 project_root/controllers 폴더에 있으므로 './controllers/fcmController'로 불러옵니다.
+const fcmController = require('./controllers/fcmController');
+
+// --- FCM 알림 스케줄링 설정 ---
+// 매일 오전 9시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
+// '0 0 9 * * *' : (초 분 시 일 월 요일) => 매일 9시 0분 0초
+cron.schedule('0 0 9 * * *', () => {
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 9 AM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+// 매일 오후 6시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
+// '0 0 18 * * *' : (초 분 시 일 월 요일) => 매일 18시 (오후 6시) 0분 0초
+cron.schedule('0 0 18 * * *', () => {
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+console.log('FCM scheduling tasks configured.'); // 스케줄링 등록 완료 메시지
+
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
