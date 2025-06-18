@@ -18,6 +18,7 @@ const placeRouter = require('./routes/placeRouter');
 const cultureRouter = require('./routes/cultureRouter');
 const notificationRouter = require('./routes/notificationRouter');
 
+const cron = require('node-cron');
 // index.js
 // const http = require('http');
 //
@@ -52,6 +53,50 @@ app.use('/code_auth',sendRouter);
 app.use('/codeauth',sendRouter);
 // 멤버 대화내역
 app.use('/talk', talkRouter);
+
+
+
+// FCM 라우터를 연결합니다.
+// fcmRouter.js는 project_root/routes 폴더에 있으므로 './routes/fcmRouter'로 불러옵니다.
+const fcmRouter = require('./routes/fcmRouter');
+app.use('/fcm', fcmRouter); // '/fcm' 경로로 들어오는 요청을 fcmRouter가 처리하도록 설정합니다. (예: /fcm/send-test-notifications)
+
+
+// FCM 컨트롤러를 불러옵니다.
+// controllers/fcmController.js는 project_root/controllers 폴더에 있으므로 './controllers/fcmController'로 불러옵니다.
+const fcmController = require('./controllers/fcmController');
+
+// 테스트: 오늘 오전 9시 20분에 실행 (테스트 후에는 원래대로 돌려놓으세요!)
+cron.schedule('0 25 21 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에 실행
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 9:20 AM test notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+
+// --- FCM 알림 스케줄링 설정 ---
+// 매일 오전 9시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
+// '0 0 9 * * *' : (초 분 시 일 월 요일) => 매일 9시 0분 0초
+cron.schedule('0 0 9 * * *', () => {
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 9 AM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+// 매일 오후 6시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
+// '0 0 18 * * *' : (초 분 시 일 월 요일) => 매일 18시 (오후 6시) 0분 0초
+cron.schedule('0 0 18 * * *', () => {
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+console.log('FCM scheduling tasks configured.'); // 스케줄링 등록 완료 메시지
+
+
 
 
 // 250517_은재_추가
