@@ -48,7 +48,7 @@
 
 ## 🕶️ APP 영상
 
-- URL : https://youtu.be/vkTXiBgz3_8
+- URL : [https://youtu.be/vkTXiBgz3_8](https://youtu.be/PHiajUH_-p0)
 
 
 
