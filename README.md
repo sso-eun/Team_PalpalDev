@@ -11,14 +11,14 @@
 팔팔한 인생, 팔팔한 개발! 함께 더 나은 내일을 만들어가요.
 
 
-## ✨제안 배경 
+## 제안 배경 
 
 대한민국은 초고령 사회로 진입 중입니다.  그러나 어르신들의 스마트폰 사용 증가에도 불구하고, 과거 성장의 주역이었던 어르신들의 디지털 소외는 점점 심화되고 있습니다. 
 
 팔팔데브는 스마트폰을 이용해 어르신들도 디지털 기술을 실생활에서 쉽게 활용할 수 있도록 돕는 것을 목표로 합니다. 
 
 
-## 🪄 주요 기능 
+##  주요 기능 
 
 #### 1. 자주 사용 하는 기능의 직관적인 UI 
 
@@ -52,7 +52,7 @@
 
 
 
-## 💡사용 기술
+## 사용 기술
 
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
@@ -63,7 +63,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
 
 
-## ❤️ 팔팔데브 작업 
+## 팔팔데브 작업 
 [ Figma ] 
 - https://www.figma.com/design/kygGBTMBHsCzE10MkCdRSl/%EB%93%A0%EB%93%A0%ED%95%98%EC%9D%B4?node-id=4-4098&p=f&t=eDOnW71LXPgtDOI7-0
 
@@ -75,7 +75,7 @@
 - https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app
 
 
-## 🛠️기술 업무 분장표
+## 기술 업무 분장표
 
 | 역할        | 담당 | 주요 업무 | 관련 문서 | 
 |------------|----------|------------------------------|----------|
@@ -87,7 +87,7 @@
 
 
 
-## 📝 문서 관리 규칙
+##  문서 관리 규칙
 **마지막 수정일 : 2025.05.16 소은 수정_규칙 추가**
 1. 각종 문서는 수정 시 이력 관리를 위해 업로드 할 때 반드시 (수정연월일_파일명_이름) 형식으로 업로드 해주세요. </br>
 ex. 20250313_아이디어기술서양식_박소은
@@ -97,7 +97,7 @@ ex. 20250313_아이디어기술서양식_박소은
    예외상황으로 인해 수정이 필요할 경우, 의견을 나누고 모두에게 알려주세요. 
 
 
-## 🪄코드 규칙
+## 코드 규칙
 **마지막 수정일 : 2025.03.20 소은 수정_규칙추가**
 1. 각 담당자는 서로의 작업 구역을 확인하고, 다른 담당자의 작업 구역을 **침범하거나 훼손**하지 않도록 해주세요.
 2. 오픈소스의 secret_key, client_id 등이 유출되지 않도록 주의하고 직접 코딩을 지양합니다.
