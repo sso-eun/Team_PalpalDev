@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 
 // 서비스 계정 키 파일이 firebaseInit.js와 같은 폴더에 있으므로 './serviceAccountKey.json'
 // 이 경로를 정확히 확인하고 수정하세요!
-const serviceAccount = require('utils/FCM_ServiceAccountKey.json');
+const serviceAccount = JSON.parse(process.env.FCM_KEY_JSON);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
