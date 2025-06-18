@@ -41,4 +41,8 @@ object RetrofitClient {
 
     val codeAuthService: CodeAuthService =
         retrofit.create(CodeAuthService::class.java)
+
+    val talkApi: TalkApi by lazy { retrofit.create(TalkApi::class.java) }
+
+
 }

@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -52,7 +53,7 @@ import com.example.dundun_hi.ui.profile.UpdateProfileScreen
 import com.example.dundun_hi.ui.ActivityHistoryScreen
 import com.example.dundun_hi.ui.screen.CallScreen
 import com.example.dundun_hi.ui.KioskScreen
-import com.example.dundun_hi.ui.screen.LastPhotoScreen
+import com.example.dundun_hi.ui.LastPhotoScreen
 import com.example.dundun_hi.ui.signup.LoadingScreen
 import com.example.dundun_hi.ui.SetupShortcutScreen
 import com.example.dundun_hi.ui.HomeScreen
@@ -279,13 +280,16 @@ class MainActivity : ComponentActivity() {
                             // ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
                             val profileViewModel: ProfileViewModel = viewModel(
-                                factory = ProfileViewModelFactory(repository, userNum)
+                                factory = ProfileViewModelFactory(repository, userNum, this@MainActivity)
                             )
 
                             // 프로필 정보 로드
                             LaunchedEffect(Unit) {
                                 profileViewModel.fetchUserFromServer()
                             }
+                            
+                            // ProfileViewModel의 상태를 실시간으로 관찰
+                            val userProfileImg by remember { derivedStateOf { profileViewModel.userProfileImg } }
                             
                             // 날씨 상태 가져오기
                             val weatherState by weatherVM.uiState.collectAsState()
@@ -301,7 +305,7 @@ class MainActivity : ComponentActivity() {
 
                             MainScreen(
                                 userName = "${userId}님",
-                                userProfileImg = profileViewModel.userProfileImg,
+                                userProfileImg = userProfileImg,
                                 temperature = weatherData?.currentTempInt ?: 0,
                                 highTemp = weatherData?.maxTempInt ?: 0,
                                 lowTemp = weatherData?.minTempInt ?: 0,
@@ -309,7 +313,7 @@ class MainActivity : ComponentActivity() {
                                 precipitationType = 0,
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
-                                onCameraPageClick = { navController.navigate("camera") },
+                                onCameraPageClick = { navController.navigate("camera/$userNum")},
                                 onMapPageClick = { navController.navigate("map") },
                                 onFindCultureCenter = { 
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.cjmh.or.kr/study.html"))
@@ -339,7 +343,7 @@ class MainActivity : ComponentActivity() {
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
                                 key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                                factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
                             )
 
                             ProfileScreen(
@@ -370,7 +374,7 @@ class MainActivity : ComponentActivity() {
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
                                 key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                                factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
                             )
 
                             UpdateProfileScreen(
@@ -423,19 +427,27 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // ─── CameraScreen
-                        composable("camera") {
-                            CameraScreen(navController)
+                        composable(
+                            route = "camera/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val userId = backStackEntry.arguments!!.getInt("userId")
+                            CameraScreen(userId = userId, navController = navController)
                         }
 
                         // ─── LastPhotoScreen
-                        composable("lastphoto") {
-                            val dummyPhotos = listOf(
-                                SharedPhoto(R.drawable.img1, fromMe = true),
-                                SharedPhoto(R.drawable.img2, fromMe = false),
-                                SharedPhoto(R.drawable.img3, fromMe = true)
+                        composable(
+                            route = "lastphoto/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                        ) { back ->
+                            val myId = back.arguments!!.getInt("userId")
+                            LastPhotoScreen(
+                                senderId = myId,
+                                receiverId = 3,
+                                viewerId = myId
                             )
-                            LastPhotoScreen(photos = dummyPhotos, onAddPhoto = { /* TODO */ })
                         }
+
 
                         // ─── KioskScreen
                         composable("kiosk") {

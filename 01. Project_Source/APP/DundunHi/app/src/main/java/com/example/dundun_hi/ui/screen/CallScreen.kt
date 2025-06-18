@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -86,13 +87,15 @@ fun CallScreen(
                         // 중앙: 이름
                         Text(
                             text = item?.label ?: "단축키 등록",
-                            fontSize = 36.sp, // 글자 크기 조정
+                            fontSize = 28.sp, // 글자 크기 줄임
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF333333),
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 32.dp), // 좌우 여백 증가
-                            maxLines = 1 // 한 줄로 제한
+                                .padding(horizontal = 16.dp), // 좌우 여백 줄임
+                            maxLines = 2, // 두 줄까지 허용
+                            overflow = TextOverflow.Ellipsis, // ... 표시
+                            softWrap = true
                         )
 
                         // 오른쪽: 수정/등록 버튼

@@ -127,21 +127,23 @@ fun UpdateProfileScreen(
         context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
 
-    // ── 6) 갤러리에서 선택할 때 사용하는 launcher ─────────────────────────────────
+    // ── 6) 갤러리에서 선택할 때 사용하는 launcher
     val pickFromGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
             profileImgUri = uri
+            viewModel.onProfileImageSelected(uri.toString())
         }
     }
 
-    // ── 7) 카메라 촬영해서 이미지 얻어올 때 사용하는 launcher ────────────────────
+    // ── 7) 카메라 촬영해서 이미지 얻어올 때 사용하는 launcher
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
         if (success && cameraImageUri != null) {
             profileImgUri = cameraImageUri
+            viewModel.onProfileImageSelected(cameraImageUri.toString())
         }
     }
 
@@ -196,8 +198,8 @@ fun UpdateProfileScreen(
                         Text("카메라로 촬영하기", fontSize = 16.sp)
                     }
                     TextButton(onClick = {
-                        // 기본 이미지 사용 → 빈 Uri로 둠(또는 미리 정해둔 리소스 경로)
                         profileImgUri = null
+                        viewModel.onProfileImageSelected("")
                         showImageDialog = false
                     }) {
                         Text("기본 이미지 사용", fontSize = 16.sp)
@@ -389,7 +391,7 @@ fun UpdateProfileScreen(
                                     }
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (setHome) Color(0xFF34C759) else Color(0xFFD3D3D3),
+                                containerColor = if (setHome) Color(0xFF1AB277) else Color(0xFF1AB277),
                                 contentColor = Color.White
                             ),
                             modifier = Modifier
@@ -407,7 +409,7 @@ fun UpdateProfileScreen(
                         Button(
                             onClick = { setHome = false },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (!setHome) Color(0xFF34C759) else Color(0xFFD3D3D3),
+                                containerColor = if (!setHome) Color(0xFF1AB277) else Color(0xFF1AB277),
                                 contentColor = Color.White
                             ),
                             modifier = Modifier
@@ -464,7 +466,7 @@ fun UpdateProfileScreen(
                         Button(
                             onClick = { condition = true },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (condition) Color(0xFF34C759) else Color(0xFFD3D3D3),
+                                containerColor = if (condition) Color(0xFF1AB277) else Color(0xFF1AB277),
                                 contentColor = Color.White
                             ),
                             modifier = Modifier
@@ -482,7 +484,7 @@ fun UpdateProfileScreen(
                         Button(
                             onClick = { condition = false },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (!condition) Color(0xFF34C759) else Color(0xFFD3D3D3),
+                                containerColor = if (!condition) Color(0xFF1AB277) else Color(0xFF1AB277),
                                 contentColor = Color.White
                             ),
                             modifier = Modifier

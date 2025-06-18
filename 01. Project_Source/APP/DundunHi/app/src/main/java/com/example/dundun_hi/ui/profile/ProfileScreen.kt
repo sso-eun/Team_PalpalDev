@@ -146,7 +146,7 @@ fun ProfileScreen(
                             contentDescription = "기본 프로필",
                             tint = Color.White,
                             modifier = Modifier.size(48.dp)
-                        )
+                    )
                     }
                 } else {
                     AsyncImage(
@@ -248,8 +248,8 @@ fun ProfileScreen(
                         color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = if (userCondition) "외출중이에요" else "집에 있어요",
+                        Text(
+                            text = if (userCondition) "외출중이에요" else "집에 있어요",
                         fontSize = 22.sp,
                         color = if (userCondition) Color(0xFF2196F3) else Color(0xFF1AB277),
                         fontWeight = FontWeight.Bold

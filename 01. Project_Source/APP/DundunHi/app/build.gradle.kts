@@ -88,4 +88,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
+
+    //이미지 로딩
+    implementation(libs.coil.kt.coil.compose)
+
+    implementation(libs.accompanist.permissions)
+
 }

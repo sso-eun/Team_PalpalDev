@@ -14,8 +14,10 @@ import com.example.dundun_hi.data.UpdateProfileResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 
@@ -40,6 +42,11 @@ interface MemberService {
     @PUT("/member/password/{user_num}")
     suspend fun updatePassword(@Path("user_num") userNum: String, @Body request: UpdatePasswordRequest): Response<UpdatePasswordResponse>
 
-
+    @Multipart
+    @POST("/upload/profile/{user_num}")
+    suspend fun uploadProfileImage(
+        @Path("user_num") userNum: Int,
+        @Part file: okhttp3.MultipartBody.Part
+    ): retrofit2.Response<com.example.dundun_hi.data.SimpleResponse>
 
 }

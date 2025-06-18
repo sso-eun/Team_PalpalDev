@@ -29,10 +29,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +52,7 @@ import com.example.dundun_hi.ui.theme.ButtonPhoneGreen
 import com.example.dundun_hi.ui.theme.LightGray
 import com.example.dundun_hi.ui.theme.Sky
 import androidx.compose.ui.layout.ContentScale
+import android.util.Log
 
 // 날씨 상태를 나타내는 enum class
 enum class WeatherState(val code: Int, val iconRes: Int) {
@@ -89,6 +94,13 @@ fun MainScreen(
     onKioskPageClick: () -> Unit,
     onProfileClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    
+    // 프로필 이미지 로딩 상태 추적
+    LaunchedEffect(userProfileImg) {
+        Log.d("MainScreen", "프로필 이미지 업데이트: $userProfileImg")
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,11 +132,27 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 프로필 이미지
-                if (userProfileImg.isNullOrEmpty()) {
+                if (userProfileImg.isNotEmpty()) {
+                    AsyncImage(
+                        model = userProfileImg,
+                        contentDescription = "프로필 사진",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(80.dp)
+                            .scale(1.1f)
+                            .clip(CircleShape)
+                            .border(
+                                width = 2.dp,
+                                color = Color.White,
+                                shape = CircleShape
+                            )
+                    )
+                } else {
                     // 기본 프로필 이미지 (사진이 없을 경우)
                     Box(
                         modifier = Modifier
-                            .size(100.dp)
+                            .size(80.dp)
+                            .scale(1.1f)
                             .clip(CircleShape)
                             .background(Color(0xFFCCCCCC))
                             .border(
@@ -138,23 +166,9 @@ fun MainScreen(
                             painter = painterResource(id = R.drawable.ic_default_profile),
                             contentDescription = "기본 프로필",
                             tint = Color.White,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
-                } else {
-                    AsyncImage(
-                        model = userProfileImg,
-                        contentDescription = "프로필 사진",
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .border(
-                                width = 2.dp,
-                                color = Color.White,
-                                shape = CircleShape
-                            ),
-                        contentScale = ContentScale.Crop
-                    )
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
