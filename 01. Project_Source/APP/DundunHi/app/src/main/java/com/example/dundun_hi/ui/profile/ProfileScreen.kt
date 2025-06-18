@@ -69,8 +69,7 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
-    
-    // ViewModel에서 상태(State)를 구독
+
     val userTel by remember { derivedStateOf { viewModel.userTel } }
     val userProfileImg by remember { derivedStateOf { viewModel.userProfileImg } }
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
@@ -206,7 +205,7 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "위치",
-                            fontSize = 16.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
@@ -234,7 +233,7 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = "현재 상태:",
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.weight(1f))
@@ -285,7 +284,7 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "알림",
-                            fontSize = 16.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -326,13 +325,13 @@ fun ProfileScreen(
                             ) {
                                 Text(
                                     text = "${alert.date} ${alert.time}",
-                                    fontSize = 14.sp,
+                                    fontSize = 20.sp,
                                     color = Color.Gray
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = alert.content,
-                                    fontSize = 16.sp,
+                                    fontSize = 22.sp,
                                     fontWeight = FontWeight.Normal
                                 )
                                 if (index < todayAlerts.size - 1) {
