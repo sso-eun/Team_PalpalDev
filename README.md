@@ -63,6 +63,18 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
 
 
+## ❤️ 팔팔데브 작업 
+[ Figma ] 
+- https://www.figma.com/design/kygGBTMBHsCzE10MkCdRSl/%EB%93%A0%EB%93%A0%ED%95%98%EC%9D%B4?node-id=4-4098&p=f&t=eDOnW71LXPgtDOI7-0
+
+[ Trello ] 
+- https://trello.com/b/gdvXoiS9/dundun-hi
+
+[ Server(Render, cloudeType) ] 
+- https://dundunhi.onrender.com/
+- https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app
+
+
 ## 🛠️기술 업무 분장표
 
 | 역할        | 담당 | 주요 업무 | 관련 문서 | 
