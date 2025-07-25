@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
 import android.widget.TimePicker
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,9 @@ import androidx.navigation.NavController
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertItem
 import com.example.dundun_hi.data.AlertRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 
 @Composable
@@ -29,6 +33,11 @@ fun AddAlarmScreen(navController: NavController) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val alertRepository = remember { AlertRepository.getInstance(context) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // userNum을 SharedPreferences에서 불러오기
+    val sharedPreferences = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+    val userNum = sharedPreferences.getString("user_num", null)?.toIntOrNull() ?: 0
 
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
@@ -60,7 +69,7 @@ fun AddAlarmScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "알림 추가",
+                text = "일정 추가",
                 modifier = Modifier.padding(12.dp),
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp
@@ -150,10 +159,23 @@ fun AddAlarmScreen(navController: NavController) {
         Button(
             onClick = {
                 if (selectedDate.isNotBlank() && selectedTime.isNotBlank() && contentText.isNotBlank()) {
-                    alertRepository.addAlert(
+                    coroutineScope.launch {
+                        // val userNum = 202 // TODO: 실제 로그인 사용자 번호로 대체 (삭제)
+                        val dateTime = "$selectedDate $selectedTime"
+                        try {
+                            val success = alertRepository.addAlertToServer(userNum, contentText, dateTime, contentText)
+                            if (!success) {
+                                Toast.makeText(context, "서버 저장 실패", Toast.LENGTH_SHORT).show()
+                            } else {
+                                alertRepository.addAlert(
                         AlertItem(date = selectedDate, time = selectedTime, content = contentText)
                     )
                     navController.popBackStack()
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "서버 저장 중 오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF26C4B5)),

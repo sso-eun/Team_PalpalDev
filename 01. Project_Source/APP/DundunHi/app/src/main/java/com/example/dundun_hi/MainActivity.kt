@@ -184,6 +184,9 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 vm = loginVm,
                                 onLoginSuccess = { userNumStr, userId ->
+                                    // 로그인 성공 시 userNum을 SharedPreferences에 저장
+                                    val prefs = this@MainActivity.getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                    prefs.edit().putString("user_num", userNumStr).apply()
                                     navController.navigate("main/$userNumStr/${Uri.encode(userId)}") {
                                         popUpTo("login") { inclusive = true }
                                     }

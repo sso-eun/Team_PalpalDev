@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-06-05T05:09:51.256172Z">
+        <DropdownSelection timestamp="2025-07-24T02:01:22.516900Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/hanmunseob/.android/avd/Galaxy_note_10_plus_2.avd" />

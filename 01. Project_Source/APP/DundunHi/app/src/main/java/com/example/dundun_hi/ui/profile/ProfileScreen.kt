@@ -298,7 +298,7 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "알림",
+                            text = "일정 관리",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold
                         )

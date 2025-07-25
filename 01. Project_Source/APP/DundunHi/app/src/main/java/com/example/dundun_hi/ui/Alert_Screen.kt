@@ -152,7 +152,7 @@ fun AlarmRecordScreen(navController: NavController) {
 
                 Text(
                     text = "${calendar.get(Calendar.MONTH) + 1}월",
-                    fontSize = 20.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
@@ -163,7 +163,7 @@ fun AlarmRecordScreen(navController: NavController) {
                         dayOfWeekLabels.forEach { day ->
                             Text(
                                 text = day,
-                                fontSize = 14.sp,
+                                fontSize = 20.sp,
                                 color = Color.Gray,
                                 modifier = Modifier.weight(1f),
                                 textAlign = TextAlign.Center
@@ -205,7 +205,7 @@ fun AlarmRecordScreen(navController: NavController) {
                                         isToday -> Color(0xFF2196F3)
                                         else -> Color.Black
                                     },
-                                    fontSize = 14.sp,
+                                    fontSize = 20.sp,
                                     fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
                                 )
                             }
