@@ -152,7 +152,7 @@ fun AlarmRecordScreen(navController: NavController) {
 
                 Text(
                     text = "${calendar.get(Calendar.MONTH) + 1}월",
-                    fontSize = 20.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
@@ -163,7 +163,7 @@ fun AlarmRecordScreen(navController: NavController) {
                         dayOfWeekLabels.forEach { day ->
                             Text(
                                 text = day,
-                                fontSize = 14.sp,
+                                fontSize = 20.sp,
                                 color = Color.Gray,
                                 modifier = Modifier.weight(1f),
                                 textAlign = TextAlign.Center
@@ -205,7 +205,7 @@ fun AlarmRecordScreen(navController: NavController) {
                                         isToday -> Color(0xFF2196F3)
                                         else -> Color.Black
                                     },
-                                    fontSize = 14.sp,
+                                    fontSize = 20.sp,
                                     fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
                                 )
                             }
@@ -248,9 +248,9 @@ fun AlarmRecordScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                            Text("${alert.date} ${alert.time}", fontSize = 14.sp, color = Color.Black)
+                            Text("${alert.date} ${alert.time}", fontSize = 18.sp, color = Color.Black)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(alert.content, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text(alert.content, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             }
                             
                             Row {

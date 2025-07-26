@@ -4,6 +4,7 @@ import com.example.dundun_hi.data.*
 import okhttp3.MultipartBody
 import retrofit2.http.*
 
+
 interface TalkApi {
 
     @Multipart
@@ -17,4 +18,11 @@ interface TalkApi {
     suspend fun sendTalk(
         @Body body: TalkSendRequest
     ): SimpleResponse
+
+    // network/TalkApi.kt
+    @POST("/talk/list")
+    suspend fun getTalkList(
+        @Body body: Map<String, Int>          // { "user_num": 202 }
+    ): TalkListResponse
+
 }

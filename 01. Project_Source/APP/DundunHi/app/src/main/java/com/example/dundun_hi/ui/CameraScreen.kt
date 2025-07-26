@@ -36,9 +36,12 @@ import com.example.dundun_hi.ui.theme.DundunHiTheme
 
 /* ───────── 실제 NavController 버전 ───────── */
 @Composable
-fun CameraScreen(navController: NavController) {
+fun CameraScreen(
+    userId: Int,                  // ★ NavArgument로 받은 값
+    navController: NavController
+) {
     CameraScreenContent(
-        onLastPhotoClick = { navController.navigate("lastphoto") }
+        onLastPhotoClick = { navController.navigate("lastphoto/$userId") }
     )
 }
 
@@ -90,7 +93,7 @@ private fun CameraScreenContent(
 
         /* 지난 사진 보기(앱 내부) */
         SurfaceCard(
-            label = "지난 사진 보러가기",
+            label = "지난 이야기",
             onClick = onLastPhotoClick
         )
     }
@@ -125,21 +128,4 @@ private fun SurfaceCard(
     }
 }
 
-/* ───────── Activity (옵션) ───────── */
-class CameraScreenActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            DundunHiTheme {
-                val nav = rememberNavController()
-                CameraScreen(nav)
-            }
-        }
-    }
-}
 
-@Preview
-@Composable
-fun CameraScreenPreview() {
-    CameraScreenContent(onLastPhotoClick = {})   // 빈 람다
-}

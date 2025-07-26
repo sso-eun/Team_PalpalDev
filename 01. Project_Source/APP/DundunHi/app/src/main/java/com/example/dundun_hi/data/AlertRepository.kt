@@ -7,12 +7,22 @@ import androidx.compose.runtime.mutableStateListOf
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.util.UUID
+import com.example.dundun_hi.network.RetrofitClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class AlertItem(
     val id: String = UUID.randomUUID().toString(),
     val date: String,
     val time: String,
     val content: String
+)
+
+data class SetDateRequest(
+    val user_num: Int,
+    val user_date_title: String,
+    val user_date_time: String,
+    val user_date_info: String
 )
 
 class AlertRepository private constructor(private val context: Context) {
@@ -61,6 +71,18 @@ class AlertRepository private constructor(private val context: Context) {
             alertList.clear()
             alertList.addAll(loadedAlerts)
         }
+    }
+
+    // 서버에 일정 추가
+    suspend fun addAlertToServer(userNum: Int, title: String, time: String, info: String): Boolean = withContext(Dispatchers.IO) {
+        val body = SetDateRequest(
+            user_num = userNum,
+            user_date_title = title,
+            user_date_time = time,
+            user_date_info = info
+        )
+        val res = RetrofitClient.memberService.setDate(body)
+        res.rsCode == 200
     }
 
     companion object {

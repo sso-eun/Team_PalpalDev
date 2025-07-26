@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -84,9 +84,14 @@ dependencies {
     implementation ("com.google.android.gms:play-services-location:20.0.0")
     implementation("io.github.fornewid:naver-map-compose:1.2.3")
 
-    /* ─ 이미지 로딩 ─ */
+    // Firebase BOM
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
+    //이미지 로딩
     implementation(libs.coil.kt.coil.compose)
 
-    implementation(libs.accompanist.permissions)   // 또는 0.37.0
+    implementation(libs.accompanist.permissions)
 
 }

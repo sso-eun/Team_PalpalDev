@@ -6,11 +6,14 @@ import android.net.Uri
 import com.example.dundun_hi.network.RetrofitClient
 import com.example.dundun_hi.network.TalkApi
 import com.example.dundun_hi.data.TalkSendRequest
+import com.example.dundun_hi.model.SharedPhoto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+
+private const val BASE_URL = "https://dundunhi.onrender.com/"
 
 class TalkRepository(
     private val api: TalkApi = RetrofitClient.talkApi
@@ -47,4 +50,17 @@ class TalkRepository(
         /* 4) 최종 URL 반환 */
         uploadRes.filePath
     }
+
+    // TalkRepository.kt
+    suspend fun fetchTalkList(userNum: Int): List<SharedPhoto> =
+        api.getTalkList(mapOf("user_num" to userNum)).let { res ->
+            require(res.rsCode == 200) { res.message }
+            res.data.map { dto ->
+                SharedPhoto(
+                    resId     = 0, // TODO: 실제 리소스 ID로 매핑 필요시 수정
+                    fromMe    = (dto.senderId == userNum)
+                )
+            }
+        }
+
 }

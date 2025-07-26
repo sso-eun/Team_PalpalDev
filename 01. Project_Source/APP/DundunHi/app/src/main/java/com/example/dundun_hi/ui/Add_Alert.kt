@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
 import android.widget.TimePicker
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,9 @@ import androidx.navigation.NavController
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertItem
 import com.example.dundun_hi.data.AlertRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 
 @Composable
@@ -29,6 +33,7 @@ fun AddAlarmScreen(navController: NavController) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val alertRepository = remember { AlertRepository.getInstance(context) }
+    val coroutineScope = rememberCoroutineScope()
 
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
@@ -42,7 +47,7 @@ fun AddAlarmScreen(navController: NavController) {
     ) {
         // Header
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("든든하이", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("든든하이", fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 painter = painterResource(id = R.drawable.ic_home),
@@ -60,16 +65,16 @@ fun AddAlarmScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "알림 추가",
+                text = "일정 추가",
                 modifier = Modifier.padding(12.dp),
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                fontSize = 22.sp
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("날짜", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text("날짜", fontWeight = FontWeight.Bold, fontSize = 22.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Box(modifier = Modifier
             .fillMaxWidth()
@@ -92,7 +97,7 @@ fun AddAlarmScreen(navController: NavController) {
                 leadingIcon = {
                     Icon(painter = painterResource(id = R.drawable.ic_calendar), contentDescription = null)
                 },
-                placeholder = { Text("날짜 선택하기...") },
+                placeholder = { Text("날짜 선택하기...", fontSize = 20.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = false
@@ -101,7 +106,7 @@ fun AddAlarmScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("시간", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text("시간", fontWeight = FontWeight.Bold, fontSize = 22.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Box(modifier = Modifier
             .fillMaxWidth()
@@ -124,7 +129,7 @@ fun AddAlarmScreen(navController: NavController) {
                 leadingIcon = {
                     Icon(painter = painterResource(id = R.drawable.ic_clock), contentDescription = null)
                 },
-                placeholder = { Text("시간 선택하기...") },
+                placeholder = { Text("시간 선택하기...", fontSize = 20.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = false
@@ -133,12 +138,12 @@ fun AddAlarmScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("내용작성", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text("내용작성", fontWeight = FontWeight.Bold, fontSize = 22.sp)
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = contentText,
             onValueChange = { contentText = it },
-            placeholder = { Text("내용을 작성해주세요...") },
+            placeholder = { Text("내용을 작성해주세요...", fontSize = 20.sp) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp),
@@ -150,16 +155,29 @@ fun AddAlarmScreen(navController: NavController) {
         Button(
             onClick = {
                 if (selectedDate.isNotBlank() && selectedTime.isNotBlank() && contentText.isNotBlank()) {
-                    alertRepository.addAlert(
-                        AlertItem(date = selectedDate, time = selectedTime, content = contentText)
-                    )
-                    navController.popBackStack()
+                    coroutineScope.launch {
+                        val userNum = 202 // TODO: 실제 로그인 사용자 번호로 대체
+                        val dateTime = "$selectedDate $selectedTime"
+                        try {
+                            val success = alertRepository.addAlertToServer(userNum, contentText, dateTime, contentText)
+                            if (!success) {
+                                Toast.makeText(context, "서버 저장 실패", Toast.LENGTH_SHORT).show()
+                            } else {
+                                alertRepository.addAlert(
+                                    AlertItem(date = selectedDate, time = selectedTime, content = contentText)
+                                )
+                                navController.popBackStack()
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "서버 저장 중 오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF26C4B5)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("추가하기", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("추가하기", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

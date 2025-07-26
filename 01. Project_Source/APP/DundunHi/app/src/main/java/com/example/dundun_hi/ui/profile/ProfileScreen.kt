@@ -49,6 +49,8 @@ import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.layout.ContentScale
 
 /**
  * ProfileScreen: 보기 전용 프로필 화면
@@ -69,8 +71,7 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
-    
-    // ViewModel에서 상태(State)를 구독
+
     val userTel by remember { derivedStateOf { viewModel.userTel } }
     val userProfileImg by remember { derivedStateOf { viewModel.userProfileImg } }
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
@@ -105,7 +106,7 @@ fun ProfileScreen(
         // ── 상단 타이틀 ───────────────────────────────────────────────────
         Text(
             text = "든든하이",
-            fontSize = 32.sp,
+            fontSize = 40.sp,
             fontWeight = FontWeight.Bold
         )
 
@@ -118,7 +119,7 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp)
+                .height(200.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -126,31 +127,40 @@ fun ProfileScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 // 프로필 이미지: 테두리 추가
-                if (userProfileImg.isNotEmpty()) {
-                    AsyncImage(
-                        model = userProfileImg,
-                        contentDescription = "프로필 사진",
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .border(
-                                width = 1.dp,
-                                color = Color.Gray,
-                                shape = CircleShape
-                            )
-                    )
-                } else {
+                if (userProfileImg.isNullOrEmpty()) {
                     // 기본 회색 원 (사진이 없을 경우)
                     Box(
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(100.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFCCCCCC))
                             .border(
                                 width = 1.dp,
                                 color = Color.Gray,
                                 shape = CircleShape
-                            )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_default_profile),
+                            contentDescription = "기본 프로필",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                    )
+                    }
+                } else {
+                    AsyncImage(
+                        model = userProfileImg,
+                        contentDescription = "프로필 사진",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = CircleShape
+                            ),
+                        contentScale = ContentScale.Crop
                     )
                 }
 
@@ -159,7 +169,7 @@ fun ProfileScreen(
                 // 로그인된 아이디(이름) 표시
                 Text(
                     text = userId,
-                    fontSize = 20.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -170,7 +180,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // 전화번호 표시
-                Text(text = userTel, fontSize = 16.sp)
+                Text(text = userTel, fontSize = 24.sp)
             }
         }
 
@@ -183,7 +193,7 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(152.dp)
+                .height(140.dp)
         ) {
             Column {
                 // "위치" 헤더
@@ -206,16 +216,26 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "위치",
-                            fontSize = 16.sp,
+                            fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
                     }
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_plus),
+//                        contentDescription = "위치 추가",
+//                        tint = Color(0xFF1AB277),
+//                        modifier = Modifier
+//                            .size(24.dp)
+//                            .clickable {
+//                                navController.navigate("enter_exit")
+//                            }
+//                    )
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
-                // 외출 여부 버튼
+                // 외출 여부 상태 텍스트 (아이콘+텍스트, 배경 없음)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -224,21 +244,25 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = "현재 상태:",
-                        fontSize = 16.sp,
+                        fontSize = 24.sp,
                         color = Color.DarkGray
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(
-                        onClick = { /* 필요하다면 클릭 이벤트 처리 */ },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
-                    ) {
+                    Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = if (userCondition) "외출중이에요" else "집에 있어요",
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
-                    }
+                        fontSize = 22.sp,
+                        color = if (userCondition) Color(0xFF2196F3) else Color(0xFF1AB277),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        painter = painterResource(
+                            id = if (userCondition) R.drawable.ic_walk else R.drawable.ic_home
+                        ),
+                        contentDescription = null,
+                        tint = if (userCondition) Color(0xFF2196F3) else Color(0xFF1AB277),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
         }
@@ -252,7 +276,7 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(330.dp)
+                .height(280.dp)
         ) {
             Column {
                 // 알림 헤더
@@ -274,8 +298,8 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "알림",
-                            fontSize = 16.sp,
+                            text = "일정 관리",
+                            fontSize = 26.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -304,7 +328,7 @@ fun ProfileScreen(
                         // 오늘의 알림이 없을 경우
                         Text(
                             text = "오늘의 알림이 없습니다.",
-                            fontSize = 16.sp,
+                            fontSize = 22.sp,
                             color = Color.Gray,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
@@ -316,13 +340,13 @@ fun ProfileScreen(
                             ) {
                                 Text(
                                     text = "${alert.date} ${alert.time}",
-                                    fontSize = 14.sp,
+                                    fontSize = 26.sp,
                                     color = Color.Gray
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = alert.content,
-                                    fontSize = 16.sp,
+                                    fontSize = 28.sp,
                                     fontWeight = FontWeight.Normal
                                 )
                                 if (index < todayAlerts.size - 1) {
@@ -345,32 +369,33 @@ fun ProfileScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 0.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // "프로필 수정하기" 버튼
                 Button(
                     onClick = onUpdateProfileClick,
                     modifier = Modifier
-                        .wrapContentWidth()
-                        .height(45.dp),
+                        .weight(1f)
+                        .height(56.dp),
                     shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
+                    contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
-                    Text("프로필 수정하기", fontSize = 20.sp, color = Color.White)
+                    Text("프로필 수정하기", fontSize = 22.sp, color = Color.White)
                 }
-
-                Spacer(modifier = Modifier.width(12.dp))
 
                 // "비밀번호 수정하기" 버튼
                 Button(
                     onClick = onUpdatePasswordClick,
                     modifier = Modifier
-                        .wrapContentWidth()
-                        .height(45.dp),
+                        .weight(1f)
+                        .height(56.dp),
                     shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
+                    contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
-                    Text("비밀번호 수정하기", fontSize = 20.sp, color = Color.White)
+                    Text("비밀번호 수정하기", fontSize = 22.sp, color = Color.White)
                 }
             }
         }
@@ -378,11 +403,11 @@ fun ProfileScreen(
         // (선택) 로딩/에러 처리 UI
         if (isLoading) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "로딩 중...", fontSize = 14.sp, color = Color.Gray)
+            Text(text = "로딩 중...", fontSize = 22.sp, color = Color.Gray)
         }
         if (errorMessage != null) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = errorMessage!!, fontSize = 14.sp, color = Color.Red)
+            Text(text = errorMessage!!, fontSize = 22.sp, color = Color.Red)
         }
     }
 }

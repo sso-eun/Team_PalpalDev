@@ -2,6 +2,13 @@
 
 package com.example.dundun_hi.ui.profile
 
+import com.example.dundun_hi.data.UploadProfileRepository
+import android.content.Context
+import android.content.SharedPreferences
+import android.database.Cursor
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,11 +23,26 @@ import com.example.dundun_hi.network.RetrofitClient
 import com.example.dundun_hi.network.RetrofitClient.memberService
 import com.example.dundun_hi.util.distanceBetweenMeters
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 class ProfileViewModel(
     private val repository: UserRepository,
-    private val userNum: Int
+    private val userNum: Int,
+    private val context: Context? = null,
+
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "ProfileViewModel"
+    }
+    private val uploadRepo = UploadProfileRepository(RetrofitClient.memberService)
+    private val sharedPreferences: SharedPreferences? = context?.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+    private val profileImageKey = "profile_image_$userNum"
 
     /** 서버에서 받아온 로그인 ID(화면에 표시할 이름) */
     var userId by mutableStateOf("")
@@ -56,7 +78,50 @@ class ProfileViewModel(
 
     init {
         // 화면이 처음 생성될 때 한 번 자동으로 호출
+        Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
         fetchUserFromServer()
+    }
+
+    /**
+     * Content URI, file URI 등 어떤 이미지든 앱 내부 저장소에 복사하여 경로 반환
+     */
+    fun copyImageToInternalStorage(uriString: String): String {
+        try {
+            val uri = Uri.parse(uriString)
+            val inputStream: InputStream? = context?.contentResolver?.openInputStream(uri)
+            if (inputStream != null) {
+                val fileName = "profile_image_$userNum.jpg"
+                val internalFile = File(context.filesDir, fileName)
+                val outputStream = FileOutputStream(internalFile)
+                inputStream.copyTo(outputStream)
+                outputStream.close()
+                inputStream.close()
+                return internalFile.absolutePath
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "이미지 복사 실패", e)
+        }
+        return ""
+    }
+
+    /**
+     * SharedPreferences에서 저장된 프로필 이미지 경로를 가져옵니다.
+     */
+    fun loadProfileImageFromLocal(): String {
+        return sharedPreferences?.getString(profileImageKey, "") ?: ""
+    }
+
+    /**
+     * 프로필 이미지 경로를 SharedPreferences에 저장합니다.
+     */
+    fun saveProfileImageToLocal(imagePath: String) {
+        sharedPreferences?.edit()?.putString(profileImageKey, imagePath)?.apply()
+    }
+
+    // 앱 시작/재시작 시 항상 로컬 파일 우선 사용
+    fun setProfileImageFromLocalOrDefault() {
+        val localProfileImg = loadProfileImageFromLocal()
+        userProfileImg = if (localProfileImg.isNotEmpty()) localProfileImg else ""
     }
 
     /**
@@ -70,17 +135,13 @@ class ProfileViewModel(
             try {
                 isLoading = true
                 errorMessage = null
-
-                // 내부적으로 suspend fun getUserByNum(userNum: Int): MemberResponse 호출
                 val response: MemberResponse = repository.getUserByNum(userNum)
-
                 userId          = response.userId
                 userTel         = response.userTel
-                userProfileImg  = response.userProfileImg
                 userHomeLat     = response.userHomeLat.toDoubleOrNull() ?: 0.0
                 userHomeLon     = response.userHomeLot.toDoubleOrNull() ?: 0.0
                 userCondition   = (response.userCondition == 1)
-
+                setProfileImageFromLocalOrDefault()
             } catch (e: Exception) {
                 errorMessage = e.message ?: "알 수 없는 오류"
             } finally {
@@ -90,7 +151,7 @@ class ProfileViewModel(
     }
 
     /**
-     * UpdateProfileScreen에서 “수정 완료”를 눌렀을 때 호출될 메서드.
+     * UpdateProfileScreen에서 "수정 완료"를 눌렀을 때 호출될 메서드.
      * 서버에 PUT 요청을 보내고, 성공 시 다시 fetchUserFromServer()를 호출한다.
      */
     fun updateProfile(
@@ -103,6 +164,18 @@ class ProfileViewModel(
     ) {
         viewModelScope.launch {
             try {
+                // 프로필 이미지 처리
+                when {
+                    newProfileImg.isNotEmpty() -> {
+                        // 새로운 이미지가 있으면 로컬에 저장
+                        // saveProfileImageToLocal(newProfileImg)
+                    }
+                    newProfileImg.isEmpty() && userProfileImg.isNotEmpty() -> {
+                        // 이미지를 삭제하려는 경우 로컬에서도 삭제
+                        // saveProfileImageToLocal("")
+                    }
+                }
+
                 // 예시: UpdateProfileRequest 정의된 데이터 클래스에 맞게 작성
                 val request = UpdateProfileRequest(
                     userTel        = newTel,
@@ -123,17 +196,18 @@ class ProfileViewModel(
                 }
             } catch (e: Exception) {
                 // 네트워크 오류 등 예외 처리
+                // 로컬 저장은 이미 위에서 했으므로, 네트워크 실패 시에도 로컬 이미지는 유지됨
             }
         }
     }
 
     /**
      * 현재 위치(lat,lon)와 집 위치(userHomeLat, userHomeLon)를 비교해서,
-     * threshold(meters) 이상 차이나면 “외출 중”, 이하면 “집에 있음”으로 자동 업데이트하는 흐름.
+     * threshold(meters) 이상 차이나면 "외출 중", 이하면 "집에 있음"으로 자동 업데이트하는 흐름.
      *
      * @param currentLat  현재 GPS 위도
      * @param currentLon  현재 GPS 경도
-     * @param thresholdInMeters  “집”으로 간주할 최대 거리 (meters). 이 범위를 넘으면 외출 중.
+     * @param thresholdInMeters  "집"으로 간주할 최대 거리 (meters). 이 범위를 넘으면 외출 중.
      * @param onResult    (Boolean 변경여부) → true: 상태가 바뀌어서 서버에 PUT 요청을 보냈음, false: 변화 없음
      */
     fun autoUpdateConditionBasedOnLocation(
@@ -204,6 +278,44 @@ class ProfileViewModel(
             }
         }
     }
+
+    // 이미지 선택/촬영 시 반드시 이 함수로 복사 및 저장
+    fun onProfileImageSelected(uriString: String) {
+        val localPath = copyImageToInternalStorage(uriString)
+        if (localPath.isNotEmpty()) {
+            saveProfileImageToLocal(localPath)
+            userProfileImg = localPath
+        }
+    }
+
+    fun uploadProfileImageToServerAndUpdate(uri: Uri, onResult: (Boolean, String?) -> Unit) {
+        if (context == null) {
+            onResult(false, "Context is null")
+            return
+        }
+
+        viewModelScope.launch {
+            uploadRepo.uploadAndUpdateProfile(
+                context = context,
+                uri = uri,
+                userNum = userNum,
+                currentTel = userTel,
+                currentLat = userHomeLat,
+                currentLon = userHomeLon,
+                currentCondition = userCondition,
+                memberService = RetrofitClient.memberService,
+                onSuccess = {
+                    fetchUserFromServer() // 업데이트 후 UI 갱신
+                    onResult(true, null)
+                },
+                onError = {
+                    onResult(false, it)
+                }
+            )
+        }
+    }
+
+
 }
 
 

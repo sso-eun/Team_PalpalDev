@@ -11,11 +11,16 @@ import com.example.dundun_hi.data.UpdatePasswordRequest
 import com.example.dundun_hi.data.UpdatePasswordResponse
 import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UpdateProfileResponse
+import com.example.dundun_hi.data.SimpleResponse
+import com.example.dundun_hi.data.SetDateRequest
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 
@@ -40,6 +45,15 @@ interface MemberService {
     @PUT("/member/password/{user_num}")
     suspend fun updatePassword(@Path("user_num") userNum: String, @Body request: UpdatePasswordRequest): Response<UpdatePasswordResponse>
 
+    @Multipart
+    @POST("/upload/profile/{user_num}")
+    suspend fun uploadProfileImage(
+        @Path("user_num") userNum: Int,
+        @Part file: MultipartBody.Part
+    ): Response<UpdateProfileResponse>
 
+    // 일정 추가 (set_date)
+    @POST("/date/setdate")
+    suspend fun setDate(@Body body: SetDateRequest): SimpleResponse
 
 }

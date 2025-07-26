@@ -11,12 +11,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -64,6 +66,8 @@ import com.example.dundun_hi.ui.signup.LoadingScreen as SignupLoadingScreen
 import com.example.dundun_hi.ui.theme.DundunHiTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.example.dundun_hi.model.CallShortcut
+import android.content.Intent
 
 class MainActivity : ComponentActivity() {
 
@@ -94,9 +98,15 @@ class MainActivity : ComponentActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // CallViewModel 인스턴스 생성
+        val callVm: CallViewModel = CallViewModel(application)
+
         setContent {
             DundunHiTheme {
-                Surface(Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     // ── 날씨 ViewModel 생성 ──────────────────────────────────────────────────────────
                     val weatherVM: WeatherViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
@@ -163,7 +173,7 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 onLoginClick   = { navController.navigate("login") },
-                                onSignupClick  = { navController.navigate("signup") },
+                                onSignupClick  = { navController.navigate("auth") },
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
@@ -270,13 +280,16 @@ class MainActivity : ComponentActivity() {
                             // ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
                             val profileViewModel: ProfileViewModel = viewModel(
-                                factory = ProfileViewModelFactory(repository, userNum)
+                                factory = ProfileViewModelFactory(repository, userNum, this@MainActivity)
                             )
 
                             // 프로필 정보 로드
                             LaunchedEffect(Unit) {
                                 profileViewModel.fetchUserFromServer()
                             }
+                            
+                            // ProfileViewModel의 상태를 실시간으로 관찰
+                            val userProfileImg by remember { derivedStateOf { profileViewModel.userProfileImg } }
                             
                             // 날씨 상태 가져오기
                             val weatherState by weatherVM.uiState.collectAsState()
@@ -292,7 +305,7 @@ class MainActivity : ComponentActivity() {
 
                             MainScreen(
                                 userName = "${userId}님",
-                                userProfileImg = profileViewModel.userProfileImg,
+                                userProfileImg = userProfileImg,
                                 temperature = weatherData?.currentTempInt ?: 0,
                                 highTemp = weatherData?.maxTempInt ?: 0,
                                 lowTemp = weatherData?.minTempInt ?: 0,
@@ -300,9 +313,12 @@ class MainActivity : ComponentActivity() {
                                 precipitationType = 0,
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
-                                onCameraPageClick = { navController.navigate("camera") },
+                                onCameraPageClick = { navController.navigate("camera/$userNum")},
                                 onMapPageClick = { navController.navigate("map") },
-                                onFindCultureCenter = { navController.navigate("culture_center") },
+                                onFindCultureCenter = { 
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.cjmh.or.kr/study.html"))
+                                    startActivity(intent)
+                                },
                                 onKioskPageClick = { navController.navigate("kiosk") },
                                 onProfileClick = { 
                                     navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
@@ -327,7 +343,7 @@ class MainActivity : ComponentActivity() {
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
                                 key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                                factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
                             )
 
                             ProfileScreen(
@@ -358,7 +374,7 @@ class MainActivity : ComponentActivity() {
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
                                 key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt)
+                                factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
                             )
 
                             UpdateProfileScreen(
@@ -411,19 +427,24 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // ─── CameraScreen
-                        composable("camera") {
-                            CameraScreen(navController)
+                        composable(
+                            route = "camera/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val userId = backStackEntry.arguments!!.getInt("userId")
+                            CameraScreen(userId = userId, navController = navController)
                         }
 
                         // ─── LastPhotoScreen
-                        composable("lastphoto") {
-                            // ✅ 실제 앱에서는 DataStore/Room/Intent 등으로 받은 값 넣기
-                            val userNum    = 123   // 예: PreferenceManager.getInt("USER_NUM", 0)
-                            val guardianId = 456   // 예: PreferenceManager.getInt("GUARDIAN_ID", 0)
-
+                        composable(
+                            route = "lastphoto/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                        ) { back ->
+                            val myId = back.arguments!!.getInt("userId")
                             LastPhotoScreen(
-                                userNum     = userNum,
-                                guardianId  = guardianId
+                                senderId = myId,
+                                receiverId = 3,
+                                viewerId = myId
                             )
                         }
 
@@ -435,7 +456,6 @@ class MainActivity : ComponentActivity() {
 
                         // ─── CallScreen
                         composable("call") {
-                            val callVm: CallViewModel = viewModel()
                             val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
                                 contacts = shortcuts,
@@ -447,12 +467,11 @@ class MainActivity : ComponentActivity() {
 
                         // ─── SetupShortcutScreen
                         composable("call_setup/{index}") { back ->
-                            val callVm: CallViewModel = viewModel()
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
                             SetupShortcutScreen(
                                 index = idx,
+                                viewModel = callVm,  // 공유된 ViewModel 전달
                                 onDone = {
-                                    callVm.loadShortcuts()
                                     navController.popBackStack()
                                 }
                             )

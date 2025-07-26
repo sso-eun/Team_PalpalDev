@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="Dundun-Hi.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-06-10T05:07:45.514815200Z">
+        <DropdownSelection timestamp="2025-07-26T02:11:36.701286700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\goodf\.android\avd\Pixel_9_Pro_Fold.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\goodf\.android\avd\Pixel_2.avd" />
             </handle>
           </Target>
         </DropdownSelection>
