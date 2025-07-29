@@ -304,6 +304,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             MainScreen(
+                                profileViewModel = profileViewModel,
                                 userName = "${userId}님",
                                 userProfileImg = userProfileImg,
                                 temperature = weatherData?.currentTempInt ?: 0,
@@ -324,6 +325,7 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
                                         launchSingleTop = true
                                     }
+
                                 }
                             )
                         }

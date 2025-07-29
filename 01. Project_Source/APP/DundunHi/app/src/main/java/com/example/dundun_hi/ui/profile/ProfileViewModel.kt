@@ -44,6 +44,13 @@ class ProfileViewModel(
     private val sharedPreferences: SharedPreferences? = context?.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
     private val profileImageKey = "profile_image_$userNum"
 
+    val userNumber: Int
+        get() = userNum
+
+    val userConditionString: String
+        get() = if (userCondition) "1" else "0"
+
+
     /** 서버에서 받아온 로그인 ID(화면에 표시할 이름) */
     var userId by mutableStateOf("")
         private set
@@ -313,6 +320,35 @@ class ProfileViewModel(
                 }
             )
         }
+    }
+
+    fun setHomeLocation(
+        userNum: Int,
+        userTel: String,
+        userProfileImg: String,
+        userCondition: String,
+        newLat: String,
+        newLot: String,
+        callback: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val request = UpdateProfileRequest(
+                    userTel = userTel,
+                    userProfileImg = userProfileImg,
+                    userHomeLat = newLat,
+                    userHomeLot = newLot,
+                    userCondition = userCondition
+                )
+                val response = memberService.updateProfile(userNum, request)
+                callback(response.isSuccessful)
+            } catch (e: Exception) {
+                callback(false)
+            }
+        }
+    }
+    fun isHomeLocationEmpty(): Boolean {
+        return userHomeLat == null || userHomeLon == null || userHomeLat == 0.0 || userHomeLon == 0.0
     }
 
 
