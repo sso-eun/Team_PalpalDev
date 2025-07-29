@@ -26,7 +26,7 @@ fun HomeAddressPopup(
     viewModel: ProfileViewModel,
     onDismiss: () -> Unit,
     onSuppressToday: () -> Unit,
-    onHomeSet: () -> Unit
+    onHomeSet : () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -51,7 +51,8 @@ fun HomeAddressPopup(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (suppressChecked) onSuppressToday()
+                onSuppressToday()  // ✅ 무조건 실행해서 팝업 닫힘
+
                 coroutineScope.launch {
                     fusedLocationClient.lastLocation
                         .addOnSuccessListener { location: Location? ->
@@ -80,6 +81,7 @@ fun HomeAddressPopup(
             }) {
                 Text("자택으로 설정")
             }
+
         },
         dismissButton = {
             TextButton(onClick = {
