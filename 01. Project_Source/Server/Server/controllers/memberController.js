@@ -5,10 +5,10 @@
 const bcrypt = require('bcrypt');
 const mysql = require("mysql2/promise");
 const db = mysql.createPool({
-    // host: process.env.DB_LOCAL_HOST,
-    // port: process.env.DB_LOCAL_PORT,
-    host: process.env.DB_SERVER_HOST,
-    port: process.env.DB_SERVER_PORT,
+    host: process.env.DB_LOCAL_HOST,
+    port: process.env.DB_LOCAL_PORT,
+    // host: process.env.DB_SERVER_HOST,
+    // port: process.env.DB_SERVER_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
@@ -483,17 +483,11 @@ exports.getMyList = async (req, res) => {
 
 // FCM_user_token_update
 exports.updateFCM = async (req, res) => {
-    const { user_num } = req.body;
-    const updateFields = req.body;
+    const { user_num, user_token } = req.body;
 
     if (!user_num) {
         return res.status(400).json({ message: '회원 번호가 필요합니다.' });
     }
-
-    if (Object.keys(updateFields).length === 0) {
-        return res.status(400).json({ message: '수정할 항목이 없습니다.' });
-    }
-
 
     try {
         const sql = `
