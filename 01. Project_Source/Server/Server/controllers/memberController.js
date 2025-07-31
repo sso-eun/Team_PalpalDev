@@ -483,17 +483,11 @@ exports.getMyList = async (req, res) => {
 
 // FCM_user_token_update
 exports.updateFCM = async (req, res) => {
-    const { user_num } = req.params;
-    const updateFields = req.body;
+    const { user_num, user_token } = req.body;
 
     if (!user_num) {
         return res.status(400).json({ message: '회원 번호가 필요합니다.' });
     }
-
-    if (Object.keys(updateFields).length === 0) {
-        return res.status(400).json({ message: '수정할 항목이 없습니다.' });
-    }
-
 
     try {
         const sql = `
