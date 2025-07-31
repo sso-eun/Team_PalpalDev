@@ -74,10 +74,17 @@ cron.schedule('0 25 21 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에
     timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
 });
 
-
 // --- FCM 알림 스케줄링 설정 ---
 // 매일 오전 9시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
 // '0 0 9 * * *' : (초 분 시 일 월 요일) => 매일 9시 0분 0초
+// cron.schedule('0 0 9 * * *', () => {
+//     console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 9 AM daily notification.`);
+//     fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+// }, {
+//     timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+// });
+
+// 매일 오전 9시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
 cron.schedule('0 0 9 * * *', () => {
     console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 9 AM daily notification.`);
     fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
@@ -86,7 +93,6 @@ cron.schedule('0 0 9 * * *', () => {
 });
 
 // 매일 오후 6시 (0분 0초)에 fcmController.sendScheduledNotifications 함수를 실행합니다.
-// '0 0 18 * * *' : (초 분 시 일 월 요일) => 매일 18시 (오후 6시) 0분 0초
 cron.schedule('0 0 18 * * *', () => {
     console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
     fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
@@ -121,5 +127,5 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[unhandledRejection]', reason);
 });
 
-console.log(`Server running on http://localhost:${PORT}`);
+// console.log(`Server running on http://localhost:${PORT}`);
 

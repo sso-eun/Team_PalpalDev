@@ -96,13 +96,13 @@ router.get('/', async (req, res) => {
 
         // 디버깅용
         // 추후 삭제 예정
-        console.log('사용 중인 SERVICE_KEY_WT:', process.env.SERVICE_KEY_WT);
-        console.log('요청 URL:', fullUrl);
+        // console.log('사용 중인 SERVICE_KEY_WT:', process.env.SERVICE_KEY_WT);
+        // console.log('요청 URL:', fullUrl);
 
         // 기상청 API로 GET 요청 전송
         const response = await axios.get(fullUrl);
 
-        console.log('기상청 응답 원본:', response.data);
+        //console.log('기상청 응답 원본:', response.data);
 
         // 응답 XML 데이터를 JSON 형태로 파싱
         const result = await xml2js.parseStringPromise(response.data, { explicitArray: false });

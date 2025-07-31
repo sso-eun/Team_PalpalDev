@@ -6,11 +6,12 @@ const db = require('../db');
 
 exports.getAllUsersWithFcmTokens = async () => {
     try {
-        // 'member' 테이블에서 'user_num'과 'user_token' 컬럼을 조회합니다.
+        // 'member' 테이블에서 'user_num'과 'user_token' 컬럼을 조회
+        //-- NULL이 아니고 빈 문자열이 아닌 유효한 FCM 토큰만 가져옴
         const sql = `
             SELECT user_num, user_token
             FROM member
-            WHERE user_token IS NOT NULL AND user_token != '' -- NULL이 아니고 빈 문자열이 아닌 유효한 FCM 토큰만 가져옵니다.
+            WHERE user_token IS NOT NULL AND user_token != '' 
         `;
         const [rows] = await db.execute(sql);
 
@@ -62,6 +63,48 @@ exports.getUpcomingScheduleForUser = async (userNum) => {
         return null;
     } catch (error) {
         console.error(`Error fetching upcoming schedule for user ${userNum}:`, error);
+        throw error;
+    }
+};
+/**
+ * @function deleteInvalidFcmToken
+ * @description DB에서 유효하지 않거나 만료된 FCM 토큰을 삭제
+ * @param {number} userNum - 사용자 번호.
+ * @param {string} fcmToken - 삭제할 FCM 토큰.
+ */
+exports.deleteInvalidFcmToken = async (userNum, fcmToken) => {
+    try {
+        // TODO: 사용하는 DB 스키마에 맞게 다음 SQL 쿼리 선택 및 최종 확인할 것!
+
+        // Option 1: 'member' 테이블에 user_token 컬럼이 있는 경우 (1:1 매핑)
+        // 해당 user_num의 user_token을 NULL로 업데이트
+        const sql = `
+            UPDATE member
+            SET user_token = NULL
+            WHERE user_num = ? AND user_token = ?;
+        `;
+
+        // Option 2: 'member_fcm_token'과 같은 별도 테이블을 사용하는 경우 (1:N 매핑)
+        // 해당 user_num과 fcmToken에 매칭되는 레코드를 삭제합니다.
+        /*
+        const sql = `
+            DELETE FROM member_fcm_token
+            WHERE user_num = ? AND fcm_token = ?;
+        `;
+        */
+        // 만약 fcm_token이 고유하고 user_num이 갱신되는 방식이라면
+        /*
+        const sql = `
+            DELETE FROM member_fcm_token
+            WHERE fcm_token = ?;
+        `;
+        */
+
+        const [result] = await db.execute(sql, [userNum, fcmToken]);
+        console.log(`Successfully processed invalid FCM token for user ${userNum}. Rows affected: ${result.affectedRows}`);
+
+    } catch (error) {
+        console.error(`Error deleting invalid FCM token for user ${userNum} (token: ${fcmToken.substring(0, 10)}...):`, error);
         throw error;
     }
 };
