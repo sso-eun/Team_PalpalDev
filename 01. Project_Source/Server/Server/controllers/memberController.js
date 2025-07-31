@@ -483,7 +483,7 @@ exports.getMyList = async (req, res) => {
 
 // FCM_user_token_update
 exports.updateFCM = async (req, res) => {
-    const { user_num } = req.params;
+    const { user_num } = req.body;
     const updateFields = req.body;
 
     if (!user_num) {
