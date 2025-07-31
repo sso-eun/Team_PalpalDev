@@ -8,6 +8,7 @@ const admin = require('../firebaseInit');
 // 단계 4에서 완성한 서비스 파일을 불러옴
 // 'scheduleService.js' 찾음
 const scheduleService = require('../utils/scheduleService');
+const notificationController = require('./notificationController');
 
 // 일정이 없을 때 사용될 메시지 풀 (오전/오후 분리) - 이 메시지 풀은 컨트롤러에 있습니다.
 // TODO: 여건 되면 날씨에 따라 메세지 다르게 뜨도록 해보기
