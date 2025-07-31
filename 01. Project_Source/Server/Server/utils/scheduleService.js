@@ -4,10 +4,12 @@
 
 const db = require('../db');
 
+// 모든 유저에 대해서 토큰 불러옴
+// 토큰 없는 사람은 NULL로 세팅돼있음
 exports.getAllUsersWithFcmTokens = async () => {
     try {
         // 'member' 테이블에서 'user_num'과 'user_token' 컬럼을 조회
-        //-- NULL이 아니고 빈 문자열이 아닌 유효한 FCM 토큰만 가져옴
+        // NULL이 아니고 빈 문자열이 아닌 유효한 FCM 토큰만 가져옴
         const sql = `
             SELECT user_num, user_token
             FROM member
@@ -15,6 +17,7 @@ exports.getAllUsersWithFcmTokens = async () => {
         `;
         const [rows] = await db.execute(sql);
 
+        // 유저 고유번호랑 유저 토큰 반환시킴
         return rows.map(row => ({
             user_num: row.user_num,
             user_token: row.user_token
@@ -24,7 +27,7 @@ exports.getAllUsersWithFcmTokens = async () => {
         throw error;
     }
 };
-
+// 일정이 있다면 일정 제목이랑 날짜를 반환함
 exports.getUpcomingScheduleForUser = async (userNum) => {
     try {
         const today = new Date();
@@ -72,10 +75,10 @@ exports.getUpcomingScheduleForUser = async (userNum) => {
  * @param {number} userNum - 사용자 번호.
  * @param {string} fcmToken - 삭제할 FCM 토큰.
  */
+// 유효하지 않은 FCM 토큰 삭제함
 exports.deleteInvalidFcmToken = async (userNum, fcmToken) => {
     try {
         // TODO: 사용하는 DB 스키마에 맞게 다음 SQL 쿼리 선택 및 최종 확인할 것!
-
         // Option 1: 'member' 테이블에 user_token 컬럼이 있는 경우 (1:1 매핑)
         // 해당 user_num의 user_token을 NULL로 업데이트
         const sql = `
