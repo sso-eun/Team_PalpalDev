@@ -94,7 +94,7 @@ fun ProfileScreen(
 
     // Compose가 처음 렌더링될 때 서버에서 사용자 정보를 가져옴
     LaunchedEffect(Unit) {
-        viewModel.fetchUserFromServer()
+        viewModel.sendFcmTokenToServer()
     }
 
     Column(

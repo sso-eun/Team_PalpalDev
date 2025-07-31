@@ -13,6 +13,7 @@ import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UpdateProfileResponse
 import com.example.dundun_hi.data.SimpleResponse
 import com.example.dundun_hi.data.SetDateRequest
+import com.example.dundun_hi.data.FcmTokenRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -54,5 +55,8 @@ interface MemberService {
     // 일정 추가 (set_date)
     @POST("/date/setdate")
     suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
+
+    @POST("/member/fcm_token")
+    suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
 
 }

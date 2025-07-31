@@ -28,6 +28,8 @@ import java.io.InputStream
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import com.google.firebase.messaging.FirebaseMessaging
+import com.example.dundun_hi.data.FcmTokenRequest
 
 class ProfileViewModel(
     private val repository: UserRepository,
@@ -306,6 +308,31 @@ class ProfileViewModel(
                 }
             } catch (e: Exception) {
                 onResult(false, e.localizedMessage)
+            }
+        }
+    }
+
+    fun sendFcmTokenToServer() {
+        val userNum = this.userNum
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM", "FCM Token: $token")
+                viewModelScope.launch {
+                    try {
+                        val req = FcmTokenRequest(user_num = userNum, fcm_token = token)
+                        val res = com.example.dundun_hi.network.RetrofitClient.memberService.sendFcmToken(req)
+                        if (res.isSuccessful) {
+                            Log.d("FCM", "토큰 서버 전송 성공")
+                        } else {
+                            Log.e("FCM", "토큰 서버 전송 실패: ${res.code()}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("FCM", "토큰 서버 전송 예외: ${e.message}")
+                    }
+                }
+            } else {
+                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
             }
         }
     }
