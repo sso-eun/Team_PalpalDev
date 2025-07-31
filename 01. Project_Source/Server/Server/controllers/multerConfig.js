@@ -24,7 +24,8 @@ const getStorage = (subfolder = '') => {
         },
         filename: (req, file, cb) => {
             const ext = path.extname(file.originalname);
-            const prefix = subfolder === 'talk' ? 'talk' : 'profile';
+            // const prefix = subfolder === 'talk' ? 'talk' : 'profile';
+            const prefix = subfolder === subfolder || 'file'
             const fileName = `${prefix}_${Date.now()}${ext}`;
             cb(null, fileName);
         }
@@ -37,4 +38,7 @@ const uploadProfile = multer({ storage: getStorage() });
 // 토크 업로더 (uploads/talk/)
 const uploadTalk = multer({ storage: getStorage('talk') });
 
-module.exports = { uploadProfile, uploadTalk };
+// 증명서 업로더 (uploads/cert/)
+const uploadCert = multer({ storage: getStorage('cert') });
+
+module.exports = { uploadProfile, uploadTalk, uploadCert };

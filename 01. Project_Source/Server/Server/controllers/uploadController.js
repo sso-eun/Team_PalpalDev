@@ -70,3 +70,35 @@ exports.uploadTalkImage = async (req, res) => {
     }
 };
 
+exports.uploadCertImage = async (req, res) => {
+    const { user_num } = req.params;
+    const { senior_num } = req.params;
+    const file = req.file;
+
+    if (!file) {
+        return res.status(400).json({ rsCode: 400, message: '파일이 존재하지 않습니다.' });
+    }
+
+    try {
+        const filePath = path.join('uploads', 'cert', file.filename);
+        const fileName = file.filename;
+
+        const sql = `
+                            INSERT INTO guardian_auth_upload
+                                (guardian_no, senior_num, certificate_img, status, submitted_at)
+                            VALUES (?, ?, ?, 0, NOW())
+                        `;
+
+        await db.execute(sql, [user_num, senior_num, fileName]);
+
+        return res.status(200).json({
+            rsCode: 200,
+            message: '증명서 이미지 업로드 성공',
+            filePath
+        });
+    } catch (error) {
+        console.error("증명서 이미지 업로드 실패:", error);
+        res.status(500).json({ rsCode: 502, message: '서버 오류', error });
+    }
+};
+
