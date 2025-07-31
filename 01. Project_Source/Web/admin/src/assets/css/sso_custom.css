@@ -1,0 +1,16 @@
+/* author : ssoeun 25.08.01 */
+
+/* SIDE BAR */
+.collapse-menu {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    overflow: hidden;
+    transition: max-height 1s ease, opacity 1s ease, transform 1s ease;
+}
+
+.collapse-menu.show {
+    max-height: 100px; /* 실제 내용 높이에 맞게 적절히 설정 */
+    opacity: 1;
+    transform: translateY(0);
+}
