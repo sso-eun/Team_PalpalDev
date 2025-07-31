@@ -1,0 +1,95 @@
+package com.example.dundun_hi.ui
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Location
+import android.widget.Toast
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.dundun_hi.ui.profile.ProfileViewModel
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.launch
+
+@SuppressLint("MissingPermission")
+@Composable
+fun HomeAddressPopup(
+    context: Context,
+    userNum: Int,
+    userTel: String,
+    userProfileImg: String,
+    userCondition: String,
+    viewModel: ProfileViewModel,
+    onDismiss: () -> Unit,
+    onSuppressToday: () -> Unit,
+    onHomeSet : () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+    var suppressChecked by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("지금 자택이신가요?", fontSize = 20.sp) },
+        text = {
+            Column {
+                Text("현재 위치를 집으로 설정할까요?", fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = suppressChecked,
+                        onCheckedChange = { suppressChecked = it }
+                    )
+                    Text("오늘 하루 보지 않기")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onSuppressToday()  // ✅ 무조건 실행해서 팝업 닫힘
+
+                coroutineScope.launch {
+                    fusedLocationClient.lastLocation
+                        .addOnSuccessListener { location: Location? ->
+                            if (location != null) {
+                                viewModel.setHomeLocation(
+                                    userNum = userNum,
+                                    userTel = userTel,
+                                    userProfileImg = userProfileImg,
+                                    userCondition = userCondition,
+                                    newLat = location.latitude.toString(),
+                                    newLot = location.longitude.toString(),
+                                    callback = { success ->
+                                        Toast.makeText(
+                                            context,
+                                            if (success) "자택이 설정되었습니다" else "설정 실패",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        if (success) onHomeSet()
+                                    }
+                                )
+                            } else {
+                                Toast.makeText(context, "위치를 가져오지 못했습니다", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                }
+            }) {
+                Text("자택으로 설정")
+            }
+
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                if (suppressChecked) onSuppressToday()
+                onDismiss()
+            }) {
+                Text("아니요")
+            }
+        }
+    )
+}

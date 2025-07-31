@@ -79,13 +79,13 @@ fun ProfileScreen(
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
     // 오늘 날짜의 알림만 필터링
-    val today = remember { 
+    val today = remember {
         SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
     }
-    
+
     // AlertRepository의 알림 목록을 관찰
     val alerts by remember { derivedStateOf { alertRepository.alertList } }
-    
+
     // 오늘 날짜의 알림만 필터링
     val todayAlerts = remember(alerts) {
         alerts.filter { it.date == today }
@@ -94,7 +94,7 @@ fun ProfileScreen(
 
     // Compose가 처음 렌더링될 때 서버에서 사용자 정보를 가져옴
     LaunchedEffect(Unit) {
-        viewModel.sendFcmTokenToServer()
+        viewModel.fetchUserFromServer()
     }
 
     Column(
@@ -146,7 +146,7 @@ fun ProfileScreen(
                             contentDescription = "기본 프로필",
                             tint = Color.White,
                             modifier = Modifier.size(48.dp)
-                    )
+                        )
                     }
                 } else {
                     AsyncImage(
@@ -164,7 +164,7 @@ fun ProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // 로그인된 아이디(이름) 표시
                 Text(
@@ -181,6 +181,8 @@ fun ProfileScreen(
 
                 // 전화번호 표시
                 Text(text = userTel, fontSize = 24.sp)
+                Spacer(modifier = Modifier.height(9.dp))
+
             }
         }
 
@@ -221,16 +223,16 @@ fun ProfileScreen(
                             color = Color.Black
                         )
                     }
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_plus),
-                        contentDescription = "위치 추가",
-                        tint = Color(0xFF1AB277),
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { 
-                                navController.navigate("enter_exit")
-                            }
-                    )
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_plus),
+//                        contentDescription = "위치 추가",
+//                        tint = Color(0xFF1AB277),
+//                        modifier = Modifier
+//                            .size(24.dp)
+//                            .clickable {
+//                                navController.navigate("enter_exit")
+//                            }
+//                    )
                 }
 
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
@@ -248,8 +250,8 @@ fun ProfileScreen(
                         color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = if (userCondition) "외출중이에요" else "집에 있어요",
+                    Text(
+                        text = if (userCondition) "외출중이에요" else "집에 있어요",
                         fontSize = 22.sp,
                         color = if (userCondition) Color(0xFF2196F3) else Color(0xFF1AB277),
                         fontWeight = FontWeight.Bold
@@ -309,7 +311,7 @@ fun ProfileScreen(
                         tint = Color(0xFF2196F3),
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable { 
+                            .clickable {
                                 navController.navigate("alarm")
                             }
                     )

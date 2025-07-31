@@ -2,6 +2,7 @@
 
 package com.example.dundun_hi.ui.profile
 
+import com.example.dundun_hi.data.UploadProfileRepository
 import android.content.Context
 import android.content.SharedPreferences
 import android.database.Cursor
@@ -28,21 +29,27 @@ import java.io.InputStream
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import com.google.firebase.messaging.FirebaseMessaging
-import com.example.dundun_hi.data.FcmTokenRequest
 
 class ProfileViewModel(
     private val repository: UserRepository,
     private val userNum: Int,
-    private val context: Context? = null
-) : ViewModel() {
+    private val context: Context? = null,
+
+    ) : ViewModel() {
 
     companion object {
         private const val TAG = "ProfileViewModel"
     }
-
+    private val uploadRepo = UploadProfileRepository(RetrofitClient.memberService)
     private val sharedPreferences: SharedPreferences? = context?.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
     private val profileImageKey = "profile_image_$userNum"
+
+    val userNumber: Int
+        get() = userNum
+
+    val userConditionString: String
+        get() = if (userCondition) "1" else "0"
+
 
     /** 서버에서 받아온 로그인 ID(화면에 표시할 이름) */
     var userId by mutableStateOf("")
@@ -175,7 +182,7 @@ class ProfileViewModel(
                         // saveProfileImageToLocal("")
                     }
                 }
-                
+
                 // 예시: UpdateProfileRequest 정의된 데이터 클래스에 맞게 작성
                 val request = UpdateProfileRequest(
                     userTel        = newTel,
@@ -288,54 +295,63 @@ class ProfileViewModel(
         }
     }
 
-    // 서버 업로드는 필요할 때만(동기화용)
-    fun uploadProfileImageToServer(onResult: (Boolean, String?) -> Unit) {
-        val localPath = loadProfileImageFromLocal()
-        if (localPath.isEmpty()) {
-            onResult(false, "로컬 이미지가 없습니다.")
+    fun uploadProfileImageToServerAndUpdate(uri: Uri, onResult: (Boolean, String?) -> Unit) {
+        if (context == null) {
+            onResult(false, "Context is null")
             return
         }
+
         viewModelScope.launch {
-            try {
-                val file = File(localPath)
-                val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), file)
-                val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
-                val response = com.example.dundun_hi.network.RetrofitClient.memberService.uploadProfileImage(userNum, body)
-                if (response.isSuccessful && response.body()?.message != null) {
-                    onResult(true, response.body()!!.message)
-                } else {
-                    onResult(false, response.body()?.message)
+            uploadRepo.uploadAndUpdateProfile(
+                context = context,
+                uri = uri,
+                userNum = userNum,
+                currentTel = userTel,
+                currentLat = userHomeLat,
+                currentLon = userHomeLon,
+                currentCondition = userCondition,
+                memberService = RetrofitClient.memberService,
+                onSuccess = {
+                    fetchUserFromServer() // 업데이트 후 UI 갱신
+                    onResult(true, null)
+                },
+                onError = {
+                    onResult(false, it)
                 }
-            } catch (e: Exception) {
-                onResult(false, e.localizedMessage)
-            }
+            )
         }
     }
 
-    fun sendFcmTokenToServer() {
-        val userNum = this.userNum
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "FCM Token: $token")
-                viewModelScope.launch {
-                    try {
-                        val req = FcmTokenRequest(user_num = userNum, fcm_token = token)
-                        val res = com.example.dundun_hi.network.RetrofitClient.memberService.sendFcmToken(req)
-                        if (res.isSuccessful) {
-                            Log.d("FCM", "토큰 서버 전송 성공")
-                        } else {
-                            Log.e("FCM", "토큰 서버 전송 실패: ${res.code()}")
-                        }
-                    } catch (e: Exception) {
-                        Log.e("FCM", "토큰 서버 전송 예외: ${e.message}")
-                    }
-                }
-            } else {
-                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+    fun setHomeLocation(
+        userNum: Int,
+        userTel: String,
+        userProfileImg: String,
+        userCondition: String,
+        newLat: String,
+        newLot: String,
+        callback: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val request = UpdateProfileRequest(
+                    userTel = userTel,
+                    userProfileImg = userProfileImg,
+                    userHomeLat = newLat,
+                    userHomeLot = newLot,
+                    userCondition = userCondition
+                )
+                val response = memberService.updateProfile(userNum, request)
+                callback(response.isSuccessful)
+            } catch (e: Exception) {
+                callback(false)
             }
         }
     }
+    fun isHomeLocationEmpty(): Boolean {
+        return userHomeLat == null || userHomeLon == null || userHomeLat == 0.0 || userHomeLon == 0.0
+    }
+
+
 }
 
 

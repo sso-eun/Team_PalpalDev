@@ -4,33 +4,13 @@ package com.example.dundun_hi.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,15 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.dundun_hi.R
-import com.example.dundun_hi.ui.theme.BorderGray
-import com.example.dundun_hi.ui.theme.ButtonCamBlue
-import com.example.dundun_hi.ui.theme.ButtonMapBlue
-import com.example.dundun_hi.ui.theme.ButtonMsgTeal
-import com.example.dundun_hi.ui.theme.ButtonPhoneGreen
-import com.example.dundun_hi.ui.theme.LightGray
-import com.example.dundun_hi.ui.theme.Sky
+import com.example.dundun_hi.ui.theme.*
 import androidx.compose.ui.layout.ContentScale
 import android.util.Log
+import com.example.dundun_hi.ui.profile.ProfileViewModel
+import com.example.dundun_hi.ui.HomeAddressPopup
 
 // 날씨 상태를 나타내는 enum class
 enum class WeatherState(val code: Int, val iconRes: Int) {
@@ -92,15 +68,34 @@ fun MainScreen(
     onMapPageClick: () -> Unit,
     onFindCultureCenter: () -> Unit,
     onKioskPageClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    profileViewModel: ProfileViewModel
 ) {
     val context = LocalContext.current
-    
+    val showPopup = remember { mutableStateOf(false) }
+    val suppressedToday = remember { mutableStateOf(false) }
+
+    if (!suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
+        HomeAddressPopup(
+            context = context,
+            userNum = profileViewModel.userNumber,
+            userTel = profileViewModel.userTel,
+            userProfileImg = profileViewModel.userProfileImg,
+            userCondition = profileViewModel.userConditionString,
+            viewModel = profileViewModel,
+            onDismiss = { /* 아무 것도 안 해도 됨 */ },
+            onSuppressToday = { suppressedToday.value = true },
+            onHomeSet = { /* 집 위치 설정 후 필요한 동작 (없으면 생략 가능) */ }
+        )
+    }
+
+
+
     // 프로필 이미지 로딩 상태 추적
     LaunchedEffect(userProfileImg) {
         Log.d("MainScreen", "프로필 이미지 업데이트: $userProfileImg")
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -170,9 +165,9 @@ fun MainScreen(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.width(16.dp))
-                
+
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -226,7 +221,7 @@ fun MainScreen(
             Triple("카메라", R.drawable.ic_camera_main, ButtonCamBlue) to onCameraPageClick,
             Triple("지도", R.drawable.ic_map, ButtonMapBlue) to onMapPageClick
         )
-        
+
         buttons.chunked(2).forEach { rowButtons ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 rowButtons.forEach { (buttonData, onClick) ->
@@ -299,25 +294,4 @@ fun MainScreen(
             if (index == 0) Spacer(modifier = Modifier.height(12.dp))
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MainScreen(
-        userName = "길동님",
-        userProfileImg = "",
-        temperature = 19,
-        highTemp = 25,
-        lowTemp = 7,
-        weatherState = 3, // 구름 많음 상태로 미리보기
-        precipitationType = 2, // 비/눈 상태로 미리보기
-        onPhonePageClick = {},
-        onMessagePageClick = {},
-        onCameraPageClick = {},
-        onMapPageClick = {},
-        onFindCultureCenter = {},
-        onKioskPageClick = {},
-        onProfileClick = {}
-    )
 }
