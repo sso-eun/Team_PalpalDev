@@ -9,3 +9,5 @@ interface UserRepository {
 
     suspend fun updateUserProfile(userNum: Int, request:UpdateProfileRequest): UpdateProfileResponse
 }
+
+//dkjfdkjdkfdfj

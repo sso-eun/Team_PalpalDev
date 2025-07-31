@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="Dundun-Hi.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-26T02:28:12.292898Z">
+        <DropdownSelection timestamp="2025-07-31T01:38:18.996094Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=R54M802TQHZ" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\goodf\.android\avd\Pixel_2.avd" />
             </handle>
           </Target>
         </DropdownSelection>

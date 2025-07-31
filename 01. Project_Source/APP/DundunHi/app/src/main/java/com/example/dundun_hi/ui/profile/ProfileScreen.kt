@@ -164,7 +164,7 @@ fun ProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // 로그인된 아이디(이름) 표시
                 Text(
@@ -181,6 +181,8 @@ fun ProfileScreen(
 
                 // 전화번호 표시
                 Text(text = userTel, fontSize = 24.sp)
+                Spacer(modifier = Modifier.height(9.dp))
+
             }
         }
 
