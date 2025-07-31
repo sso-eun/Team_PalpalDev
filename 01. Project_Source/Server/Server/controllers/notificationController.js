@@ -21,6 +21,27 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
 });
 
+/**
+ * 2025-07-30 추가
+ * @function createNotificationRecord
+ * @description 알림 정보를 DB에 직접 기록하는 서비스 함수.
+ * @param {string} title - 알림 제목.
+ * @param {string} content - 알림 내용.
+ * @returns {object} - DB 삽입 결과.
+ */
+exports.createNotificationRecord = async (title, content) => {
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO notification_list (nt_title, nt_content, nt_result) VALUES (?, ?, ?)',
+            [title, content, 0] // nt_result는 0으로 고정 (아직 읽지 않음을 의미)
+        );
+        return result;
+    } catch (err) {
+        console.error('Error creating notification record:', err);
+        throw err;
+    }
+};
+
 // creat notification
 // nt_title nt_content는 필수 값
 exports.createNotification = async (req, res) => {
@@ -49,7 +70,6 @@ exports.createNotification = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
 
 // 전체 알림 조회
 exports.getAllNotifications = async (req, res) => {
