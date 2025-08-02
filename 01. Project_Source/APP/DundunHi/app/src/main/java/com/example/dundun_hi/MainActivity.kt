@@ -68,6 +68,9 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.example.dundun_hi.model.CallShortcut
 import android.content.Intent
+import com.example.dundun_hi.ui.signup.FamilyCertificationScreen
+import com.example.dundun_hi.ui.signup.SeniorInfoScreen
+import com.example.dundun_hi.ui.HomeAddressPopup
 
 class MainActivity : ComponentActivity() {
 
@@ -198,7 +201,7 @@ class MainActivity : ComponentActivity() {
                         composable("auth") {
                             CombinedAuthScreen(
                                 viewModel = signupVm,
-                                onNext = { navController.navigate("signup") }
+                                onNext = { navController.navigate("family_certification") }
                             )
                         }
 
@@ -325,7 +328,6 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
                                         launchSingleTop = true
                                     }
-
                                 }
                             )
                         }
@@ -500,6 +502,24 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 onLoginClick = { navController.navigate("guardian") }
+                            )
+                        }
+
+                        // ─── Family Certification
+                        composable("family_certification") {
+                            FamilyCertificationScreen(
+                                onConfirm = {
+                                    navController.navigate("senior_info")
+                                }
+                            )
+                        }
+                        
+                        // ─── Senior Info
+                        composable("senior_info") {
+                            SeniorInfoScreen(
+                                onConfirm = {
+                                    navController.navigate("signup")
+                                }
                             )
                         }
                     }
