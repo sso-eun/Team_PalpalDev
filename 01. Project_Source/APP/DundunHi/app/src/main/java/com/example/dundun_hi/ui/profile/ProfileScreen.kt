@@ -79,13 +79,13 @@ fun ProfileScreen(
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
     // 오늘 날짜의 알림만 필터링
-    val today = remember { 
+    val today = remember {
         SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
     }
-    
+
     // AlertRepository의 알림 목록을 관찰
     val alerts by remember { derivedStateOf { alertRepository.alertList } }
-    
+
     // 오늘 날짜의 알림만 필터링
     val todayAlerts = remember(alerts) {
         alerts.filter { it.date == today }
@@ -146,7 +146,7 @@ fun ProfileScreen(
                             contentDescription = "기본 프로필",
                             tint = Color.White,
                             modifier = Modifier.size(48.dp)
-                    )
+                        )
                     }
                 } else {
                     AsyncImage(
@@ -250,8 +250,8 @@ fun ProfileScreen(
                         color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = if (userCondition) "외출중이에요" else "집에 있어요",
+                    Text(
+                        text = if (userCondition) "외출중이에요" else "집에 있어요",
                         fontSize = 22.sp,
                         color = if (userCondition) Color(0xFF2196F3) else Color(0xFF1AB277),
                         fontWeight = FontWeight.Bold
@@ -311,7 +311,7 @@ fun ProfileScreen(
                         tint = Color(0xFF2196F3),
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable { 
+                            .clickable {
                                 navController.navigate("alarm")
                             }
                     )

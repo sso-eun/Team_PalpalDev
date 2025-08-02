@@ -8,6 +8,6 @@ interface UserRepository {
     suspend fun getUserByNum(userNum: Int): MemberResponse
 
     suspend fun updateUserProfile(userNum: Int, request:UpdateProfileRequest): UpdateProfileResponse
-}
 
-//dkjfdkjdkfdfj
+
+}

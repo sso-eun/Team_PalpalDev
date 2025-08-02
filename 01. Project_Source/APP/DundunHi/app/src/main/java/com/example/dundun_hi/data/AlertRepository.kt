@@ -82,7 +82,7 @@ class AlertRepository private constructor(private val context: Context) {
             user_date_info = info
         )
         val res = RetrofitClient.memberService.setDate(body)
-        res.rsCode == 200
+        res.code() == 200 || res.code() == 201
     }
 
     companion object {

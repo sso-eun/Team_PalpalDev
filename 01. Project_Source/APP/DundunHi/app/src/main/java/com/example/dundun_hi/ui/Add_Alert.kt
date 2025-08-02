@@ -35,6 +35,10 @@ fun AddAlarmScreen(navController: NavController) {
     val alertRepository = remember { AlertRepository.getInstance(context) }
     val coroutineScope = rememberCoroutineScope()
 
+    // userNum을 SharedPreferences에서 불러오기
+    val sharedPreferences = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+    val userNum = sharedPreferences.getString("user_num", null)?.toIntOrNull() ?: 0
+
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
     var contentText by remember { mutableStateOf("") }
@@ -156,7 +160,7 @@ fun AddAlarmScreen(navController: NavController) {
             onClick = {
                 if (selectedDate.isNotBlank() && selectedTime.isNotBlank() && contentText.isNotBlank()) {
                     coroutineScope.launch {
-                        val userNum = 202 // TODO: 실제 로그인 사용자 번호로 대체
+                        // val userNum = 202 // TODO: 실제 로그인 사용자 번호로 대체 (삭제)
                         val dateTime = "$selectedDate $selectedTime"
                         try {
                             val success = alertRepository.addAlertToServer(userNum, contentText, dateTime, contentText)
@@ -164,9 +168,9 @@ fun AddAlarmScreen(navController: NavController) {
                                 Toast.makeText(context, "서버 저장 실패", Toast.LENGTH_SHORT).show()
                             } else {
                                 alertRepository.addAlert(
-                                    AlertItem(date = selectedDate, time = selectedTime, content = contentText)
-                                )
-                                navController.popBackStack()
+                        AlertItem(date = selectedDate, time = selectedTime, content = contentText)
+                    )
+                    navController.popBackStack()
                             }
                         } catch (e: Exception) {
                             Toast.makeText(context, "서버 저장 중 오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()

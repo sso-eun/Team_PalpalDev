@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.util.CoilUtils.result
 import com.example.dundun_hi.data.MemberResponse
 import com.example.dundun_hi.data.UpdatePasswordRequest
 import com.example.dundun_hi.data.UpdatePasswordResponse
@@ -29,19 +30,24 @@ import java.io.InputStream
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
 
 class ProfileViewModel(
     private val repository: UserRepository,
     private val userNum: Int,
-    private val context: Context? = null,
-
+    private val context: Context? = null
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "ProfileViewModel"
     }
+
     private val uploadRepo = UploadProfileRepository(RetrofitClient.memberService)
     private val sharedPreferences: SharedPreferences? = context?.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+    private val appPrefs: SharedPreferences? = context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     private val profileImageKey = "profile_image_$userNum"
 
     val userNumber: Int
@@ -49,7 +55,6 @@ class ProfileViewModel(
 
     val userConditionString: String
         get() = if (userCondition) "1" else "0"
-
 
     /** 서버에서 받아온 로그인 ID(화면에 표시할 이름) */
     var userId by mutableStateOf("")
@@ -87,6 +92,12 @@ class ProfileViewModel(
         // 화면이 처음 생성될 때 한 번 자동으로 호출
         Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
         fetchUserFromServer()
+    }
+
+
+
+    fun getSuppressedDate(): String? {
+        return appPrefs?.getString("suppressed_date", null)
     }
 
     /**
@@ -347,11 +358,17 @@ class ProfileViewModel(
             }
         }
     }
+
     fun isHomeLocationEmpty(): Boolean {
-        return userHomeLat == null || userHomeLon == null || userHomeLat == 0.0 || userHomeLon == 0.0
+        return userHomeLat == 0.0 || userHomeLon == 0.0
+    }
+
+    // 팝업 억제 관련 메서드들
+    fun setSuppressedDate(date: String) {
+        appPrefs?.edit()
+            ?.putString("suppressed_date", date)
+            ?.apply()
     }
 
 
 }
-
-

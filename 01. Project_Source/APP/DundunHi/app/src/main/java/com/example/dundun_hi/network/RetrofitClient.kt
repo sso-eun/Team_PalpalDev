@@ -1,7 +1,6 @@
 package com.example.dundun_hi.network
 
 import com.google.gson.GsonBuilder
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

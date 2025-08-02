@@ -287,14 +287,14 @@ class MainActivity : ComponentActivity() {
                             LaunchedEffect(Unit) {
                                 profileViewModel.fetchUserFromServer()
                             }
-                            
+
                             // ProfileViewModel의 상태를 실시간으로 관찰
                             val userProfileImg by remember { derivedStateOf { profileViewModel.userProfileImg } }
-                            
+
                             // 날씨 상태 가져오기
                             val weatherState by weatherVM.uiState.collectAsState()
                             val weatherData = (weatherState as? WeatherUiState.Success)?.data
-                            
+
                             // sky 값을 weatherState 코드로 변환
                             val weatherStateCode = when (weatherData?.sky?.lowercase()) {
                                 "맑음" -> 1  // SUNNY
@@ -316,12 +316,12 @@ class MainActivity : ComponentActivity() {
                                 onMessagePageClick = { /* TODO */ },
                                 onCameraPageClick = { navController.navigate("camera/$userNum")},
                                 onMapPageClick = { navController.navigate("map") },
-                                onFindCultureCenter = { 
+                                onFindCultureCenter = {
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.cjmh.or.kr/study.html"))
                                     startActivity(intent)
                                 },
                                 onKioskPageClick = { navController.navigate("kiosk") },
-                                onProfileClick = { 
+                                onProfileClick = {
                                     navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
                                         launchSingleTop = true
                                     }

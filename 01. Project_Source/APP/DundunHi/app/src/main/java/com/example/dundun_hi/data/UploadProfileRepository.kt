@@ -10,6 +10,10 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.io.copyTo
+import kotlin.io.use
+import kotlin.onFailure
+import kotlin.onSuccess
 
 class UploadProfileRepository(private val api: MemberService) {
 

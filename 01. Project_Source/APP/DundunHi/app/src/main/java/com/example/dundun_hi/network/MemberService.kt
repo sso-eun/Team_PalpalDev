@@ -13,7 +13,7 @@ import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UpdateProfileResponse
 import com.example.dundun_hi.data.SimpleResponse
 import com.example.dundun_hi.data.SetDateRequest
-import okhttp3.MultipartBody
+import com.example.dundun_hi.data.FcmTokenRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -49,11 +49,14 @@ interface MemberService {
     @POST("/upload/profile/{user_num}")
     suspend fun uploadProfileImage(
         @Path("user_num") userNum: Int,
-        @Part file: MultipartBody.Part
-    ): Response<UpdateProfileResponse>
+        @Part file: okhttp3.MultipartBody.Part
+    ): retrofit2.Response<com.example.dundun_hi.data.SimpleResponse>
 
     // 일정 추가 (set_date)
     @POST("/date/setdate")
-    suspend fun setDate(@Body body: SetDateRequest): SimpleResponse
+    suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
+
+    @POST("/member/fcm_token")
+    suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
 
 }
