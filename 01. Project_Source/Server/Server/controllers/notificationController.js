@@ -7,16 +7,16 @@ require('dotenv').config();
 
 const pool = mysql.createPool({
     // local DB
-    host: process.env.DB_LOCAL_HOST,
-    port: process.env.DB_LOCAL_PORT,
-    user: process.env.DB_USER_MY,
-    password: process.env.DB_PASSWORD_MY,
+    // host: process.env.DB_LOCAL_HOST,
+    // port: process.env.DB_LOCAL_PORT,
+    // user: process.env.DB_USER_MY,
+    // password: process.env.DB_PASSWORD_MY,
 
     // Dundun DB
-    // host: process.env.DB_SERVER_HOST,
-    // port: process.env.DB_SERVER_PORT,
-    // user: process.env.DB_USER,
-    // password: process.env.DB_PASSWORD,
+    host: process.env.DB_SERVER_HOST,
+    port: process.env.DB_SERVER_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
 
     database: process.env.DB_NAME,
 });
