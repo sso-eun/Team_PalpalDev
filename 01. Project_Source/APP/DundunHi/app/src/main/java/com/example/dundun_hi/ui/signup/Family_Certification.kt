@@ -23,30 +23,55 @@ import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.*
 
+//은재 추가
+import com.example.dundun_hi.network.RetrofitClient
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 @Composable
 fun FamilyCertificationScreen(
     onConfirm: () -> Unit = {},
-    onUpload: () -> Unit = {}
+
+    // 1. ViewModel을 주입받기 위한 Factory 추가
+    viewModel: FamilyCertViewModel = viewModel(factory = FamilyCertViewModelFactory(RetrofitClient.memberService))
+    //onUpload: () -> Unit = {}
 ) {
     var elderName by remember { mutableStateOf("") }
     var elderPhone by remember { mutableStateOf("") }
-    var uploadedFileName by remember { mutableStateOf("") }
-    var isFileUploaded by remember { mutableStateOf(false) }
-    
+
+//    var uploadedFileName by remember { mutableStateOf("") }
+//    var isFileUploaded by remember { mutableStateOf(false) }
+
+    // ViewModel의 업로드 결과를 관찰하도록 변경
+    val uploadResult by viewModel.uploadResult.collectAsState()
     val context = LocalContext.current
     
-    // 갤러리 접근을 위한 launcher
+//    // 갤러리 접근을 위한 launcher
+//    val galleryLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.GetContent()
+//    ) { uri: Uri? ->
+//        uri?.let { selectedUri ->
+//            // 파일 이름 생성 (현재 날짜 + 시간)
+//            val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+//            val currentTime = dateFormat.format(Date())
+//            val fileName = "가족관계증명서_$currentTime.jpg"
+//
+//            uploadedFileName = fileName
+//            isFileUploaded = true
+//        }
+//    }
+
+    // 갤러리 실행 로직 수정
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { selectedUri ->
-            // 파일 이름 생성 (현재 날짜 + 시간)
-            val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-            val currentTime = dateFormat.format(Date())
-            val fileName = "가족관계증명서_$currentTime.jpg"
-            
-            uploadedFileName = fileName
-            isFileUploaded = true
+            // 중요: userNum과 seniorNum은 실제 값으로 대체
+            // 이 값들은 이전 화면이나 로그인 정보 등에서 가져
+            val currentUserNum = 123 // 예시: 실제 사용자 번호로 대체
+            val currentSeniorNum = 456 // 예시: 실제 어르신 번호로 대체
+
+            // ViewModel의 업로드 함수 호출
+            viewModel.uploadCertificate(context, selectedUri, currentUserNum, currentSeniorNum)
         }
     }
 
@@ -139,15 +164,35 @@ fun FamilyCertificationScreen(
             )
         }
         
-        // 업로드 완료 메시지
-        if (isFileUploaded) {
+//         업로드 완료 메시지
+//        if (isFileUploaded) {
+//            Spacer(Modifier.height(16.dp))
+//            Text(
+//                text = "업로드 완료: $uploadedFileName",
+//                color = Color.Red,
+//                fontSize = 18.sp,
+//                fontWeight = FontWeight.Medium
+//            )
+//        }
+        // 4. 업로드 결과 메시지를 ViewModel의 상태에 따라 표시하도록 변경
+        if (uploadResult != null) {
             Spacer(Modifier.height(16.dp))
-            Text(
-                text = "업로드 완료: $uploadedFileName",
-                color = Color.Red,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
+            if(uploadResult!!.rsCode == 200) {
+                Text(
+                    // 서버로부터 받은 파일 경로를 표시
+                    text = "업로드 성공: ${uploadResult!!.filePath}",
+                    color = Color.Blue,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            } else {
+                Text(
+                    text = "업로드 실패: ${uploadResult!!.message}",
+                    color = Color.Red,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
 
         Spacer(Modifier.height(88.dp))
