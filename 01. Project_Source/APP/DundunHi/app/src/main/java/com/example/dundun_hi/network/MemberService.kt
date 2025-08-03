@@ -14,6 +14,7 @@ import com.example.dundun_hi.data.UpdateProfileResponse
 import com.example.dundun_hi.data.SimpleResponse
 import com.example.dundun_hi.data.SetDateRequest
 import com.example.dundun_hi.data.FcmTokenRequest
+import com.example.dundun_hi.data.FileUploadResponse        // 은재 추가 - 가족관계증명서
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -44,6 +45,16 @@ interface MemberService {
 
     @PUT("/member/password/{user_num}")
     suspend fun updatePassword(@Path("user_num") userNum: String, @Body request: UpdatePasswordRequest): Response<UpdatePasswordResponse>
+
+    // 25-08-02 은재 추가: 가족관계증명서 업로드
+    @Multipart
+    @POST("/upload/cert/{user_num}/{senior_num}")
+    suspend fun uploadCertificate(
+        @Path("user_num") userNum: Int,
+        @Path("senior_num") seniorNum: Int,
+        @Part file: okhttp3.MultipartBody.Part
+    ): Response<FileUploadResponse>
+    // ----------------------------------------------
 
     @Multipart
     @POST("/upload/profile/{user_num}")
