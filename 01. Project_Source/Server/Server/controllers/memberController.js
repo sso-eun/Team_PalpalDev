@@ -486,7 +486,7 @@ exports.updateFCM = async (req, res) => {
     const { user_num, user_token } = req.body;
 
     if (!user_num) {
-        return res.status(400).json({ message: '회원 번호가 필요합니다.' });
+        return res.status(400).json({rsCode :res.status, message: '회원 번호가 필요합니다.' });
     }
 
     try {
@@ -500,12 +500,12 @@ exports.updateFCM = async (req, res) => {
 
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: '회원 정보를 찾을 수 없습니다.' });
+            return res.status(404).json({ rsCode :res.status, message: '회원 정보를 찾을 수 없습니다.' });
         }
 
-        return res.status(200).json({ message: '회원정보가 성공적으로 수정되었습니다.' });
+        return res.status(200).json({rsCode :res.status, message: '회원정보가 성공적으로 수정되었습니다.' });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: '서버 오류', error });
+        return res.status(500).json({ rsCode :res.status, message: '서버 오류', error });
     }
 };
