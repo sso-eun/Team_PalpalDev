@@ -1,9 +1,9 @@
 const mysql = require("mysql2/promise");
 const db = mysql.createPool({
-    // host: process.env.DB_LOCAL_HOST,
-    // port: process.env.DB_LOCAL_PORT,
-    host: process.env.DB_SERVER_HOST,
-    port: process.env.DB_SERVER_PORT,
+    host: process.env.DB_LOCAL_HOST,
+    port: process.env.DB_LOCAL_PORT,
+    // host: process.env.DB_SERVER_HOST,
+    // port: process.env.DB_SERVER_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
@@ -34,12 +34,21 @@ exports.send = async (req, res) => {
 exports.list = async (req, res) => {
     const user_num = parseInt(req.body.user_num);
 
+    // const sql = `
+    //                     SELECT talk_id, sender_type, sender_id, image_url, send_at, is_read, read_at
+    //                     FROM talk_list
+    //                     WHERE receiver_id = ? OR sender_id = ?
+    //                     ORDER BY send_at ASC
+    //                   `;
     const sql = `
-                        SELECT talk_id, sender_type, sender_id, image_url, send_at, is_read, read_at
-                        FROM talk_list 
-                        WHERE receiver_id = ? OR sender_id = ?
-                        ORDER BY send_at ASC
-                      `;
+                        SELECT t.talk_id, t.sender_type, t.sender_id,
+                               m.user_id AS sender_user_id,
+                               t.image_url, t.send_at, t.is_read, t.read_at
+                        FROM talk_list t
+                                 LEFT JOIN member m ON t.sender_id = m.user_num
+                        WHERE t.receiver_id = ? OR t.sender_id = ?
+                        ORDER BY t.send_at ASC;
+                     `;
 
     try {
         const [rows] = await db.execute(sql, [user_num,user_num]);
