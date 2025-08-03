@@ -21,13 +21,25 @@ exports.list = async (req, res) => {
         const totalPages = Math.ceil(total / limit);
 
         const sql = `
-      SELECT 
-        req_no, guardian_no, senior_num, certificate_img, status,
-        submitted_at, reviewed_at, reviewer_admin_no, reviewer_note
-      FROM guardian_auth_upload
-      ORDER BY req_no DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
+            SELECT
+                gau.req_no,
+                gau.guardian_no,
+                g.user_id AS guardian_id,
+                gau.senior_num,
+                s.user_id AS senior_id,
+                gau.certificate_img,
+                gau.status,
+                gau.submitted_at,
+                gau.reviewed_at,
+                gau.reviewer_admin_no,
+                gau.reviewer_note
+            FROM guardian_auth_upload gau
+                     LEFT JOIN member g ON gau.guardian_no = g.user_num
+                     LEFT JOIN member s ON gau.senior_num = s.user_num
+            ORDER BY gau.req_no DESC
+                LIMIT ${limit} OFFSET ${offset};
+
+        `;
 
         const [rows] = await db.query(sql);
 
