@@ -35,7 +35,7 @@ exports.uploadProfileImage = async (req, res) => {
         res.status(200).json({ rsCode :200, message: '프로필 이미지 업로드 성공', filePath });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ rsCode :502, message: '서버 오류', error });
+        res.status(500).json({ rsCode :502, message: '요청값을 다시 확인하세요.', error });
     }
 };
 
@@ -66,7 +66,7 @@ exports.uploadTalkImage = async (req, res) => {
         });
     } catch (error) {
         console.error("토크 이미지 업로드 실패:", error);
-        res.status(500).json({ rsCode: 502, message: '서버 오류', error });
+        res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
     }
 };
 
@@ -98,7 +98,7 @@ exports.uploadCertImage = async (req, res) => {
         });
     } catch (error) {
         console.error("증명서 이미지 업로드 실패:", error);
-        res.status(500).json({ rsCode: 502, message: '서버 오류', error });
+        res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
     }
 };
 

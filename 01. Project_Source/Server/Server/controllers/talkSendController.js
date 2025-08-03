@@ -24,7 +24,7 @@ exports.send = async (req, res) => {
         return res.status(201).json({ rsCode :200,  message: '전송 완료' });
     } catch (error) {
         console.error('이미지 전송 실패:', error);
-        return res.status(500).json({rsCode :502,  message: '서버 오류', error });
+        return res.status(500).json({rsCode :502,  message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end send
@@ -61,7 +61,7 @@ exports.list = async (req, res) => {
         console.error('조회 실패:', error);
         return res.status(500).json({
             rsCode :502,
-            message: '서버 오류',
+            message: '요청값을 다시 확인하세요.',
             error
         });
     }
@@ -89,7 +89,7 @@ exports.isRead = async (req, res) => {
 
     } catch (error) {
         console.error('읽음 처리 실패:', error);
-        return res.status(500).json({ rsCode: 502, message: '서버 오류', error });
+        return res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end isREad

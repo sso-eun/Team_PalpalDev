@@ -50,8 +50,8 @@ exports.send = async (req, res) => {
             });
 
     } catch (error) {
-        console.error('서버 오류:', error);
-        return res.status(500).json({ rsCode :502, message: '서버 오류', error });
+        console.error('요청값을 다시 확인하세요.:', error);
+        return res.status(500).json({ rsCode :502, message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end send API
@@ -103,7 +103,7 @@ exports.verifyCode = async (req, res) => {
 
     } catch (error) {
         console.error('인증 오류:', error);
-        return res.status(500).json({ rsCode :500, message: '서버 오류', error });
+        return res.status(500).json({ rsCode :500, message: '요청값을 다시 확인하세요.', error });
     }
 
 

@@ -43,7 +43,7 @@ exports.createUserDate = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 
@@ -79,7 +79,7 @@ exports.updateUserDate = async (req, res) => {
         res.status(200).json({ message: '일정 수정 성공' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 
@@ -98,7 +98,7 @@ exports.deleteUserDate = async (req, res) => {
         res.status(200).json({ message: '일정 삭제 성공' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 
@@ -141,6 +141,6 @@ exports.getUserDates = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
