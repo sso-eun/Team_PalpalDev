@@ -63,7 +63,7 @@ exports.signup = async (req, res) => {
             INSERT INTO member (
                 ${Object.keys(userData).join(', ')}, user_signup, user_update, user_recent
             ) VALUES (
-                ${new Array(values.length).fill('?').join(', ')}, CURDATE(), CURDATE(), NOW()
+                ${new Array(values.length).fill('?').join(', ')}, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NOW()
             )
         `;
 
@@ -164,7 +164,7 @@ exports.updateProfile = async (req, res) => {
     const sql = `
                       UPDATE member SET
                         ${setClause},
-                        user_update = CURDATE()
+                        user_update = CURRENT_TIMESTAMP()
                       WHERE user_num = ?
                      `;
 
@@ -211,7 +211,7 @@ exports.updatePassword = async (req, res) => {
 
         const hashedNewPw = await bcrypt.hash(new_pw, 10);
         await db.execute(
-            'UPDATE member SET user_pw = ?, user_update = CURDATE() WHERE user_num = ?',
+            'UPDATE member SET user_pw = ?, user_update = CURRENT_TIMESTAMP() WHERE user_num = ?',
             [hashedNewPw, user_num]
         );
 
