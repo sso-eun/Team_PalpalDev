@@ -44,7 +44,7 @@ exports.list = async (req, res) => {
         const [rows] = await db.query(sql);
 
         res.status(200).json({
-            rsCode :res.status,
+            rsCode :200,
             totalResults: total,
             totalPages,
             currentPage: page,
@@ -53,7 +53,7 @@ exports.list = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ rsCode :res.status ,message: '서버 오류', error });
+        res.status(500).json({ rsCode :-1 ,message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end list
@@ -66,11 +66,11 @@ exports.getlistById = async (req, res) => {
         const [rows] = await db.execute(sql, [req_no]);
 
         if (rows.length === 0) {
-            return res.status(404).json({rsCode :res.status, message: '해당 요청 없음' });
+            return res.status(404).json({rsCode :404, message: '해당 요청 없음' });
         }
         res.json(rows[0]);
     } catch (err) {
-        res.status(500).json({rsCode :res.status, message: '서버 오류' });
+        res.status(500).json({rsCode :-1, message: '요청값을 다시 확인하세요.' });
     }
 };
 
@@ -86,7 +86,7 @@ exports.update = async (req, res) => {
     `;
         await db.execute(sql, [status, reviewer_admin_no, reviewer_note, req_no]);
 
-        res.json({rsCode :res.status, message: '수정 완료' });
+        res.json({rsCode :200, message: '수정 완료' });
     } catch (err) {
         res.status(500).json({rsCode :res.status, message: '수정 실패', error: err });
     }

@@ -72,7 +72,7 @@ exports.signup = async (req, res) => {
         res.status(201).json({ message: '회원가입 성공', user_num: result.insertId });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end Signup API
@@ -107,7 +107,7 @@ exports.login = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: '서버 오류', error });
+        return res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end Login
@@ -137,7 +137,7 @@ exports.findId = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: '서버 오류', error });
+        return res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end find My ID
@@ -180,7 +180,7 @@ exports.updateProfile = async (req, res) => {
         return res.status(200).json({ message: '회원정보가 성공적으로 수정되었습니다.' });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: '서버 오류', error });
+        return res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end update myProfile
@@ -218,7 +218,7 @@ exports.updatePassword = async (req, res) => {
         return res.status(200).json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: '서버 오류', error });
+        return res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 // end update user Password
@@ -252,7 +252,7 @@ exports.getAllMembers = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 
@@ -281,7 +281,7 @@ exports.getMember = async (req, res) => {
         res.status(200).json(rows[0]);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 //end getMember
@@ -350,7 +350,7 @@ exports.searchMembers = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '서버 오류', error });
+        res.status(500).json({ message: '요청값을 다시 확인하세요.', error });
     }
 };
 // search Member
@@ -375,8 +375,8 @@ exports.saveMylist = async (req, res) => {
     } catch (error) {
         console.error("연락처 저장 실패:", error);
         return res.status(500).json({
-            rsCode: 502,
-            message: "서버 오류",
+            rsCode: -1,
+            message: "요청값을 다시 확인하세요.",
             error
         });
     }
@@ -410,8 +410,8 @@ exports.updateMyList = async (req, res) => {
     } catch (error) {
         console.error("연락처 이름 수정 실패:", error);
         return res.status(500).json({
-            rsCode: 502,
-            message: "서버 오류",
+            rsCode: -1,
+            message: "요청값을 다시 확인하세요.",
             error
         });
     }
@@ -444,8 +444,8 @@ exports.deleteMyList = async (req, res) => {
     } catch (error) {
         console.error("연락처 삭제 실패:", error);
         return res.status(500).json({
-            rsCode: 502,
-            message: "서버 오류",
+            rsCode: -1,
+            message: "요청값을 다시 확인하세요.",
             error
         });
     }
@@ -474,8 +474,8 @@ exports.getMyList = async (req, res) => {
     } catch (error) {
         console.error("연락처 조회 실패:", error);
         return res.status(500).json({
-            rsCode: 502,
-            message: "서버 오류",
+            rsCode: -1,
+            message: "요청값을 다시 확인하세요.",
             error
         });
     }
@@ -506,6 +506,6 @@ exports.updateFCM = async (req, res) => {
         return res.status(200).json({rsCode :res.status, message: '회원정보가 성공적으로 수정되었습니다.' });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ rsCode :res.status, message: '서버 오류', error });
+        return res.status(500).json({ rsCode :res.status, message: '요청값을 다시 확인하세요.', error });
     }
 };
