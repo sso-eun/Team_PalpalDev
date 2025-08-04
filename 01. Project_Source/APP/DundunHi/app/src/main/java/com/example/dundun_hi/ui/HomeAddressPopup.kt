@@ -51,7 +51,8 @@ fun HomeAddressPopup(
         },
         confirmButton = {
             TextButton(onClick = {
-                onSuppressToday()  // ✅ 무조건 실행해서 팝업 닫힘
+                // ✅ 체크박스 상태에 따라 억제 설정
+                if (suppressChecked) onSuppressToday()
 
                 coroutineScope.launch {
                     fusedLocationClient.lastLocation
@@ -78,14 +79,14 @@ fun HomeAddressPopup(
                             }
                         }
                 }
+                onDismiss() // ✅ 마지막에 팝업 닫기
             }) {
                 Text("자택으로 설정")
             }
-
         },
         dismissButton = {
             TextButton(onClick = {
-                if (suppressChecked) onSuppressToday()
+                if (suppressChecked) onSuppressToday() // ✅ 체크되어 있으면 억제
                 onDismiss()
             }) {
                 Text("아니요")
