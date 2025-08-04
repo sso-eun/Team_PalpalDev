@@ -22,8 +22,10 @@ exports.uploadProfileImage = async (req, res) => {
     }
 
     try {
-        const filePath = path.join('uploads', file.filename);
-        const fileName = file.filename;
+        // const filePath = path.join('uploads', file.filename);
+        // const fileName = file.filename;
+        const fileName = path.basename(file.resizedPath); // e.g. abc_123_resized.jpg
+        const filePath = path.join('uploads', 'profile', fileName);
 
         const sql = `
                           UPDATE member
@@ -49,8 +51,11 @@ exports.uploadTalkImage = async (req, res) => {
     }
 
     try {
-        const filePath = path.join('uploads', 'talk', file.filename);
-        const fileName = file.filename;
+        // const filePath = path.join('uploads', 'talk', file.filename);
+        // const fileName = file.filename;
+
+        const fileName = path.basename(file.resizedPath); // e.g. abc_123_resized.jpg
+        const filePath = path.join('uploads', 'talk', fileName);
 
         const sql = `
                             INSERT INTO talk_upload (img_user, img_url)
@@ -80,8 +85,11 @@ exports.uploadCertImage = async (req, res) => {
     }
 
     try {
-        const filePath = path.join('uploads', 'cert', file.filename);
-        const fileName = file.filename;
+        // const filePath = path.join('uploads', 'cert', file.filename);
+        // const fileName = file.filename;
+
+        const fileName = path.basename(file.resizedPath); // e.g. abc_123_resized.jpg
+        const filePath = path.join('uploads', 'cert', fileName);
 
         const sql = `
                             INSERT INTO guardian_auth_upload
