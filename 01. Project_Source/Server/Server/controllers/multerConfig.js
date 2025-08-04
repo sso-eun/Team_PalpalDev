@@ -33,7 +33,7 @@ const getStorage = (subfolder = '') => {
 };
 
 // 프로필 업로더 (uploads/)
-const uploadProfile = multer({ storage: getStorage() });
+const uploadProfile = multer({ storage: getStorage('profile') });
 
 // 토크 업로더 (uploads/talk/)
 const uploadTalk = multer({ storage: getStorage('talk') });
