@@ -74,6 +74,22 @@ exports.getlistById = async (req, res) => {
     }
 };
 
+//단일조회
+exports.getlistByNum = async (req, res) => {
+    const { req_no } = req.params;
+    try {
+        const sql = `SELECT * FROM guardian_auth_upload WHERE guardian_no  = ?`;
+        const [rows] = await db.execute(sql, [req_no]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({rsCode :404, message: '해당 요청 없음' });
+        }
+        res.json(rows[0]);
+    } catch (err) {
+        res.status(500).json({rsCode :-1, message: '요청값을 다시 확인하세요.' });
+    }
+};
+
 exports.update = async (req, res) => {
     const { req_no } = req.params;
     const { status, reviewer_admin_no, reviewer_note } = req.body;

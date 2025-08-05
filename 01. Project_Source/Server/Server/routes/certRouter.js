@@ -8,6 +8,7 @@ const certController = require('../controllers/certController');
 
 router.get('/list', certController.list);
 router.get('/getlistById', certController.getlistById);
+router.get('/getlistByNum', certController.getlistByNum);
 router.put('/update/:req_no', certController.update);
 
 
