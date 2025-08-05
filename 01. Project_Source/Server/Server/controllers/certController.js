@@ -76,10 +76,10 @@ exports.getlistById = async (req, res) => {
 
 //단일조회
 exports.getlistByNum = async (req, res) => {
-    const { gau_num } = req.params;
+    const { gau_no } = req.params;
     try {
         const sql = `SELECT * FROM guardian_auth_upload WHERE guardian_no  = ?`;
-        const [rows] = await db.execute(sql, [gau_num]);
+        const [rows] = await db.execute(sql, [gau_no]);
 
         if (rows.length === 0) {
             return res.status(404).json({rsCode :404, message: '해당 요청 없음' });
