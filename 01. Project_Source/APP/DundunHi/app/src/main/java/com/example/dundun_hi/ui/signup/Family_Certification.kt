@@ -35,9 +35,9 @@ import java.util.*
 // FamilyCertViewModel을 사용하도록 변경
 @Composable
 fun FamilyCertificationScreen(
-    onConfirm: () -> Unit = {},
+    onConfirm: (userNum: Int, userId: String, seniorNum: Int) -> Unit = { _, _, _ -> },
     onUpload: () -> Unit = {},
-    onTestConfirm: () -> Unit = {}
+    onTestConfirm: (userNum: Int, userId: String, seniorNum: Int) -> Unit = { _, _, _ -> }
 ) {
     val familyCertViewModel: FamilyCertViewModel = viewModel(
         factory = FamilyCertViewModelFactory(RetrofitClient.memberService)
@@ -50,6 +50,7 @@ fun FamilyCertificationScreen(
     var isFileUploaded by remember { mutableStateOf(false) }
     var seniorNum by remember { mutableStateOf<Int?>(null) }
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
+    var isUploadCompleted by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -69,6 +70,19 @@ fun FamilyCertificationScreen(
             isFileUploaded = true
         }
     }
+
+    // 업로드 결과 감지
+    val uploadResult by familyCertViewModel.uploadResult.collectAsState()
+    LaunchedEffect(uploadResult) {
+        uploadResult?.let {
+            if (it.rsCode == 0) {
+                isUploadCompleted = true
+            }
+        }
+    }
+
+    // 어르신 정보 확인 상태
+    val isSeniorVerified = searchState is SearchState.Success && seniorNum != null
 
     Column(
         modifier = Modifier
@@ -242,7 +256,6 @@ fun FamilyCertificationScreen(
             }
         }
         // 업로드 결과 메시지 표시
-        val uploadResult by familyCertViewModel.uploadResult.collectAsState()
         uploadResult?.let {
             Spacer(Modifier.height(8.dp))
             Text(
@@ -253,16 +266,25 @@ fun FamilyCertificationScreen(
             )
         }
         Spacer(Modifier.height(88.dp))
-        // 확인 버튼
+
+        // 확인 버튼 (어르신 정보 확인 + 업로드 완료 시에만 활성화)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             Button(
-                onClick = { onConfirm() },
+                onClick = {
+                    val userNum = loginState?.userNum?.toIntOrNull() ?: 47
+                    val userId = loginState?.userId ?: "박지성"
+                    val senior = seniorNum ?: 50
+                    onConfirm(userNum, userId, senior)
+                },
+                enabled = isSeniorVerified && isUploadCompleted, // 두 조건이 모두 만족해야 활성화
                 modifier = Modifier.width(200.dp).height(56.dp),
                 shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSeniorVerified && isUploadCompleted) Color(0xFF1AB277) else Color.Gray
+                )
             ) {
                 Text(
                     text = "확인",
@@ -272,6 +294,32 @@ fun FamilyCertificationScreen(
                 )
             }
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 임시버튼 (테스트용 - 조건 없이 바로 이동)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = {
+                    val testUserNum = 47
+                    val testUserId = "박지성"
+                    val testSeniorNum = 50
+                    onTestConfirm(testUserNum, testUserId, testSeniorNum)
+                },
+                modifier = Modifier.width(200.dp).height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6B35))
+            ) {
+                Text(
+                    text = "임시버튼",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
-

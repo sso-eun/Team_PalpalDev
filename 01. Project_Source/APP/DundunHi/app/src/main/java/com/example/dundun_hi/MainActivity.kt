@@ -518,26 +518,14 @@ class MainActivity : ComponentActivity() {
 
                         // ─── Family Certification (수정)
                         composable("family_certification") {
-                            
-                            // TODO: 이 화면에서 ViewModel 등을 통해 실제 userId를 가져와야함
-                            // 이거는 회의를 통해서 방법 도출해야할 듯
-                            // 지금은 테스트를 위해 임시 값을 사용합니다.
-                            val currentUserNum = 47     // 예시: 실제 가디언의 고유 번호
-                            val currentUserId = "박지성"    // 예시: 실제 가디언의 이름
-                            
-                            // 증명서를 업로드하였다면 로딩페이지로 이동
                             FamilyCertificationScreen(
-                                onConfirm = {
-                                    // 한글 등 특수문자가 있을 수 있으므로 Uri.encode 사용
-                                    // 경로에 userNum과 userId를 모두 포함하여 전달
-                                    navController.navigate("auth_loading/$currentUserNum/${Uri.encode(currentUserId)}")
+                                onConfirm = { userNum, userId, seniorNum ->
+                                    // 어르신 정보 확인과 업로드가 모두 완료된 경우
+                                    navController.navigate("auth_loading/$userNum/${Uri.encode(userId)}/$seniorNum")
                                 },
-                                onTestConfirm = {
-                                    val testUserNum = 47
-                                    val testUserId = "박지성"
-                                    val testSeniorNum = 50
-
-                                    navController.navigate("auth_loading/$testUserNum/${Uri.encode(testUserId)}/$testSeniorNum")
+                                onTestConfirm = { userNum, userId, seniorNum ->
+                                    // 테스트용 임시버튼 - 조건 없이 바로 이동
+                                    navController.navigate("auth_loading/$userNum/${Uri.encode(userId)}/$seniorNum")
                                 }
                             )
                         }
