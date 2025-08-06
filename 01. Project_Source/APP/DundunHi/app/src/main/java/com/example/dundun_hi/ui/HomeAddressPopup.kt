@@ -51,7 +51,7 @@ fun HomeAddressPopup(
         },
         confirmButton = {
             TextButton(onClick = {
-                onSuppressToday()  // ✅ 무조건 실행해서 팝업 닫힘
+                onSuppressToday()
 
                 coroutineScope.launch {
                     fusedLocationClient.lastLocation
