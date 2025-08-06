@@ -15,7 +15,6 @@ import com.example.dundun_hi.data.SimpleResponse
 import com.example.dundun_hi.data.SetDateRequest
 import com.example.dundun_hi.data.FcmTokenRequest
 import com.example.dundun_hi.data.FileUploadResponse        // 은재 추가 - 가족관계증명서
-import com.example.dundun_hi.data.SearchMemberResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -24,7 +23,6 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
-import retrofit2.http.Query     //은재 추가
 
 
 interface MemberService {
@@ -56,20 +54,6 @@ interface MemberService {
         @Path("senior_num") seniorNum: Int,
         @Part file: okhttp3.MultipartBody.Part
     ): Response<FileUploadResponse>
-
-    // 가족관계증명서 조회
-    @GET("cert/getlistByNum/{guardian_no}")
-    suspend fun getAuthStatusByGuardianNo(
-        @Path("guardian_no") guardianNo: Int
-    ): Response<AuthFamilyResponse>
-
-    // 시니어 회원 검색을 위한 함수 추가
-    @GET("searchmember")
-    suspend fun searchMember(
-        @Query("field") field: String,
-        @Query("keyword") keyword: String
-    ): Response<SearchMemberResponse> // 방금 만든 데이터 클래스 사용
-
     // ----------------------------------------------
 
     @Multipart

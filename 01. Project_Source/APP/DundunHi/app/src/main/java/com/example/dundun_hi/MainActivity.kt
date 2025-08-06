@@ -71,7 +71,6 @@ import android.content.Intent
 import com.example.dundun_hi.ui.signup.FamilyCertificationScreen
 import com.example.dundun_hi.ui.signup.SeniorInfoScreen
 import com.example.dundun_hi.ui.HomeAddressPopup
-import com.example.dundun_hi.ui.signup.AuthLoadingScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -506,58 +505,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // 가족관계 증명서 업로드 단계 이후에는 조건에 따른 로딩 화면이 나와야하므로 수정필요!
                         // ─── Family Certification
-//                        composable("family_certification") {
-//                            FamilyCertificationScreen(
-//                                onConfirm = {
-//                                    navController.navigate("senior_info")
-//                                }
-//                            )
-//                        }
-
-                        // ─── Family Certification (수정)
                         composable("family_certification") {
-                            
-                            // TODO: 이 화면에서 ViewModel 등을 통해 실제 userId를 가져와야함
-                            // 이거는 회의를 통해서 방법 도출해야할 듯
-                            // 지금은 테스트를 위해 임시 값을 사용합니다.
-                            val currentUserNum = 47     // 예시: 실제 가디언의 고유 번호
-                            val currentUserId = "박지성"    // 예시: 실제 가디언의 이름
-                            
-                            // 증명서를 업로드하였다면 로딩페이지로 이동
                             FamilyCertificationScreen(
                                 onConfirm = {
-
-                                    // 한글 등 특수문자가 있을 수 있으므로 Uri.encode 사용
-                                    // 경로에 userNum과 userId를 모두 포함하여 전달
-                                    navController.navigate("auth_loading/$currentUserNum/${Uri.encode(currentUserId)}")
+                                    navController.navigate("senior_info")
                                 }
                             )
                         }
-
-                        // 25-08-04 은재 추가
-                        // 인증 상태 로딩 화면
-//                        composable("auth_loading") {
-//                            AuthLoadingScreen(navController = navController)
-//                        }
-
-                        // ─── 인증 상태 로딩 화면 (수정)
-                        composable(
-                            // 경로가 userNum과 userId 인자를 모두 받을 수 있도록 수정
-                            route = "auth_loading/{userNum}/{userId}",
-                            arguments = listOf(
-                                navArgument("userNum") { type = NavType.IntType }, // Int 타입으로 변경
-                                navArgument("userId") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            // 전달받은 인자들을 꺼내서 AuthLoadingScreen에 전달
-                            val userNum = backStackEntry.arguments?.getInt("userNum") ?: 0
-                            val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
-
-                            AuthLoadingScreen(navController = navController, userNum = userNum, userId = userId)
-                        }
-
+                        
                         // ─── Senior Info
                         composable("senior_info") {
                             SeniorInfoScreen(
@@ -566,7 +522,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
                     }
                 }
             }
