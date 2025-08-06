@@ -294,6 +294,7 @@ exports.searchMembers = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const allowedFields = [
+        'user_num',
         'user_type',
         'user_condition',
         'user_id',
