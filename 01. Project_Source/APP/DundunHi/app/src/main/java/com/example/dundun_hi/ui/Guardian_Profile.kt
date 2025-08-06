@@ -69,7 +69,7 @@ fun Guardian_Profile(navController: NavController) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("김숙자", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color.LightGray, thickness = 1.dp)
+                HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("010-1234-5678", fontSize = 16.sp)
             }
@@ -110,7 +110,7 @@ fun Guardian_Profile(navController: NavController) {
                     )
                 }
 
-                Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
                 Box(
                     modifier = Modifier
@@ -158,7 +158,7 @@ fun Guardian_Profile(navController: NavController) {
                     )
                 }
 
-                Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     val items = listOf(
@@ -169,7 +169,7 @@ fun Guardian_Profile(navController: NavController) {
                         Text(text = text, fontSize = 16.sp)
                         if (index != items.lastIndex) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                            HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }

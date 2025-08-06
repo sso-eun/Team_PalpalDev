@@ -80,14 +80,15 @@ class TalkRepository(
             Log.d("TalkRepository", "변환된 URL: $fullImageUrl")
 
             SharedPhoto(
-                fromMe = (dto.senderUserId == userNum.toString()), // ✅ String 비교
-                senderUserId = dto.senderUserId,
-                senderName = dto.senderUserId,
+                fromMe = (dto.senderId == userNum), // Int 비교로 변경
+                senderUserId = dto.senderId.toString(),  // String으로 변환
+                senderName = dto.senderId.toString(),    // 필요에 따라 이름값으로 수정
                 remoteUrl = fullImageUrl,
                 localUri = null,
                 resId = null,
                 sendAt = dto.sendAt
             )
+
 
 
         }
