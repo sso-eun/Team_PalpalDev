@@ -21,6 +21,11 @@ import com.example.dundun_hi.ui.signup.AuthLoadingViewModel
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun AuthLoadingScreen(
@@ -79,16 +84,40 @@ fun AuthLoadingScreen(
 //                }
 //            }
 
-            1 -> { // Case 1: 승인 (수정)
-                Text(text = "$userName 님 환영합니다!", /*...*/)
-                Spacer(modifier = Modifier.height(8.dp))
+            // Case 1: 승인 (수정된 디자인)
+            1 -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "$userName 님 환영합니다!",
+                        fontSize = 32.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                // 이제 "시니어 정보 확인하기" 버튼을 만들고, 저장해둔 finalSeniorNum을 사용
-                Button(onClick = {
-                    // TODO: 'senior_profile/{seniorNum}'과 같은 새로운 경로로 이동하는 로직 구현
-                    // navController.navigate("senior_profile/$finalSeniorNum")
-                }) {
-                    Text("시니어 정보 확인하기")
+                    // 확인 버튼
+                    Button(
+                        onClick = {
+                            navController.navigate("senior_profile/$finalSeniorNum")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1AB277)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "어르신 정보 확인하러 가기",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                    }
                 }
             }
 
