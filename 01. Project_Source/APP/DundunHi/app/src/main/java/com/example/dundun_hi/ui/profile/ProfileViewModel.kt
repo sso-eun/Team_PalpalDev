@@ -88,6 +88,33 @@ class ProfileViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    var userType by mutableStateOf<Int?>(null)
+        private set
+
+    fun fetchUserFromServer() {
+        viewModelScope.launch {
+            try {
+                isLoading = true
+                errorMessage = null
+
+                val response: MemberResponse = repository.getUserByNum(userNum)
+                userId          = response.userId
+                userTel         = response.userTel
+                userProfileImg  = response.userProfileImg ?: ""
+                userHomeLat     = response.userHomeLat.toDoubleOrNull() ?: 0.0
+                userHomeLon     = response.userHomeLot.toDoubleOrNull() ?: 0.0
+                userCondition   = (response.userCondition == 1)
+                userType        = response.userType // ✅ 여기 포함
+                setProfileImageFromLocalOrDefault()
+            } catch (e: Exception) {
+                errorMessage = e.message ?: "알 수 없는 오류"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+
     init {
         // 화면이 처음 생성될 때 한 번 자동으로 호출
         Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
@@ -148,25 +175,7 @@ class ProfileViewModel(
      * 2) 이 메서드를 public으로 변경했기 때문에,
      *    Compose 쪽에서 `viewModel.fetchUserFromServer()`를 직접 호출할 수 있다.
      */
-    fun fetchUserFromServer() {
-        viewModelScope.launch {
-            try {
-                isLoading = true
-                errorMessage = null
-                val response: MemberResponse = repository.getUserByNum(userNum)
-                userId          = response.userId
-                userTel         = response.userTel
-                userHomeLat     = response.userHomeLat.toDoubleOrNull() ?: 0.0
-                userHomeLon     = response.userHomeLot.toDoubleOrNull() ?: 0.0
-                userCondition   = (response.userCondition == 1)
-                setProfileImageFromLocalOrDefault()
-            } catch (e: Exception) {
-                errorMessage = e.message ?: "알 수 없는 오류"
-            } finally {
-                isLoading = false
-            }
-        }
-    }
+
 
     /**
      * UpdateProfileScreen에서 "수정 완료"를 눌렀을 때 호출될 메서드.

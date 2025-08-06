@@ -68,6 +68,10 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.example.dundun_hi.model.CallShortcut
 import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import com.example.dundun_hi.ui.guardianProfile.GuardianProfileScreen
+import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModel
+import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -322,10 +326,10 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onKioskPageClick = { navController.navigate("kiosk") },
                                 onProfileClick = {
-                                    navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
-                                        launchSingleTop = true
+                                    when (profileViewModel.userType) {
+                                        1 -> navController.navigate("guardian_profile/$userNum")
+                                        else -> navController.navigate("profile/$userNum/${Uri.encode(userId)}")
                                     }
-
                                 }
                             )
                         }
@@ -360,6 +364,39 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
+
+                        composable(
+                            route = "guardian_profile/{userNum}",
+                            arguments = listOf(navArgument("userNum") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
+                            val context = LocalContext.current
+
+                            // 실제 리포지토리 생성
+                            // 이렇게 수정해야 함 (생성자에 인자 안 넘김)
+                            val repository = RealUserRepository()
+
+
+                            // 뷰모델 생성
+                            val guardianViewModel: GuardianProfileViewModel = viewModel(
+                                factory = GuardianProfileViewModelFactory(repository, userNum, context)
+                            )
+
+                            GuardianProfileScreen(
+                                viewModel = guardianViewModel,
+                                onEditSeniorClick = {
+                                    navController.navigate("update_profile/$userNum")
+                                },
+                                onLogoutClick = {
+                                    navController.navigate("login") {
+                                        popUpTo("main") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+
+
 
                         // ─── UpdateProfileScreen
                         composable(
