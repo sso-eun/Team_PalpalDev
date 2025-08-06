@@ -27,7 +27,7 @@ sealed class SearchState {
     object NotFound : SearchState()     // 결과 없음
     data class Error(val message: String) : SearchState()           // 에러
 }
-// -------------------------
+// --------------------------------------------------
 
 
 class FamilyCertViewModel(private val apiService: MemberService) : ViewModel() {

@@ -17,17 +17,22 @@ class AuthLoadingViewModel : ViewModel() {
     private val _authStatus = MutableStateFlow<Int?>(null)
     val authStatus: StateFlow<Int?> = _authStatus
 
-    // 초기값을 빈 문자열로 변경
+    // --- seniorNum을 저장할 상태 추가 ---
+    private val _seniorNum = MutableStateFlow(0)
+    val seniorNum: StateFlow<Int> = _seniorNum
+
     // TODO: 실제 유저 이름
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
 
-    // -------------------------
-    // AuthLoadingScreen에서 호출하여 userName 상태 업데이트
-    fun setUserName(name: String) {
-        _userName.value = name
+    fun setUserName(id: String) {
+        // 기존 setUserName을 확장하여 userNum은 지금 사용하지 않더라도 받아둘 수 있음
+        _userName.value = id
     }
-    // -------------------------
+
+    fun setSeniorNum(num: Int) {
+        _seniorNum.value = num
+    }
 
     // 서버에 인증 상태를 요청하는 함수
     fun checkAuthStatus(guardianNo: Int) {
