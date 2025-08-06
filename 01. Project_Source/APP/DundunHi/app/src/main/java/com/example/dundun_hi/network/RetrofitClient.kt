@@ -5,10 +5,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "https://dundunhi.onrender.com/"
+    private const val BASE_URL = "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/"
 
     // 1) 로깅 인터셉터 설정
     private val logging = HttpLoggingInterceptor().apply {
@@ -18,9 +17,6 @@ object RetrofitClient {
     // 2) 모든 요청에 적용할 OkHttpClient
     private val client = OkHttpClient.Builder()
         .addInterceptor(logging)
-        .connectTimeout(30, TimeUnit.SECONDS)  // 연결 타임아웃 30초
-        .readTimeout(30, TimeUnit.SECONDS)     // 읽기 타임아웃 30초
-        .writeTimeout(30, TimeUnit.SECONDS)    // 쓰기 타임아웃 30초
         .build()
 
     // 3) null도 직렬화하도록 하는 Gson
@@ -31,7 +27,7 @@ object RetrofitClient {
     // 4) 공통 Retrofit 인스턴스
     private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
-        .client(client)                                  // <-- 로깅 클라이언트
+        .client(client)
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 

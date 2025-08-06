@@ -14,8 +14,21 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-
+import com.example.dundun_hi.data.SearchedMember
 import androidx.lifecycle.ViewModelProvider
+
+
+
+// ViewModel 외부에서 검색 상태를 표현하기 위한 sealed class
+sealed class SearchState {
+    object Idle : SearchState()         // 초기 상태
+    object Loading : SearchState()      // 검색 중
+    data class Success(val senior: SearchedMember) : SearchState()  // 성공
+    object NotFound : SearchState()     // 결과 없음
+    data class Error(val message: String) : SearchState()           // 에러
+}
+// -------------------------
+
 
 class FamilyCertViewModel(private val apiService: MemberService) : ViewModel() {
 
@@ -23,8 +36,49 @@ class FamilyCertViewModel(private val apiService: MemberService) : ViewModel() {
     private val _uploadResult = MutableStateFlow<FileUploadResponse?>(null)
     val uploadResult = _uploadResult.asStateFlow()
 
+    // --- 시니어 검색 관련 로직 추가 ---
+    private val _searchState = MutableStateFlow<SearchState>(SearchState.Idle)
+    val searchState = _searchState.asStateFlow()
 
-    fun uploadCertificate(context: Context, uri: Uri, userNum: Int, seniorNum: Int) {
+    private var foundSenior: SearchedMember? = null
+
+    // 회원 검증: 이름과 전화번호 모두 일치 시에만 성공, user_num을 senior_num에 저장
+    fun verifySenior(name: String, phone: String, onSuccess: (Int) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _searchState.value = SearchState.Loading
+            try {
+                val response = apiService.findId(com.example.dundun_hi.data.FindIdRequest(phone))
+                if (response.isSuccessful && response.body() != null) {
+                    val result = response.body()!!
+                    if (result.userId == name) {
+                        // 이름과 전화번호 모두 일치: user_num을 senior_num에 저장
+                        val seniorNum = result.userNum.toInt()
+                        foundSenior = com.example.dundun_hi.data.SearchedMember(seniorNum, name, phone)
+                        _searchState.value = SearchState.Success(foundSenior!!)
+                        onSuccess(seniorNum)
+                    } else {
+                        _searchState.value = SearchState.NotFound
+                        onError("등록되지 않은 회원입니다. 다시 입력해주세요.")
+                    }
+                } else {
+                    _searchState.value = SearchState.NotFound
+                    onError("등록되지 않은 회원입니다. 다시 입력해주세요.")
+                }
+            } catch (e: Exception) {
+                _searchState.value = SearchState.Error(e.message ?: "네트워크 오류")
+                onError("네트워크 오류가 발생했습니다. 다시 시도해주세요.")
+            }
+        }
+    }
+
+    fun uploadCertificate(context: Context, uri: Uri, userNum: Int) {
+
+        // 검색된 시니어의 userNum을 사용하도록 수정
+        val seniorNum = foundSenior?.userNum ?: -1
+        if (seniorNum == -1) {
+            _uploadResult.value = FileUploadResponse(-1, "업로드 전 시니어를 먼저 검색해주세요.", "")
+            return
+        }
         viewModelScope.launch {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)

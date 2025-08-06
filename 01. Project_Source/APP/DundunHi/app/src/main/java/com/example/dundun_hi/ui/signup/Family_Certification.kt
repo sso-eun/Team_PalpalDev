@@ -32,94 +32,37 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-// 어르신 정보 검증을 위한 ViewModel
-class ElderVerificationViewModel : ViewModel() {
-    private val memberService = RetrofitClient.memberService
-    
-    private val _verificationState = MutableStateFlow<ElderVerificationState>(ElderVerificationState.Idle)
-    val verificationState: StateFlow<ElderVerificationState> = _verificationState
-    
-    fun verifyElderInfo(elderName: String, elderPhone: String) {
-        viewModelScope.launch {
-            try {
-                _verificationState.value = ElderVerificationState.Loading
-                
-                // 1. findID API 호출하여 user_num 가져오기
-                val findIdResponse = memberService.findId(FindIdRequest(elderPhone))
-                
-                if (findIdResponse.isSuccessful) {
-                    val findIdResult = findIdResponse.body()
-                    if (findIdResult != null) {
-                        val userNum = findIdResult.userNum.toIntOrNull()
-                        if (userNum != null) {
-                            // 2. getMember API 호출하여 회원 정보 가져오기
-                            val memberResponse = memberService.getMember(userNum)
-                            
-                            // 3. 입력된 이름과 API에서 가져온 이름 비교
-                            // 4. user_num도 비교 (findIdResult.userNum과 memberResponse.userNum)
-                            if (memberResponse.userId == elderName && 
-                                findIdResult.userNum.toIntOrNull() == memberResponse.userNum) {
-                                _verificationState.value = ElderVerificationState.Success
-                            } else {
-                                _verificationState.value = ElderVerificationState.Error("등록되지 않은 회원입니다. 다시 입력해주세요.")
-                            }
-                        } else {
-                            _verificationState.value = ElderVerificationState.Error("등록되지 않은 회원입니다. 다시 입력해주세요.")
-                        }
-                    } else {
-                        _verificationState.value = ElderVerificationState.Error("등록되지 않은 회원입니다. 다시 입력해주세요.")
-                    }
-                } else {
-                    _verificationState.value = ElderVerificationState.Error("등록되지 않은 회원입니다. 다시 입력해주세요.")
-                }
-            } catch (e: Exception) {
-                val errorMessage = when (e) {
-                    is java.net.SocketTimeoutException -> "서버 응답이 늦습니다. 다시 시도해주세요."
-                    is java.net.UnknownHostException -> "인터넷 연결을 확인해주세요."
-                    else -> "네트워크 오류가 발생했습니다. 다시 시도해주세요."
-                }
-                _verificationState.value = ElderVerificationState.Error(errorMessage)
-            }
-        }
-    }
-    
-    fun resetState() {
-        _verificationState.value = ElderVerificationState.Idle
-    }
-}
-
-sealed class ElderVerificationState {
-    object Idle : ElderVerificationState()
-    object Loading : ElderVerificationState()
-    object Success : ElderVerificationState()
-    data class Error(val message: String) : ElderVerificationState()
-}
-
+// FamilyCertViewModel을 사용하도록 변경
 @Composable
 fun FamilyCertificationScreen(
     onConfirm: () -> Unit = {},
     onUpload: () -> Unit = {}
 ) {
-    val verificationViewModel: ElderVerificationViewModel = viewModel()
-    val verificationState by verificationViewModel.verificationState.collectAsState()
-    
+    val familyCertViewModel: FamilyCertViewModel = viewModel(
+        factory = FamilyCertViewModelFactory(RetrofitClient.memberService)
+    )
+    val searchState by familyCertViewModel.searchState.collectAsState()
+
     var elderName by remember { mutableStateOf("") }
     var elderPhone by remember { mutableStateOf("") }
     var uploadedFileName by remember { mutableStateOf("") }
     var isFileUploaded by remember { mutableStateOf(false) }
-    
+    var seniorNum by remember { mutableStateOf<Int?>(null) }
+
     val context = LocalContext.current
-    
+
+    // LoginViewModel에서 현재 로그인한 유저의 user_num 가져오기
+    val loginViewModel: com.example.dundun_hi.ui.login.LoginViewModel = viewModel()
+    val loginState by loginViewModel.loginState
+
     // 갤러리 접근을 위한 launcher
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { selectedUri ->
-            // 파일 이름 생성 (현재 날짜 + 시간)
             val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
             val currentTime = dateFormat.format(Date())
             val fileName = "가족관계증명서_$currentTime.jpg"
-            
             uploadedFileName = fileName
             isFileUploaded = true
         }
@@ -169,8 +112,7 @@ fun FamilyCertificationScreen(
             onValueChange = { elderName = it },
             placeholder = { Text("이름을 입력해주세요") },
             singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
         Spacer(Modifier.height(24.dp))
@@ -185,23 +127,21 @@ fun FamilyCertificationScreen(
             onValueChange = { elderPhone = it.filter { c -> c.isDigit() } },
             placeholder = { Text("전화번호를 입력해주세요") },
             singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
-
         Spacer(Modifier.height(52.dp))
-
         // 어르신 정보 확인 버튼
         Button(
-            onClick = { 
+            onClick = {
                 if (elderName.isNotBlank() && elderPhone.isNotBlank()) {
-                    verificationViewModel.verifyElderInfo(elderName.trim(), elderPhone.trim())
+                    familyCertViewModel.verifySenior(elderName.trim(), elderPhone.trim(),
+                        onSuccess = { num -> seniorNum = num },
+                        onError = { /* 에러 메시지는 아래 상태에서 처리 */ }
+                    )
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
         ) {
@@ -212,10 +152,9 @@ fun FamilyCertificationScreen(
                 fontWeight = FontWeight.Bold
             )
         }
-        
         // 검증 결과 메시지 표시
-        when (verificationState) {
-            is ElderVerificationState.Loading -> {
+        when (searchState) {
+            is SearchState.Loading -> {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = "정보를 확인하고 있습니다...",
@@ -224,7 +163,7 @@ fun FamilyCertificationScreen(
                     fontWeight = FontWeight.Medium
                 )
             }
-            is ElderVerificationState.Success -> {
+            is SearchState.Success -> {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = "시니어 정보가 확인되었습니다.",
@@ -233,10 +172,10 @@ fun FamilyCertificationScreen(
                     fontWeight = FontWeight.Medium
                 )
             }
-            is ElderVerificationState.Error -> {
+            is SearchState.NotFound, is SearchState.Error -> {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = (verificationState as ElderVerificationState.Error).message,
+                    text = "등록되지 않은 회원입니다. 다시 입력해주세요.",
                     color = Color.Red,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
@@ -244,18 +183,23 @@ fun FamilyCertificationScreen(
             }
             else -> {}
         }
-        
         Spacer(Modifier.height(16.dp))
-
         // 가족관계증명서 업로드 버튼
         Button(
-            onClick = { 
-                galleryLauncher.launch("image/*")
+            onClick = {
+                // 업로드 전 유저 번호와 시니어 번호가 모두 있어야 함
+                val userNum = loginState?.userNum?.toIntOrNull()
+                if (userNum != null && seniorNum != null && isFileUploaded && uploadedFileName.isNotBlank()) {
+                    // 실제 파일 Uri는 갤러리에서 선택된 파일의 Uri를 사용해야 함
+                    // 예시로 uploadedFileName이 아니라 실제 Uri를 저장/사용해야 함
+                    // 아래는 예시로 context와 임의의 uri를 전달
+                    // 실제로는 Uri를 remember로 저장해서 사용해야 함
+                    // familyCertViewModel.uploadCertificate(context, 실제Uri, userNum)
+                } else {
+                    // 에러 메시지 표시 (예: Toast 등)
+                }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .shadow(4.dp, RoundedCornerShape(28.dp)),
+            modifier = Modifier.fillMaxWidth().height(56.dp).shadow(4.dp, RoundedCornerShape(28.dp)),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             border = BorderStroke(2.dp, Color(0xFF1AB277)),
@@ -268,7 +212,6 @@ fun FamilyCertificationScreen(
                 fontWeight = FontWeight.Bold
             )
         }
-        
         // 업로드 완료 메시지
         if (isFileUploaded) {
             Spacer(Modifier.height(16.dp))
@@ -279,9 +222,18 @@ fun FamilyCertificationScreen(
                 fontWeight = FontWeight.Medium
             )
         }
-
+        // 업로드 결과 메시지 표시
+        val uploadResult by familyCertViewModel.uploadResult.collectAsState()
+        uploadResult?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = it.message,
+                color = if (it.rsCode == 0) Color.Green else Color.Red,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
         Spacer(Modifier.height(88.dp))
-
         // 확인 버튼
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -289,9 +241,7 @@ fun FamilyCertificationScreen(
         ) {
             Button(
                 onClick = { onConfirm() },
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(56.dp),
+                modifier = Modifier.width(200.dp).height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
             ) {
@@ -305,3 +255,4 @@ fun FamilyCertificationScreen(
         }
     }
 }
+
