@@ -518,44 +518,48 @@ class MainActivity : ComponentActivity() {
 
                         // ─── Family Certification (수정)
                         composable("family_certification") {
-                            
-                            // TODO: 이 화면에서 ViewModel 등을 통해 실제 userId를 가져와야함
-                            // 이거는 회의를 통해서 방법 도출해야할 듯
-                            // 지금은 테스트를 위해 임시 값을 사용합니다.
-                            val currentUserNum = 47     // 예시: 실제 가디언의 고유 번호
-                            val currentUserId = "박지성"    // 예시: 실제 가디언의 이름
-                            
-                            // 증명서를 업로드하였다면 로딩페이지로 이동
-                            FamilyCertificationScreen(
-                                onConfirm = {
 
-                                    // 한글 등 특수문자가 있을 수 있으므로 Uri.encode 사용
-                                    // 경로에 userNum과 userId를 모두 포함하여 전달
-                                    navController.navigate("auth_loading/$currentUserNum/${Uri.encode(currentUserId)}")
+//                            // TODO: 이 화면에서 실제 가디언의 user_num과 userId, 그리고 '검색된 시니어의 user_num'을 가져와야 합니다.
+//                            val currentUserNum = 47         // 예시: 실제 가디언의 고유 번호
+//                            val currentUserId = "박지성"       // 예시: 실제 가디언의 이름
+//                            val currentSeniorNum = 50          // 예시: 검색을 통해 얻은 시니어의 고유 번호
+
+                            FamilyCertificationScreen(
+                                onConfirm = { /* ... 실제 확인 로직 ... */ },
+
+                                // '테스트용 로딩페이지로 이동' 버튼을 눌렀을 때 실행될 행동을 정의
+                                onTestConfirm = {
+                                    val testUserNum = 47
+                                    val testUserId = "박지성"
+                                    val testSeniorNum = 50
+
+                                    navController.navigate("auth_loading/$testUserNum/${Uri.encode(testUserId)}/$testSeniorNum")
                                 }
                             )
                         }
 
-                        // 25-08-04 은재 추가
-                        // 인증 상태 로딩 화면
-//                        composable("auth_loading") {
-//                            AuthLoadingScreen(navController = navController)
-//                        }
-
                         // ─── 인증 상태 로딩 화면 (수정)
                         composable(
-                            // 경로가 userNum과 userId 인자를 모두 받을 수 있도록 수정
-                            route = "auth_loading/{userNum}/{userId}",
+                            // family_certification에서 인자 전달해줌
+                            // 경로가 3개의 인자를 모두 받을 수 있도록 수정
+                            route = "auth_loading/{userNum}/{userId}/{seniorNum}",
                             arguments = listOf(
-                                navArgument("userNum") { type = NavType.IntType }, // Int 타입으로 변경
-                                navArgument("userId") { type = NavType.StringType }
+                                navArgument("userNum") { type = NavType.IntType },
+                                navArgument("userId") { type = NavType.StringType },
+                                navArgument("seniorNum") { type = NavType.IntType } // seniorNum 인자 추가
                             )
                         ) { backStackEntry ->
-                            // 전달받은 인자들을 꺼내서 AuthLoadingScreen에 전달
+                            // 전달받은 인자들을 모두 꺼내서 AuthLoadingScreen에 전달
                             val userNum = backStackEntry.arguments?.getInt("userNum") ?: 0
                             val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0 // seniorNum 추출
 
-                            AuthLoadingScreen(navController = navController, userNum = userNum, userId = userId)
+                            AuthLoadingScreen(
+                                navController = navController,
+                                userNum = userNum,
+                                userId = userId,
+                                seniorNum = seniorNum // AuthLoadingScreen에 전달
+                            )
                         }
 
                         // ─── Senior Info
@@ -566,7 +570,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
                     }
                 }
             }

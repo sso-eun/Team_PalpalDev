@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun FamilyCertificationScreen(
     onConfirm: () -> Unit = {},
+    onTestConfirm: () -> Unit = {},     // 테스트용 임시 버튼
     viewModel: FamilyCertViewModel = viewModel(factory = FamilyCertViewModelFactory(RetrofitClient.memberService))
 ) {
     var elderName by remember { mutableStateOf("") }
@@ -124,5 +125,22 @@ fun FamilyCertificationScreen(
                 Text("확인", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
         }
+        // --- 여기에 임시 테스트 버튼 추가 ---
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = { onTestConfirm() }, // MainActivity에 정의한 테스트 로직 호출
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            border = BorderStroke(2.dp, Color.Blue) // 테스트용 버튼임을 구분하기 위해 파란색 테두리
+        ) {
+            Text(
+                text = "테스트용 로딩페이지로 이동",
+                color = Color.Blue,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        // ------------------------------------
     }
 }
