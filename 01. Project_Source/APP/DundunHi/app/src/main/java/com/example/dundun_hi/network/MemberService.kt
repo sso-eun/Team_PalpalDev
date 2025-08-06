@@ -1,5 +1,6 @@
 package com.example.dundun_hi.network
 
+import com.example.dundun_hi.data.CertListResponse
 import com.example.dundun_hi.data.FindIdRequest
 import com.example.dundun_hi.data.FindIdResponse
 import com.example.dundun_hi.data.LoginRequest
@@ -22,6 +23,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 
 interface MemberService {
@@ -59,4 +61,9 @@ interface MemberService {
     @POST("/member/fcm_token")
     suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
 
+    @GET("/cert/list")
+    suspend fun getCertList(
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): Response<List<CertListResponse>>
 }
