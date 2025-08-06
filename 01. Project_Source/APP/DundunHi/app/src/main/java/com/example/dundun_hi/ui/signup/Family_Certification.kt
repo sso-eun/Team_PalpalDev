@@ -36,7 +36,8 @@ import java.util.*
 @Composable
 fun FamilyCertificationScreen(
     onConfirm: () -> Unit = {},
-    onUpload: () -> Unit = {}
+    onUpload: () -> Unit = {},
+    onTestConfirm: () -> Unit = {}
 ) {
     val familyCertViewModel: FamilyCertViewModel = viewModel(
         factory = FamilyCertViewModelFactory(RetrofitClient.memberService)
@@ -48,6 +49,7 @@ fun FamilyCertificationScreen(
     var uploadedFileName by remember { mutableStateOf("") }
     var isFileUploaded by remember { mutableStateOf(false) }
     var seniorNum by remember { mutableStateOf<Int?>(null) }
+    var selectedUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
 
@@ -59,7 +61,7 @@ fun FamilyCertificationScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { selectedUri ->
+        uri?.let { selectedUri = it
             val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
             val currentTime = dateFormat.format(Date())
             val fileName = "가족관계증명서_$currentTime.jpg"
@@ -187,17 +189,8 @@ fun FamilyCertificationScreen(
         // 가족관계증명서 업로드 버튼
         Button(
             onClick = {
-                // 업로드 전 유저 번호와 시니어 번호가 모두 있어야 함
-                val userNum = loginState?.userNum?.toIntOrNull()
-                if (userNum != null && seniorNum != null && isFileUploaded && uploadedFileName.isNotBlank()) {
-                    // 실제 파일 Uri는 갤러리에서 선택된 파일의 Uri를 사용해야 함
-                    // 예시로 uploadedFileName이 아니라 실제 Uri를 저장/사용해야 함
-                    // 아래는 예시로 context와 임의의 uri를 전달
-                    // 실제로는 Uri를 remember로 저장해서 사용해야 함
-                    // familyCertViewModel.uploadCertificate(context, 실제Uri, userNum)
-                } else {
-                    // 에러 메시지 표시 (예: Toast 등)
-                }
+                // 갤러리로 이동
+                galleryLauncher.launch("image/*")
             },
             modifier = Modifier.fillMaxWidth().height(56.dp).shadow(4.dp, RoundedCornerShape(28.dp)),
             shape = RoundedCornerShape(28.dp),
@@ -216,11 +209,37 @@ fun FamilyCertificationScreen(
         if (isFileUploaded) {
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "업로드 완료: $uploadedFileName",
-                color = Color.Red,
+                text = "파일 선택 완료: $uploadedFileName",
+                color = Color.Green,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
+        }
+        // 실제 업로드 버튼 (파일 선택 후에만 표시)
+        if (isFileUploaded && selectedUri != null) {
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    // 업로드 전 유저 번호와 시니어 번호가 모두 있어야 함
+                    val userNum = loginState?.userNum?.toIntOrNull()
+                    if (userNum != null && seniorNum != null && selectedUri != null) {
+                        familyCertViewModel.uploadCertificate(context, selectedUri!!, userNum)
+                    } else {
+                        // 에러 메시지 표시
+                        // Toast.makeText(context, "업로드에 필요한 정보가 부족합니다.", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+            ) {
+                Text(
+                    text = "서버에 업로드",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
         // 업로드 결과 메시지 표시
         val uploadResult by familyCertViewModel.uploadResult.collectAsState()

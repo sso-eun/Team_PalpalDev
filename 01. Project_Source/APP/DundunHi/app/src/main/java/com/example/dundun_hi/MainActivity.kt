@@ -528,34 +528,42 @@ class MainActivity : ComponentActivity() {
                             // 증명서를 업로드하였다면 로딩페이지로 이동
                             FamilyCertificationScreen(
                                 onConfirm = {
-
                                     // 한글 등 특수문자가 있을 수 있으므로 Uri.encode 사용
                                     // 경로에 userNum과 userId를 모두 포함하여 전달
                                     navController.navigate("auth_loading/$currentUserNum/${Uri.encode(currentUserId)}")
+                                },
+                                onTestConfirm = {
+                                    val testUserNum = 47
+                                    val testUserId = "박지성"
+                                    val testSeniorNum = 50
+
+                                    navController.navigate("auth_loading/$testUserNum/${Uri.encode(testUserId)}/$testSeniorNum")
                                 }
                             )
                         }
 
-                        // 25-08-04 은재 추가
-                        // 인증 상태 로딩 화면
-//                        composable("auth_loading") {
-//                            AuthLoadingScreen(navController = navController)
-//                        }
-
                         // ─── 인증 상태 로딩 화면 (수정)
                         composable(
-                            // 경로가 userNum과 userId 인자를 모두 받을 수 있도록 수정
-                            route = "auth_loading/{userNum}/{userId}",
+                            // family_certification에서 인자 전달해줌
+                            // 경로가 3개의 인자를 모두 받을 수 있도록 수정
+                            route = "auth_loading/{userNum}/{userId}/{seniorNum}",
                             arguments = listOf(
-                                navArgument("userNum") { type = NavType.IntType }, // Int 타입으로 변경
-                                navArgument("userId") { type = NavType.StringType }
+                                navArgument("userNum") { type = NavType.IntType },
+                                navArgument("userId") { type = NavType.StringType },
+                                navArgument("seniorNum") { type = NavType.IntType } // seniorNum 인자 추가
                             )
                         ) { backStackEntry ->
-                            // 전달받은 인자들을 꺼내서 AuthLoadingScreen에 전달
+                            // 전달받은 인자들을 모두 꺼내서 AuthLoadingScreen에 전달
                             val userNum = backStackEntry.arguments?.getInt("userNum") ?: 0
                             val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0 // seniorNum 추출
 
-                            AuthLoadingScreen(navController = navController, userNum = userNum, userId = userId)
+                            AuthLoadingScreen(
+                                navController = navController,
+                                userNum = userNum,
+                                userId = userId,
+                                seniorNum = seniorNum // AuthLoadingScreen에 전달
+                            )
                         }
 
                         // ─── Senior Info
@@ -566,7 +574,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
                     }
                 }
             }
