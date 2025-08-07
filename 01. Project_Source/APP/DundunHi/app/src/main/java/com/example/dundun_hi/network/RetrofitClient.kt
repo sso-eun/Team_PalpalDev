@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://dundunhi.onrender.com/"
+    private const val BASE_URL = "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/"
 
     // 1) 로깅 인터셉터 설정
     private val logging = HttpLoggingInterceptor().apply {

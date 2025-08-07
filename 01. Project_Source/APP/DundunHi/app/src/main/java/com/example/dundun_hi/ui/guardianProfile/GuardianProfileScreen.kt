@@ -1,9 +1,8 @@
-// app/src/main/java/com/example/dundun_hi/ui/guardianProfile/GuardianProfileScreen.kt
-
 package com.example.dundun_hi.ui.guardianProfile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,27 +15,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.dundun_hi.R
+import com.example.dundun_hi.data.AlertItem
+import com.example.dundun_hi.data.AlertRepository
+import java.text.SimpleDateFormat
+import java.util.*
 
-/**
- * GuardianProfileScreen: 보호자 프로필 화면 (어르신 정보 포함)
- */
 @Composable
 fun GuardianProfileScreen(
     viewModel: GuardianProfileViewModel,
     onEditSeniorClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    navController: NavController
 ) {
-    // ViewModel의 mutableStateOf 프로퍼티들을 직접 구독
     val guardianId by remember { derivedStateOf { viewModel.guardianId } }
     val guardianTel by remember { derivedStateOf { viewModel.guardianTel } }
     val guardianProfileImg by remember { derivedStateOf { viewModel.guardianProfileImg } }
-    val seniorId by remember { derivedStateOf { viewModel.seniorId } } // .value 제거
+    val seniorId by remember { derivedStateOf { viewModel.seniorId } }
     val seniorTel by remember { derivedStateOf { viewModel.seniorTel } }
     val seniorProfileImg by remember { derivedStateOf { viewModel.seniorProfileImg } }
     val seniorAddress by remember { derivedStateOf { viewModel.seniorAddress } }
@@ -44,13 +45,16 @@ fun GuardianProfileScreen(
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
-    // 디버깅용 로그 (임시)
-    LaunchedEffect(guardianId, seniorId) {
-        println("GuardianProfile - guardianId: $guardianId, seniorId: $seniorId")
-        println("GuardianProfile - isLoading: $isLoading, errorMessage: $errorMessage")
+    val context = LocalContext.current
+    val alertRepository = remember { AlertRepository.getInstance(context) }
+    val today = remember {
+        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
+    }
+    val alerts by remember { derivedStateOf { alertRepository.alertList } }
+    val todayAlerts = remember(alerts) {
+        alerts.filter { it.date == today }.sortedBy { it.time }
     }
 
-    // 화면 진입 시 데이터 로드
     LaunchedEffect(Unit) {
         viewModel.loadProfileData()
     }
@@ -68,8 +72,14 @@ fun GuardianProfileScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("든든하이 보호자", fontSize = 32.sp, fontWeight = FontWeight.Bold)
-
-            TextButton(onClick = onLogoutClick) {
+            TextButton(
+                onClick = {
+                    // 로그아웃 처리 - home으로 돌아가기
+                    navController.navigate("home") {
+                        popUpTo("guardian_profile/{userNum}") { inclusive = true }
+                    }
+                }
+            ) {
                 Text("로그아웃", fontSize = 16.sp, color = Color.Gray)
             }
         }
@@ -96,9 +106,10 @@ fun GuardianProfileScreen(
                 ) {
                     Text("오류가 발생했습니다", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Red)
                     Spacer(modifier = Modifier.height(8.dp))
+                    Text(errorMessage!!, fontSize = 14.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.refresh() },
+                        onClick = { viewModel.loadProfileData() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
                     ) {
                         Text("다시 시도", color = Color.White)
@@ -124,6 +135,8 @@ fun GuardianProfileScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            ScheduleCard(todayAlerts = todayAlerts, navController = navController)
         }
     }
 }
@@ -149,7 +162,7 @@ fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfile
                         .size(100.dp)
                         .clip(CircleShape)
                         .background(Color(0xFFCCCCCC))
-                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
+                        .border(1.dp, Color.Gray, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -166,26 +179,19 @@ fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfile
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
+                        .border(1.dp, Color.Gray, CircleShape),
                     contentScale = ContentScale.Crop
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = guardianId,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-
+            Text(text = guardianId, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
+            Text(text = guardianTel, fontSize = 20.sp, color = Color.Gray)
 
-            Text(
-                text = guardianTel,
-                fontSize = 20.sp,
-                color = Color.Gray
-            )
+
+
         }
     }
 }
@@ -218,7 +224,7 @@ fun SeniorProfileCard(
                         .size(100.dp)
                         .clip(CircleShape)
                         .background(Color(0xFFCCCCCC))
-                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
+                        .border(1.dp, Color.Gray, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -235,7 +241,7 @@ fun SeniorProfileCard(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
+                        .border(1.dp, Color.Gray, CircleShape),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -260,6 +266,96 @@ fun SeniorProfileCard(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
             ) {
                 Text("어르신 정보 수정", color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun ScheduleCard(todayAlerts: List<AlertItem>, navController: NavController) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp)
+    ) {
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_alarm),
+                        contentDescription = "알림 아이콘",
+                        tint = Color(0xFF2196F3),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "일정 관리",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_plus),
+                    contentDescription = "알림 추가",
+                    tint = Color(0xFF2196F3),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            navController.navigate("alarm")
+                        }
+                )
+            }
+
+            HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+
+            val scrollState = rememberScrollState()
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .verticalScroll(scrollState)
+            ) {
+                if (todayAlerts.isEmpty()) {
+                    Text(
+                        text = "오늘의 알림이 없습니다.",
+                        fontSize = 22.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    todayAlerts.forEachIndexed { index, alert ->
+                        Column(
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "${alert.date} ${alert.time}",
+                                fontSize = 26.sp,
+                                color = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = alert.content,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                            if (index < todayAlerts.size - 1) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }

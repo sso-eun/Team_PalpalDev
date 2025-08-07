@@ -72,6 +72,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileScreen
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModel
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModelFactory
+import com.example.dundun_hi.ui.guardianProfile.SeniorEditScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -230,7 +231,11 @@ class MainActivity : ComponentActivity() {
                         // ─── Guardian 로그인
                         composable("guardian") {
                             GuardianScreen(
-                                onSubmit = { _, _ -> },
+                                onSubmit = { userNumStr, userId ->
+                                    navController.navigate("guardian_profile/$userNumStr") {
+                                        popUpTo("guardian") { inclusive = true }
+                                    }
+                                },
                                 onSignupClick = { navController.navigate("auth") },
                                 onGuardianFindIdClick = { navController.navigate("guardian_find_id") }
                             )
@@ -373,9 +378,7 @@ class MainActivity : ComponentActivity() {
                             val context = LocalContext.current
 
                             // 실제 리포지토리 생성
-                            // 이렇게 수정해야 함 (생성자에 인자 안 넘김)
                             val repository = RealUserRepository()
-
 
                             // 뷰모델 생성
                             val guardianViewModel: GuardianProfileViewModel = viewModel(
@@ -385,17 +388,37 @@ class MainActivity : ComponentActivity() {
                             GuardianProfileScreen(
                                 viewModel = guardianViewModel,
                                 onEditSeniorClick = {
-                                    navController.navigate("update_profile/$userNum")
+                                    navController.navigate("SeniorEditScreen/$userNum")
                                 },
-                                onLogoutClick = {
-                                    navController.navigate("login") {
-                                        popUpTo("main") { inclusive = true }
-                                    }
-                                }
+                                navController = navController
                             )
                         }
 
 
+                        composable("SeniorEditScreen/{userNum}") { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull()
+
+                            // GuardianProfileViewModel을 생성하거나 받아야 함 (중요)
+                            val context = LocalContext.current
+                            val guardianViewModel = remember {
+                                GuardianProfileViewModel(
+                                    repository = RealUserRepository(),
+                                    guardianUserNum = userNum ?: -1,
+                                    context = context
+                                )
+                            }
+
+                            SeniorEditScreen(
+                                viewModel = guardianViewModel,
+                                onSaveSuccess = {
+                                    // 저장 성공 후 이동 (예: 뒤로 가기)
+                                    navController.popBackStack()
+                                },
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
 
 
                         // ─── UpdateProfileScreen
@@ -419,6 +442,29 @@ class MainActivity : ComponentActivity() {
                             UpdateProfileScreen(
                                 viewModel = profileVm,
                                 userId = userId,
+                                onUpdateSuccess = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        // Guardian 전용 UpdateProfile 라우트 추가
+                        composable(
+                            route = "update_profile/{userNum}",
+                            arguments = listOf(navArgument("userNum") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val userNumStr = backStackEntry.arguments?.getString("userNum") ?: "0"
+                            val userNumInt = userNumStr.toIntOrNull() ?: 0
+
+                            val repository: UserRepository = RealUserRepository()
+                            val profileVm: ProfileViewModel = viewModel(
+                                key = "ProfileViewModel_$userNumInt",
+                                factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
+                            )
+
+                            UpdateProfileScreen(
+                                viewModel = profileVm,
+                                userId = "", // Guardian의 경우 userId가 필요하지 않을 수 있음
                                 onUpdateSuccess = {
                                     navController.popBackStack()
                                 }
@@ -487,7 +533,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-
                         // ─── KioskScreen
                         composable("kiosk") {
                             KioskScreen()
@@ -545,4 +590,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
