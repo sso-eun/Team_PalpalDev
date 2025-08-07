@@ -99,6 +99,8 @@ exports.login = async (req, res) => {
 
         const isMatch = await bcrypt.compare(user_pw, user.user_pw);
 
+
+
         if (!isMatch) {
             return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
         }
@@ -149,6 +151,10 @@ exports.updateProfile = async (req, res) => {
 
     if (!user_num) {
         return res.status(400).json({ message: '회원 번호가 필요합니다.' });
+    }
+
+    if (updateFields === "user_pw") {
+        return res.status(400).json({ message: '비밀번호는 수정할 수 없습니다.' });
     }
 
     if (Object.keys(updateFields).length === 0) {
