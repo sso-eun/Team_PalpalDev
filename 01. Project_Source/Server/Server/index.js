@@ -12,6 +12,7 @@ const uploadRouter = require('./routes/uploadRouter');
 const sendRouter = require('./routes/sendAuthRouter');
 const talkRouter = require('./routes/talkRouter');
 const certRouter = require('./routes/certRouter');
+const downloadRouter = require('./routes/downloadRouter');
 
 // 250517_은재_라우터 등록
 const weatherRouter = require('./routes/weatherRouter');
@@ -58,6 +59,8 @@ app.use('/talk', talkRouter);
 //25.08.01
 //증명서
 app.use('/cert', certRouter);
+//이미지 다운로더
+app.use('/down',  downloadRouter);
 
 
 

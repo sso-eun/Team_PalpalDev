@@ -13,11 +13,13 @@ const resizeImage = async (req, res, next) => {
         const ext = path.extname(req.file.originalname);
         const baseName = path.basename(req.file.originalname, ext);
 
+
         // ────── 요청 URL에서 서브폴더 추출 (/cert일 경우 cert) ──────
-        const uploadRoutes = ['cert', 'talk', 'profile','upload',]; // upload는 디폴트 처리 폴더. 항상 마지막에
+        const uploadRoutes = ['cert', 'talk', 'profile','supa','upload',]; // upload는 디폴트 처리 폴더. 항상 마지막에
         const matched = uploadRoutes.find(route => req.originalUrl.includes(`/${route}`));
         const uploadBase = matched || 'upload'; // 기본 upload로 fallback
-
+        // const uploadBase = path.basename(req.file.destination);
+        console.log(req.file.destination)
         const outputDir = path.join('uploads', uploadBase); // uploads/cert
         const outputName = `${uploadBase}_${baseName}_${Date.now()}${ext}`;
         const outputPath = path.join(outputDir, outputName);
@@ -31,7 +33,7 @@ const resizeImage = async (req, res, next) => {
         //     .jpeg({ quality: 70 })
         //     .toFile(outputPath);
 
-        const sharpInstance = sharp(inputPath).resize({ width: 800 });
+        const sharpInstance = sharp(inputPath).resize({ width: 300 });
         if (ext === '.png') {
             await sharpInstance.png({ quality: 70 }).toFile(outputPath);
         } else {
