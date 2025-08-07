@@ -16,6 +16,9 @@ import com.example.dundun_hi.data.SetDateRequest
 import com.example.dundun_hi.data.FcmTokenRequest
 import com.example.dundun_hi.data.FileUploadResponse        // 은재 추가 - 가족관계증명서
 import com.example.dundun_hi.data.SearchMemberResponse
+import com.example.dundun_hi.data.VerifyMemberRequest
+import com.example.dundun_hi.data.VerifySeniorRequest
+import com.example.dundun_hi.data.VerifySeniorResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -69,6 +72,8 @@ interface MemberService {
         @Query("field") field: String,
         @Query("keyword") keyword: String
     ): Response<SearchMemberResponse> // 방금 만든 데이터 클래스 사용
+
+    // 회원 정보 검증 (user_num, user_tel)
 
     // ----------------------------------------------
 

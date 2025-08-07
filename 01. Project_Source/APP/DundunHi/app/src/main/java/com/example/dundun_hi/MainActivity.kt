@@ -72,6 +72,8 @@ import com.example.dundun_hi.ui.signup.FamilyCertificationScreen
 import com.example.dundun_hi.ui.signup.SeniorInfoScreen
 import com.example.dundun_hi.ui.HomeAddressPopup
 import com.example.dundun_hi.ui.signup.AuthLoadingScreen
+import com.example.dundun_hi.ui.signup.SeniorProfileViewModel
+import com.example.dundun_hi.ui.signup.SeniorProfileViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -562,18 +564,40 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── Senior Info
-                        composable("senior_info") {
+                        // ─── Senior Info (수정)
+                        // seniorNum을 인자로 받는 새로운 경로로 정의
+                        composable(
+                            route = "senior_profile/{seniorNum}",
+                            arguments = listOf(
+                                navArgument("seniorNum") { type = NavType.IntType }
+                            )
+                        ) { backStackEntry ->
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0
+
+                            // 1단계에서 만든 ViewModel과 Factory 사용
+                            val seniorViewModel: SeniorProfileViewModel = viewModel(
+                                factory = SeniorProfileViewModelFactory(RetrofitClient.memberService)
+                            )
+
+                            // 화면이 나타날 때 API 호출 실행
+                            LaunchedEffect(key1 = seniorNum) {
+                                if (seniorNum > 0) {
+                                    seniorViewModel.fetchSeniorProfile(seniorNum)
+                                }
+                            }
+
                             SeniorInfoScreen(
+                                viewModel = seniorViewModel,
                                 onConfirm = {
                                     navController.navigate("signup")
                                 }
                             )
+                        }
                         }
                     }
                 }
             }
         }
     }
-}
+
 
