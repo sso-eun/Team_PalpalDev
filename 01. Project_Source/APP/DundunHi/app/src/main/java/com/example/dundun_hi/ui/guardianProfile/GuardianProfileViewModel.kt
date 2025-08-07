@@ -3,8 +3,8 @@ package com.example.dundun_hi.ui.guardianProfile
 import android.content.Context
 import android.location.Geocoder
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,25 +14,23 @@ import com.example.dundun_hi.network.RetrofitClient
 import kotlinx.coroutines.launch
 import java.util.*
 
+
 class GuardianProfileViewModel(
     private val repository: UserRepository,
     private val guardianUserNum: Int,
     private val context: Context? = null
-
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "GuardianProfileViewModel"
     }
 
-    var guardianProfileImg by mutableStateOf<String?>(null)
-        private set
-
-
     /** 보호자 정보 */
     var guardianId by mutableStateOf("")
         private set
     var guardianTel by mutableStateOf("")
+        private set
+    var guardianProfileImg by mutableStateOf<String?>(null)
         private set
 
     /** 어르신 정보 */
@@ -78,7 +76,7 @@ class GuardianProfileViewModel(
                 // 1. cert_list로 어르신 고유번호 가져오기
                 val certResponse = RetrofitClient.memberService.getCertList(
                     page = 1,
-                    limit = 10 // 일단 10개로 제한
+                    limit = 10
                 )
 
                 if (!certResponse.isSuccessful || certResponse.body() == null) {
@@ -86,7 +84,6 @@ class GuardianProfileViewModel(
                 }
 
                 val certList = certResponse.body()!!.results
-                // 보호자와 연결된 어르신 찾기 (guardian_no가 현재 보호자의 userNum과 일치)
                 val seniorCert = certList.find { it.guardian_no == guardianUserNum }
                     ?: throw Exception("등록된 어르신이 없습니다")
 
@@ -96,6 +93,7 @@ class GuardianProfileViewModel(
                 val guardianResponse = repository.getUserByNum(guardianUserNum)
                 guardianId = guardianResponse.userId
                 guardianTel = guardianResponse.userTel
+                guardianProfileImg = guardianResponse.userProfileImg
 
                 // 3. 어르신 정보 가져오기
                 val seniorResponse = repository.getUserByNum(seniorUserNum!!)
@@ -147,7 +145,7 @@ class GuardianProfileViewModel(
     /**
      * 주소를 위도/경도로 변환
      */
-    fun convertAddressToLatLng(address: String): Pair<Double, Double>? {
+    private fun convertAddressToLatLng(address: String): Pair<Double, Double>? {
         return try {
             if (context != null && address.isNotBlank()) {
                 val geocoder = Geocoder(context, Locale.getDefault())
@@ -169,10 +167,10 @@ class GuardianProfileViewModel(
     }
 
     /**
-     * 어르신 정보 업데이트
+     * 어르신 정보 업데이트 (통합된 버전)
      */
     fun updateSeniorProfile(
-        newName: String,
+        newName: String? = null,
         newTel: String,
         newAddress: String,
         onSuccess: () -> Unit,
@@ -198,7 +196,9 @@ class GuardianProfileViewModel(
 
                 if (response.isSuccessful) {
                     // 성공 시 로컬 상태 업데이트
-                    seniorId = newName // 주의: userId는 업데이트할 수 없을 수 있음
+                    if (newName != null) {
+                        seniorId = newName
+                    }
                     seniorTel = newTel
                     seniorHomeLat = latLng.first
                     seniorHomeLon = latLng.second
@@ -221,6 +221,13 @@ class GuardianProfileViewModel(
      * 정보 새로고침
      */
     fun refresh() {
+        fetchGuardianAndSeniorInfo()
+    }
+
+    /**
+     * 데이터 로드 메서드 (UI에서 호출용)
+     */
+    fun loadProfileData() {
         fetchGuardianAndSeniorInfo()
     }
 }

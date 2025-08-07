@@ -32,10 +32,11 @@ fun GuardianProfileScreen(
     onEditSeniorClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
+    // ViewModel의 mutableStateOf 프로퍼티들을 직접 구독
     val guardianId by remember { derivedStateOf { viewModel.guardianId } }
     val guardianTel by remember { derivedStateOf { viewModel.guardianTel } }
     val guardianProfileImg by remember { derivedStateOf { viewModel.guardianProfileImg } }
-    val seniorId by remember { derivedStateOf { viewModel.seniorId.value } }
+    val seniorId by remember { derivedStateOf { viewModel.seniorId } } // .value 제거
     val seniorTel by remember { derivedStateOf { viewModel.seniorTel } }
     val seniorProfileImg by remember { derivedStateOf { viewModel.seniorProfileImg } }
     val seniorAddress by remember { derivedStateOf { viewModel.seniorAddress } }
@@ -43,6 +44,16 @@ fun GuardianProfileScreen(
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
+    // 디버깅용 로그 (임시)
+    LaunchedEffect(guardianId, seniorId) {
+        println("GuardianProfile - guardianId: $guardianId, seniorId: $seniorId")
+        println("GuardianProfile - isLoading: $isLoading, errorMessage: $errorMessage")
+    }
+
+    // 화면 진입 시 데이터 로드
+    LaunchedEffect(Unit) {
+        viewModel.loadProfileData()
+    }
 
     Column(
         modifier = Modifier
@@ -85,9 +96,11 @@ fun GuardianProfileScreen(
                 ) {
                     Text("오류가 발생했습니다", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Red)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(errorMessage!!, fontSize = 14.sp, color = Color.Red)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.refresh() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))) {
+                    Button(
+                        onClick = { viewModel.refresh() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+                    ) {
                         Text("다시 시도", color = Color.White)
                     }
                 }
@@ -115,6 +128,67 @@ fun GuardianProfileScreen(
     }
 }
 
+@Composable
+fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfileImg: String?) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            if (guardianProfileImg.isNullOrEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFCCCCCC))
+                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_default_profile),
+                        contentDescription = "기본 프로필",
+                        tint = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = guardianProfileImg,
+                    contentDescription = "프로필 사진",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = guardianId,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = guardianTel,
+                fontSize = 20.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
 
 @Composable
 fun SeniorProfileCard(
@@ -187,69 +261,6 @@ fun SeniorProfileCard(
             ) {
                 Text("어르신 정보 수정", color = Color.White)
             }
-        }
-    }
-}
-
-
-@Composable
-fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfileImg: String?) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            if (guardianProfileImg.isNullOrEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFCCCCCC))
-                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_default_profile),
-                        contentDescription = "기본 프로필",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            } else {
-                AsyncImage(
-                    model = guardianProfileImg,
-                    contentDescription = "프로필 사진",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .border(width = 1.dp, color = Color.Gray, shape = CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = guardianId,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = guardianTel,
-                fontSize = 20.sp,
-                color = Color.Gray
-            )
         }
     }
 }

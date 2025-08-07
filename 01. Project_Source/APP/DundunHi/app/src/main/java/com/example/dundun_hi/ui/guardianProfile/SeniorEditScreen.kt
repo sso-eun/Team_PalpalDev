@@ -59,17 +59,10 @@ fun SeniorEditScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_call),//icon바꾸기ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ
-                    contentDescription = "뒤로가기",
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+
 
             Text(
-                text = "어르신 정보 수정",
+                text = "연결된 계정 정보 수정",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -90,48 +83,44 @@ fun SeniorEditScreen(
                 modifier = Modifier.padding(20.dp)
             ) {
                 // 이름 입력
+//                Text(
+//                    text = "이름",
+//                    fontSize = 18.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    color = Color.Black
+//                )
                 Text(
-                    text = "이름",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = editName,
-                    onValueChange = {
-                        editName = it
-                        saveError = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("이름을 입력하세요") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp)
+                    text = seniorId,
+                    fontSize = 30.sp,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // 전화번호 입력
-                Text(
-                    text = "전화번호",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = editTel,
-                    onValueChange = {
-                        editTel = it
-                        saveError = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("전화번호를 입력하세요") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
+//                Spacer(modifier = Modifier.height(20.dp))
+//
+//                // 전화번호 입력
+//                Text(
+//                    text = "전화번호",
+//                    fontSize = 18.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    color = Color.Black
+//                )
+//                Spacer(modifier = Modifier.height(8.dp))
+//                OutlinedTextField(
+//                    value = editTel,
+//                    onValueChange = {
+//                        editTel = it
+//                        saveError = null
+//                    },
+//                    modifier = Modifier.fillMaxWidth(),
+//                    placeholder = { Text("전화번호를 입력하세요") },
+//                    singleLine = true,
+//                    shape = RoundedCornerShape(8.dp)
+//                )
+//
+//                Spacer(modifier = Modifier.height(20.dp))
 
                 // 주소 입력
                 Text(
@@ -283,12 +272,12 @@ fun SeniorEditScreen(
                 Row(
                     verticalAlignment = Alignment.Top
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_call),//icon바꿔ㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓ
-                        contentDescription = null,
-                        tint = Color(0xFF2196F3),
-                        modifier = Modifier.size(20.dp)
-                    )
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_call),//icon바꿔ㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓㅓ
+//                        contentDescription = null,
+//                        tint = Color(0xFF2196F3),
+//                        modifier = Modifier.size(20.dp)
+//                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
