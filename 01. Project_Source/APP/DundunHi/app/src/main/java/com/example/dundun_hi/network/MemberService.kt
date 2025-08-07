@@ -65,5 +65,6 @@ interface MemberService {
     suspend fun getCertList(
         @Query("page") page: Int,
         @Query("limit") limit: Int
-    ): Response<List<CertListResponse>>
+    ): Response<CertListResponse> //
+
 }

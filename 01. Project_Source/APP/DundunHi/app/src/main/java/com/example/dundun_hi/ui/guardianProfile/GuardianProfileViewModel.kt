@@ -18,11 +18,16 @@ class GuardianProfileViewModel(
     private val repository: UserRepository,
     private val guardianUserNum: Int,
     private val context: Context? = null
+
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "GuardianProfileViewModel"
     }
+
+    var guardianProfileImg by mutableStateOf<String?>(null)
+        private set
+
 
     /** 보호자 정보 */
     var guardianId by mutableStateOf("")
@@ -77,10 +82,10 @@ class GuardianProfileViewModel(
                 )
 
                 if (!certResponse.isSuccessful || certResponse.body() == null) {
-                    throw Exception("인증서 목록을 가져올 수 없습니다")
+                    throw Exception("인증서 목록을 가져올 수 없습니다.")
                 }
 
-                val certList = certResponse.body()!!
+                val certList = certResponse.body()!!.results
                 // 보호자와 연결된 어르신 찾기 (guardian_no가 현재 보호자의 userNum과 일치)
                 val seniorCert = certList.find { it.guardian_no == guardianUserNum }
                     ?: throw Exception("등록된 어르신이 없습니다")

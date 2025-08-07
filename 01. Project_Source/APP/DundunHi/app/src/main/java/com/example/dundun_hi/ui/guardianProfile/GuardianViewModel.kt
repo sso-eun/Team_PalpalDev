@@ -12,6 +12,7 @@ import com.example.dundun_hi.network.RetrofitClient
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import kotlin.collections.find
 
 
 class GuardianViewModel(
@@ -41,8 +42,10 @@ class GuardianViewModel(
         private set
 
     /** 서버에서 받아온 보호자 프로필 이미지 URL(없으면 빈 문자열) */
-    var guardianProfileImg by mutableStateOf("")
+    // ViewModel 내부
+    var guardianProfileImg by mutableStateOf<String?>(null)
         private set
+
 
     /** 로딩 상태 */
     var isLoading by mutableStateOf(false)
@@ -52,10 +55,13 @@ class GuardianViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+
+
     init {
         // 화면이 처음 생성될 때 한 번 자동으로 호출
         Log.d(TAG, "GuardianViewModel 초기화: userNum=$userNum, context=${context != null}")
         fetchGuardianFromServer()
+
     }
 
     /**
@@ -83,7 +89,8 @@ class GuardianViewModel(
         viewModelScope.launch {
             try {
                 val certList = RetrofitClient.memberService.getCertList(page = 1, limit = 10)
-                val mySenior = certList.body()?.find { it.guardian_no == userNum } // ✅ 수정됨
+                val mySenior = certList.body()?.results?.find { it.guardian_no == userNum }
+
                 seniorUserNum = mySenior?.senior_num
                 Log.d(TAG, "어르신 고유번호: $seniorUserNum")
             } catch (e: Exception) {
