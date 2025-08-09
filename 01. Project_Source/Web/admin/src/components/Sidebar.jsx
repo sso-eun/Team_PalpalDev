@@ -9,6 +9,8 @@ function Sidebar() {
         components: false,
         members: false,
         settings: false,
+        place: false,
+        kiosk: false,
     });
 
     /* 메뉴명 일치 검사해서 같은 메뉴ㄴ면 드롭다운 */
@@ -57,8 +59,8 @@ function Sidebar() {
                     data-toggle="collapse"
                     data-target="#collapseTwo"
                     aria-expanded="false"
-                    aria-controls="collapseTwo"
-                >
+                    aria-controls="collapseTwo">
+
                     <i className="fas fa-fw fa-cog"></i>
                     <span>Components</span>
                 </a>
@@ -66,8 +68,8 @@ function Sidebar() {
                     id="collapseTwo"
                     className="collapse"
                     aria-labelledby="headingTwo"
-                    data-parent="#accordionSidebar"
-                >
+                    data-parent="#accordionSidebar">
+
                     <div className="bg-white py-2 collapse-inner rounded">
                         <h6 className="collapse-header">Custom Components:</h6>
                         <NavLink className="collapse-item" to="/components/buttons">
@@ -88,8 +90,8 @@ function Sidebar() {
                     href="#!"
                     onClick={() => toggleMenu('members')}
                     aria-expanded={openMenus.members}
-                    aria-controls="collapseUser"
-                >
+                    aria-controls="collapseUser">
+
                     <i className="fas fa-fw fa-user"></i>
                     <span>회원</span>
                     <span className="ml-auto">
@@ -99,37 +101,7 @@ function Sidebar() {
 
                 <div
                     id="collapseUser"
-                    className={`collapse-menu collapse ${openMenus.members ? 'show' : ''}`}
-                >
-                    <div className="bg-white py-2 collapse-inner rounded">
-                        <h6 className="collapse-header">회원 관리 :</h6>
-                        <NavLink className="collapse-item" to="/memberlist">
-                            전체 회원
-                        </NavLink>
-                    </div>
-                </div>
-            </li>
-
-            {/* Members 메뉴 */}
-            <li className="nav-item">
-                <a
-                    className={`nav-link d-flex align-items-center ${!openMenus.members ? 'collapsed' : ''}`}
-                    href="#!"
-                    onClick={() => toggleMenu('members')}
-                    aria-expanded={openMenus.members}
-                    aria-controls="collapseUser"
-                >
-                    <i className="fas fa-fw fa-user"></i>
-                    <span>회원</span>
-                    <span className="ml-auto">
-                         {openMenus.members ? <i className="fas fa-angle-down" /> : <i className="fas fa-angle-right" />}
-                    </span>
-                </a>
-
-                <div
-                    id="collapseUser"
-                    className={`collapse-menu collapse ${openMenus.members ? 'show' : ''}`}
-                >
+                    className={`collapse-menu collapse ${openMenus.members ? 'show' : ''}`}>
                     <div className="bg-white py-2 collapse-inner rounded">
                         <h6 className="collapse-header">회원 관리 :</h6>
                         <NavLink className="collapse-item" to="/memberlist">
@@ -140,6 +112,50 @@ function Sidebar() {
                         </NavLink>
                     </div>
                 </div>
+            </li>
+
+            {/* place 메뉴 */}
+            <li className="nav-item">
+                <a
+                    className={`nav-link d-flex align-items-center ${!openMenus.place ? 'collapsed' : ''}`}
+                    href="#!"
+                    onClick={() => toggleMenu('place')}
+                    aria-expanded={openMenus.place}
+                    aria-controls="collapseUser">
+
+                    <i className="fas fa-fw fa-user"></i>
+                    <span>장소 관리</span>
+                    <span className="ml-auto">
+                         {openMenus.place ? <i className="fas fa-angle-down" /> : <i className="fas fa-angle-right" />}
+                    </span>
+                </a>
+                <div
+                    id="collapseUser"
+                    className={`collapse-menu collapse ${openMenus.place ? 'show' : ''}`}>
+                    <div className="bg-white py-2 collapse-inner rounded">
+                        <h6 className="collapse-header">장소</h6>
+                        <NavLink className="collapse-item" to="/placelist">
+                            등록장소
+                        </NavLink>
+                    </div>
+                </div>
+            </li>
+
+            {/* kiosk 메뉴 */}
+            <li className="nav-item">
+                <a
+                    className={`nav-link d-flex align-items-center ${!openMenus.kiosk ? 'collapsed' : ''}`}
+                    href="#!"
+                    onClick={() => toggleMenu('place')}
+                    aria-expanded={openMenus.kiosk}
+                    aria-controls="collapseUser">
+
+                    <i className="fas fa-fw fa-user"></i>
+                    <span>키오스크 영상 관리</span>
+                    <span className="ml-auto">
+                         {openMenus.kiosk ? <i className="fas fa-angle-down" /> : <i className="fas fa-angle-right" />}
+                    </span>
+                </a>
             </li>
 
         </ul>
