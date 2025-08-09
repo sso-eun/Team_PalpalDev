@@ -105,7 +105,7 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
         }
 
-        return res.status(200).json({ message: '로그인 성공', user_num: user.user_num, user_type:user.user_type });
+        return res.status(200).json({ message: '로그인 성공', user_num: user.user_num, user_type: user.user_type });
 
     } catch (error) {
         console.error(error);

@@ -5,26 +5,28 @@ import axios from 'axios';
 import {formatDateTime} from "../utils/dateUtils.js";
 
 const TablesPage = () => {
-    const [users, setUsers] = useState([]);
+    const [pl, setPl] = useState([]);
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
     const PAGE_GROUP_SIZE = 10;
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchPlace= async () => {
             try {
                 // const res = await axios.get(`/member/allusers?page=${page}&limit=${limit}`);
-                const res = await axios.get(`/member/allusers?page=${page}&limit=${limit}`);
-                setUsers(res.data.results); // 실제 응답 구조에 따라 조정 필요
+                const res = await axios.get(`/places/admin?page=${page}&limit=${limit}`);
+                console.log('API 전체 응답:', res.data);
+                setPl(Array.isArray(res.data.data) ? res.data.data : []);
                 setTotalPages(res.data.totalPages);
             } catch (err) {
                 console.error('Error fetching users:', err);
             }
         };
 
-        fetchUsers();
+        fetchPlace();
     }, [page, limit]);
+
 
     //페이지네이션
     const currentGroup = Math.floor((page - 1) / PAGE_GROUP_SIZE);
@@ -57,30 +59,45 @@ const TablesPage = () => {
                                 <thead>
                                 <tr>
                                     <th>고유번호</th>
-                                    <th>아이디</th>
+                                    <th>장소구분</th>
+                                    <th>장소명</th>
+                                    <th>우편번호</th>
+                                    <th>도로명주소</th>
+                                    <th>상세주소</th>
                                     <th>연락처</th>
-                                    <th>유형</th>
-                                    <th>가입일</th>
+                                    <th>노출여부</th>
+                                    <th>등록일</th>
+                                    <th>수정일</th>
                                 </tr>
                                 </thead>
                                 <tfoot>
                                 <tr>
                                     <th>고유번호</th>
-                                    <th>아이디</th>
+                                    <th>장소구분</th>
+                                    <th>장소명</th>
+                                    <th>우편번호</th>
+                                    <th>도로명주소</th>
+                                    <th>상세주소</th>
                                     <th>연락처</th>
-                                    <th>유형</th>
-                                    <th>가입일</th>
+                                    <th>노출여부</th>
+                                    <th>등록일</th>
+                                    <th>수정일</th>
                                 </tr>
                                 </tfoot>
                                 <tbody>
 
-                                {users.map((user) => (
-                                    <tr key={user.user_num}>
-                                        <td>{user.user_num}</td>
-                                        <td>{user.user_id}</td>
-                                        <td>{user.user_tel}</td>
-                                        <td>{user.user_type === 0 ? '어르신' : '보호자'}</td>
-                                        <td>{formatDateTime(user.user_signup)}</td>
+                                {Array.isArray(pl) && pl.map((pl) => (
+                                    <tr key={pl.pl_no}>
+                                        <td>{pl.pl_no}</td>
+                                        <td>{pl.pl_type}</td>
+                                        <td>{pl.pl_name}</td>
+                                        <td>{pl.pl_postNumber}</td>
+                                        <td>{pl.pl_addr}</td>
+                                        <td>{pl.pl_detailAddr}</td>
+                                        <td>{pl.pl_tel}</td>
+                                        <td>{pl.pl_display === 1 ? '노출' : '비노출'}</td>
+                                        <td>{formatDateTime(pl.pl_write)}</td>
+                                        <td>{formatDateTime(pl.pl_update)}</td>
                                     </tr>
                                 ))}
 
