@@ -138,6 +138,24 @@ fun GuardianProfileScreen(
 
             ScheduleCard(todayAlerts = todayAlerts, navController = navController)
         }
+        Spacer(modifier = Modifier.height(24.dp))
+
+
+
+        Button(
+            onClick = {
+                navController.navigate("guardian_update_profile/${viewModel.guardianUserNum}")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+        ) {
+            Text("내 정보 수정하기", fontSize = 18.sp, color = Color.White)
+        }
+
     }
 }
 

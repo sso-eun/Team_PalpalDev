@@ -72,6 +72,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileScreen
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModel
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModelFactory
+import com.example.dundun_hi.ui.guardianProfile.GuardianUpdateProfileScreen
 import com.example.dundun_hi.ui.guardianProfile.SeniorEditScreen
 
 class MainActivity : ComponentActivity() {
@@ -394,6 +395,24 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable("edit_guardian_profile/{guardianUserNum}") { backStackEntry ->
+                            val guardianUserNum = backStackEntry.arguments?.getString("guardianUserNum")?.toIntOrNull() ?: return@composable
+                            val context = LocalContext.current
+                            val repository = RealUserRepository()
+
+                            val guardianViewModel = remember {
+                                GuardianProfileViewModel(repository, guardianUserNum, context)
+                            }
+
+                            GuardianUpdateProfileScreen(
+                                viewModel = guardianViewModel,
+                                userId = guardianViewModel.guardianId,
+                                onUpdateSuccess = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
 
                         composable("SeniorEditScreen/{userNum}") { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull()
@@ -448,28 +467,32 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Guardian 전용 UpdateProfile 라우트 추가
                         composable(
-                            route = "update_profile/{userNum}",
-                            arguments = listOf(navArgument("userNum") { type = NavType.StringType })
+                            route = "guardian_update_profile/{userNum}",
+                            arguments = listOf(navArgument("userNum") { type = NavType.IntType })
                         ) { backStackEntry ->
-                            val userNumStr = backStackEntry.arguments?.getString("userNum") ?: "0"
-                            val userNumInt = userNumStr.toIntOrNull() ?: 0
+                            val userNum = backStackEntry.arguments?.getInt("userNum") ?: -1
+                            if (userNum == -1) {
+                                //Text("잘못된 파라미터: userNum") // 디버그용
+                                return@composable
+                            }
 
-                            val repository: UserRepository = RealUserRepository()
-                            val profileVm: ProfileViewModel = viewModel(
-                                key = "ProfileViewModel_$userNumInt",
-                                factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
+                            val context = LocalContext.current
+                            val guardianViewModel: GuardianProfileViewModel = viewModel(
+                                factory = GuardianProfileViewModelFactory(
+                                    RealUserRepository(),
+                                    userNum,
+                                    context
+                                )
                             )
 
-                            UpdateProfileScreen(
-                                viewModel = profileVm,
-                                userId = "", // Guardian의 경우 userId가 필요하지 않을 수 있음
-                                onUpdateSuccess = {
-                                    navController.popBackStack()
-                                }
+                            GuardianUpdateProfileScreen(
+                                viewModel = guardianViewModel,
+                                userId = guardianViewModel.guardianId,
+                                onUpdateSuccess = { navController.popBackStack() }
                             )
                         }
+
 
                         // ─── UpdatePasswordScreen
                         composable(

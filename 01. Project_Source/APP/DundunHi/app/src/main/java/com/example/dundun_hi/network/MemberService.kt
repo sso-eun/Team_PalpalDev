@@ -27,6 +27,8 @@ import retrofit2.http.Query
 
 
 interface MemberService {
+
+
     // /member/login 엔드포인트
     @POST("member/login")
     suspend fun login(@Body req: LoginRequest): Response<LoginResponse>
@@ -66,5 +68,11 @@ interface MemberService {
         @Query("page") page: Int,
         @Query("limit") limit: Int
     ): Response<CertListResponse> //
+
+    @PUT("member/profile/{user_num}")
+    suspend fun updateProfilePartial(
+        @Path("user_num") userNum: Int,
+        @Body body: Map<String, @JvmSuppressWildcards Any?>
+    ): retrofit2.Response<UpdateProfileResponse>
 
 }

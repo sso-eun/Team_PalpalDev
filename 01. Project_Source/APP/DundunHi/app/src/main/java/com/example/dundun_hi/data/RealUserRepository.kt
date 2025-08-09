@@ -26,4 +26,15 @@ class RealUserRepository : UserRepository {
             throw Exception("HTTP ${response.code()} : 프로필 수정 실패")
         }
     }
+
+
+    suspend fun updateUserProfilePartial(
+        userNum: Int,
+        body: Map<String, Any?>
+    ): UpdateProfileResponse {
+        val response = RetrofitClient.memberService.updateProfilePartial(userNum, body)
+        if (response.isSuccessful) return response.body()!!
+        throw Exception("HTTP ${response.code()} : 프로필 수정 실패")
+    }
 }
+

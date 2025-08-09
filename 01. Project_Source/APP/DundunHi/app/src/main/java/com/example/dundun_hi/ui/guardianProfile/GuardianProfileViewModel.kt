@@ -8,7 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.dundun_hi.data.RealUserRepository
 import com.example.dundun_hi.data.UpdateProfileRequest
+import com.example.dundun_hi.data.UpdateProfileResponse
 import com.example.dundun_hi.data.UserRepository
 import com.example.dundun_hi.network.RetrofitClient
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ import java.util.*
 
 class GuardianProfileViewModel(
     private val repository: UserRepository,
-    private val guardianUserNum: Int,
+    val guardianUserNum: Int,
     private val context: Context? = null
 ) : ViewModel() {
 
@@ -56,6 +58,10 @@ class GuardianProfileViewModel(
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
+    fun onProfileImageSelected(imageUri: String) {
+        guardianProfileImg = imageUri
+    }
 
     init {
         fetchGuardianAndSeniorInfo()
@@ -230,4 +236,39 @@ class GuardianProfileViewModel(
     fun loadProfileData() {
         fetchGuardianAndSeniorInfo()
     }
+
+    fun updateProfile(
+        newTel: String,
+        newProfileImg: String,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            try {
+                // ✅ 필요한 항목만 넣는다 (빈문자/숫자필드 X)
+                val body = buildMap<String, Any?> {
+                    put("user_tel", newTel)
+                    // 프로필 이미지 바꾸지 않으려면 키 자체를 빼도 됨
+                    put("user_profile_img", if (newProfileImg.isNotBlank()) newProfileImg else null)
+                }
+
+                // partial 업데이트 호출
+                val result = (repository as? RealUserRepository)
+                    ?.updateUserProfilePartial(guardianUserNum, body)
+                    ?: throw IllegalStateException("RealUserRepository 필요")
+
+                // 성공 반영
+                guardianTel = newTel
+                guardianProfileImg = newProfileImg
+                onSuccess()
+            } catch (e: Exception) {
+                errorMessage = "업데이트 실패: ${e.localizedMessage}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+
 }
