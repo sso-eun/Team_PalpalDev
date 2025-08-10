@@ -1,6 +1,6 @@
 const multer = require('multer');
 const path = require('path');
-
+const fs = require('fs');
 // 저장 위치와 파일명 정의
 // const storage = multer.diskStorage({
 //     destination: (req, file, cb) => {
@@ -16,16 +16,35 @@ const path = require('path');
 // const upload = multer({ storage });
 // module.exports = upload;
 
+// const getStorage = (subfolder = '') => {
+//     return multer.diskStorage({
+//         destination: (req, file, cb) => {
+//             const uploadPath = path.join('uploads', subfolder);
+//             cb(null, uploadPath);
+//         },
+//         filename: (req, file, cb) => {
+//             const ext = path.extname(file.originalname);
+//             // const prefix = subfolder === 'talk' ? 'talk' : 'profile';
+//             const prefix = subfolder = subfolder || 'file'
+//             const fileName = `${prefix}_${Date.now()}${ext}`;
+//             cb(null, fileName);
+//         }
+//     });
+// };
+
+
+const UPLOAD_ROOT = process.env.UPLOAD_DIR || '/tmp/uploads';
+
 const getStorage = (subfolder = '') => {
     return multer.diskStorage({
         destination: (req, file, cb) => {
-            const uploadPath = path.join('uploads', subfolder);
+            const uploadPath = path.join(UPLOAD_ROOT, subfolder || 'file');
+            fs.mkdirSync(uploadPath, { recursive: true, mode: 0o775 }); // 폴더 생성
             cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
             const ext = path.extname(file.originalname);
-            // const prefix = subfolder === 'talk' ? 'talk' : 'profile';
-            const prefix = subfolder = subfolder || 'file'
+            const prefix = subfolder || 'file';
             const fileName = `${prefix}_${Date.now()}${ext}`;
             cb(null, fileName);
         }
