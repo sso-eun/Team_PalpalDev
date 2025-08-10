@@ -130,7 +130,8 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 
-const UPLOAD_ROOT = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+// const UPLOAD_ROOT = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+const UPLOAD_ROOT = process.env.UPLOAD_DIR || '/tmp/uploads';
 
 const ensureWritableDir = async (dir) => {
     try {
@@ -165,11 +166,11 @@ const resizeImage = async (req, res, next) => {
         const baseName = sanitizeBase(path.basename(req.file.originalname || 'image', rawExt));
         const subfolder = pickSubfolder(req.originalUrl);
 
-        // 1) 우선순위: UPLOAD_ROOT/subfolder → 실패 시 /tmp/uploads/subfolder
+
         let outputDir = path.join(UPLOAD_ROOT, subfolder);
         if (!(await ensureWritableDir(outputDir))) {
             outputDir = path.join('/tmp/uploads', subfolder);
-            await ensureWritableDir(outputDir); // /tmp는 거의 항상 OK
+            await ensureWritableDir(outputDir);
         }
 
         const outputName = `${subfolder}_${baseName}_${Date.now()}${ext}`;
