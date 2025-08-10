@@ -394,9 +394,25 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
+// 네비게이션 그래프에서 파라미터를 명시적으로 정의
+                        composable(
+                            route = "edit_guardian_profile/{guardianUserNum}",
+                            arguments = listOf(navArgument("guardianUserNum") {
+                                type = NavType.IntType
+                                defaultValue = -1  // 기본값 설정
+                            })
+                        ) { backStackEntry ->
+                            val guardianUserNum = backStackEntry.arguments?.getInt("guardianUserNum") ?: -1
 
-                        composable("edit_guardian_profile/{guardianUserNum}") { backStackEntry ->
-                            val guardianUserNum = backStackEntry.arguments?.getString("guardianUserNum")?.toIntOrNull() ?: return@composable
+                            // -1인 경우 오류 처리
+                            if (guardianUserNum == -1) {
+                                // 오류 화면 표시하거나 이전 화면으로 돌아가기
+                                LaunchedEffect(Unit) {
+                                    navController.popBackStack()
+                                }
+                                return@composable
+                            }
+
                             val context = LocalContext.current
                             val repository = RealUserRepository()
 
@@ -407,6 +423,7 @@ class MainActivity : ComponentActivity() {
                             GuardianUpdateProfileScreen(
                                 viewModel = guardianViewModel,
                                 userId = guardianViewModel.guardianId,
+                                userNum = guardianUserNum,          // ✅ 추가
                                 onUpdateSuccess = {
                                     navController.popBackStack()
                                 }
@@ -489,6 +506,7 @@ class MainActivity : ComponentActivity() {
                             GuardianUpdateProfileScreen(
                                 viewModel = guardianViewModel,
                                 userId = guardianViewModel.guardianId,
+                                userNum = userNum,                  // ✅ 추가
                                 onUpdateSuccess = { navController.popBackStack() }
                             )
                         }

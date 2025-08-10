@@ -56,6 +56,7 @@ interface MemberService {
         @Part file: okhttp3.MultipartBody.Part
     ): retrofit2.Response<com.example.dundun_hi.data.SimpleResponse>
 
+
     // 일정 추가 (set_date)
     @POST("/date/setdate")
     suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
