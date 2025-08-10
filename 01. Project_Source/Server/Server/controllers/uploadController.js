@@ -31,108 +31,119 @@ async function supabaseUploader(filePath, fileName,subfolder) {
     return data;
 }
 
+const toPosixAbs = (p) => {
+    const s = String(p).replace(/\\/g, '/');                  // 윈도우 경로 교정
+    return path.isAbsolute(s) ? s : path.join(process.cwd(), s);
+};
+
 exports.uploadToSupabaseCert = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ rsCode: 404, message: '파일이 존재하지 않습니다.' });
+    }
+
+    const { user_num, senior_num } = req.params;
+
+    const absPath = toPosixAbs(req.file.resizedPath || req.file.path);
+
+    const ext = (path.extname(req.file.originalname || '').toLowerCase()) || '.jpg';
+    const safeBase = (path.basename(req.file.originalname || 'image', ext))
+        .replace(/[^\w.-]+/g, '_'); // 공백/특수문자 치환
+    const ts = Date.now();
+    const fileName = `cert_${ts}_${safeBase}${ext}`;
+    const storagePath = `cert/${fileName}`; // Supabase 저장 경로
+
+    let result;
     try {
-        if (!req.file) {
-            return res.status(400).json({ rsCode:404, message: '파일이 존재하지 않습니다.' });
-        }
+        result = await supabaseUploader(absPath, fileName, 'cert');
 
-        // const filePath = req.file.path;
-        const filePath = path.resolve(req.file.resizedPath || req.file.path);
-        const fileName = `${Date.now()}_${req.file.originalname}`;
-
-        const result = await supabaseUploader(filePath, fileName,'cert');
-
-        // 로컬 파일 삭제
-        fs.unlinkSync(filePath);
-
-        //db filename 저장
-        const { user_num } = req.params;
-        const { senior_num } = req.params;
         const sql = `
-                            INSERT INTO guardian_auth_upload
-                                (guardian_no, senior_num, certificate_img, status, submitted_at)
-                            VALUES (?, ?, ?, 0, NOW())
-                        `;
+      INSERT INTO guardian_auth_upload
+        (guardian_no, senior_num, certificate_img, status, submitted_at)
+      VALUES (?, ?, ?, 0, NOW())
+    `;
+        await db.execute(sql, [user_num, senior_num, storagePath]);
 
-        await db.execute(sql, [user_num, senior_num, fileName]);
-
-        res.status(200).json({
-            rsCode : 200,
+        return res.status(200).json({
+            rsCode: 200,
             message: '업로드 성공',
-            path: result.path,
-            // fullURL: `${process.env.SUPABASE_URL}/storage/v1/object/public/cert/${fileName}`,
+            path: result?.publicUrl || result?.path || storagePath,
         });
-
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ rsCode:-1, message: '업로드 실패', error: err.message });
+        console.error('uploadToSupabaseCert error:', err);
+        return res.status(500).json({ rsCode: -1, message: '업로드 실패', error: err.message });
+    } finally {
+        try { await fs.promises.unlink(absPath); } catch (_) {}
     }
 };
+
+
 
 exports.supaUploadProfileImage = async (req, res) => {
     const { user_num } = req.params;
-    const file = req.file;
-
-    if (!file) {
-        return res.status(400).json({ rsCode :404, message: '파일이 존재하지 않습니다.' });
-    }
+    const f = req.file;
+    if (!f) return res.status(400).json({ rsCode: 404, message: '파일이 존재하지 않습니다.' });
 
     try {
-        const filePath = path.resolve(req.file.resizedPath || req.file.path);
-        const fileName = `${Date.now()}_${req.file.originalname}`;
-        const result = await supabaseUploader(filePath, fileName,'profile');
-        // 로컬 파일 삭제
-        fs.unlinkSync(filePath);
-        const sql = `
-                          UPDATE member
-                          SET user_profile_img = ?
-                          WHERE user_num = ?
-                         `;
-        await db.execute(sql, [fileName, user_num]);
+        const absPath = toPosixAbs(f.resizedPath || f.path);
 
-        res.status(200).json({
-            rsCode :200,
+        const ext = (path.extname(f.originalname || '').toLowerCase()) || '.jpg';
+        const ts = Date.now();
+        const fileName = `profile_${ts}${ext}`;                     // 저장 파일명
+        const storagePath = `profile/${fileName}`;                  // Supabase상의 경로
+
+        const result = await supabaseUploader(absPath, fileName, 'profile');
+
+        // 4) 원본(또는 리사이즈본) 정리
+        try { await fs.promises.unlink(absPath); } catch (_) {}
+
+        // 5) DB에는 서브폴더 포함 경로를 저장하는 걸 권장
+        const sql = `UPDATE member SET user_profile_img = ? WHERE user_num = ?`;
+        await db.execute(sql, [storagePath, user_num]);
+
+        return res.status(200).json({
+            rsCode: 200,
             message: '프로필 이미지 업로드 성공',
-            path: result.path,
-            });
-
+            path: result?.publicUrl || result?.path || storagePath,
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ rsCode :-1, message: '요청값을 다시 확인하세요.', error });
+        return res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
     }
 };
+
+
 
 
 exports.supaUploadTalkImage = async (req, res) => {
     const { user_num } = req.params;
-    const file = req.file;
+    const f = req.file;
+    if (!f) return res.status(400).json({ rsCode: 404, message: '파일이 존재하지 않습니다.' });
 
-    if (!file) {
-        return res.status(400).json({ rsCode: 404, message: '파일이 존재하지 않습니다.' });
-    }
+    const absPath = toPosixAbs(f.resizedPath || f.path);
 
+    const ext = (path.extname(f.originalname || '').toLowerCase()) || '.jpg';
+    const safeBase = (path.basename(f.originalname || 'image', ext)).replace(/[^\w.-]+/g, '_');
+    const ts = Date.now();
+    const fileName = `talk_${ts}_${safeBase}${ext}`;
+    const storagePath = `talk/${fileName}`;
+
+    let result;
     try {
-        const filePath = path.resolve(req.file.resizedPath || req.file.path);
-        const fileName = `${Date.now()}_${req.file.originalname}`;
+        result = await supabaseUploader(absPath, fileName, 'talk');
 
-        const result = await supabaseUploader(filePath, fileName,'talk');
-
-        const sql = `
-                        INSERT INTO talk_upload (img_user, img_url)
-                        VALUES (?, ?)
-                    `;
-
-        await db.execute(sql, [user_num, fileName]);
+        const sql = `INSERT INTO talk_upload (img_user, img_url) VALUES (?, ?)`;
+        await db.execute(sql, [user_num, storagePath]);
 
         return res.status(200).json({
             rsCode: 200,
             message: '토크 이미지 업로드 성공',
-            path: result.path,
+            path: result?.publicUrl || result?.path || storagePath,
         });
     } catch (error) {
-        console.error("토크 이미지 업로드 실패:", error);
-        res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
+        console.error('토크 이미지 업로드 실패:', error);
+        return res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
+    } finally {
+        try { await fs.promises.unlink(absPath); } catch (_) {}
     }
 };
 
@@ -234,3 +245,113 @@ exports.uploadCertImage = async (req, res) => {
         res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
     }
 };
+
+//
+// exports.supaUploadProfileImage = async (req, res) => {
+//     const { user_num } = req.params;
+//     const file = req.file;
+//
+//     if (!file) {
+//         return res.status(400).json({ rsCode :404, message: '파일이 존재하지 않습니다.' });
+//     }
+//
+//     try {
+//
+//         // const filePath = path.join('uploads', file.filename);
+//         // const fileName = file.filename;
+//
+//         const filePath = path.resolve(req.file.resizedPath || req.file.path);
+//         console.log(filePath);
+//         const fileName = `${Date.now()}_${req.file.originalname}`;
+//         const result = await supabaseUploader(filePath, fileName,'profile');
+//         // 로컬 파일 삭제
+//         fs.unlinkSync(filePath);
+//         const sql = `
+//                           UPDATE member
+//                           SET user_profile_img = ?
+//                           WHERE user_num = ?
+//                          `;
+//         await db.execute(sql, [fileName, user_num]);
+//
+//         res.status(200).json({
+//             rsCode :200,
+//             message: '프로필 이미지 업로드 성공',
+//             path: result.path,
+//         });
+//
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ rsCode :-1, message: '요청값을 다시 확인하세요.', error });
+//     }
+// };
+
+// exports.uploadToSupabaseCert = async (req, res) => {
+//     try {
+//         if (!req.file) {
+//             return res.status(400).json({ rsCode:404, message: '파일이 존재하지 않습니다.' });
+//         }
+//
+//         // const filePath = req.file.path;
+//         const filePath = path.resolve(req.file.resizedPath || req.file.path);
+//         const fileName = `${Date.now()}_${req.file.originalname}`;
+//
+//         const result = await supabaseUploader(filePath, fileName,'cert');
+//
+//         // 로컬 파일 삭제
+//         fs.unlinkSync(filePath);
+//
+//         //db filename 저장
+//         const { user_num } = req.params;
+//         const { senior_num } = req.params;
+//         const sql = `
+//                             INSERT INTO guardian_auth_upload
+//                                 (guardian_no, senior_num, certificate_img, status, submitted_at)
+//                             VALUES (?, ?, ?, 0, NOW())
+//                         `;
+//
+//         await db.execute(sql, [user_num, senior_num, fileName]);
+//
+//         res.status(200).json({
+//             rsCode : 200,
+//             message: '업로드 성공',
+//             path: result.path,
+//             // fullURL: `${process.env.SUPABASE_URL}/storage/v1/object/public/cert/${fileName}`,
+//         });
+//
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ rsCode:-1, message: '업로드 실패', error: err.message });
+//     }
+// };
+
+// exports.supaUploadTalkImage = async (req, res) => {
+//     const { user_num } = req.params;
+//     const file = req.file;
+//
+//     if (!file) {
+//         return res.status(400).json({ rsCode: 404, message: '파일이 존재하지 않습니다.' });
+//     }
+//
+//     try {
+//         const filePath = path.resolve(req.file.resizedPath || req.file.path);
+//         const fileName = `${Date.now()}_${req.file.originalname}`;
+//
+//         const result = await supabaseUploader(filePath, fileName,'talk');
+//
+//         const sql = `
+//                         INSERT INTO talk_upload (img_user, img_url)
+//                         VALUES (?, ?)
+//                     `;
+//
+//         await db.execute(sql, [user_num, fileName]);
+//
+//         return res.status(200).json({
+//             rsCode: 200,
+//             message: '토크 이미지 업로드 성공',
+//             path: result.path,
+//         });
+//     } catch (error) {
+//         console.error("토크 이미지 업로드 실패:", error);
+//         res.status(500).json({ rsCode: -1, message: '요청값을 다시 확인하세요.', error });
+//     }
+// };

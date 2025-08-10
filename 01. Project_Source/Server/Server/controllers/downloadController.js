@@ -29,7 +29,7 @@ exports.getCert = async (req, res) => {
     }
 
     const filename = rows[0].certificate_img;
-    const filePath = `cert/${filename}`;
+    const filePath = `${filename}`;
 
 
     const {data, error} = await supabase
@@ -62,7 +62,7 @@ exports.getProfile = async (req, res) => {
     }
 
     const filename = rows[0].user_profile_img;
-    const filePath = `profile/${filename}`;
+    const filePath = `${filename}`;
 
 
     const {data, error} = await supabase
@@ -94,7 +94,7 @@ exports.getTalkImage = async (req, res) => {
     }
 
     const filename = rows[0].image_url;
-    const filePath = `talk/${filename}`;
+    const filePath = `${filename}`;
 
 
     const {data, error} = await supabase
