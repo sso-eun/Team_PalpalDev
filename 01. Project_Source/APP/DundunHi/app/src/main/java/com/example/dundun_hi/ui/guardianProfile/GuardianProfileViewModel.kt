@@ -2,6 +2,7 @@ package com.example.dundun_hi.ui.guardianProfile
 
 import android.content.Context
 import android.location.Geocoder
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -13,7 +14,12 @@ import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UpdateProfileResponse
 import com.example.dundun_hi.data.UserRepository
 import com.example.dundun_hi.network.RetrofitClient
+import com.example.dundun_hi.network.RetrofitClient.memberService
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import java.util.*
 
 
@@ -59,8 +65,8 @@ class GuardianProfileViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    fun onProfileImageSelected(imageUri: String) {
-        guardianProfileImg = imageUri
+    fun onProfileImageSelected(uri: String) {
+        guardianProfileImg = uri   // 미리보기 즉시 반영
     }
 
     init {
@@ -236,39 +242,80 @@ class GuardianProfileViewModel(
     fun loadProfileData() {
         fetchGuardianAndSeniorInfo()
     }
-
+    // GuardianProfileViewModel.kt
     fun updateProfile(
         newTel: String,
         newProfileImg: String,
+        context: Context,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
+
             try {
-                // ✅ 필요한 항목만 넣는다 (빈문자/숫자필드 X)
-                val body = buildMap<String, Any?> {
-                    put("user_tel", newTel)
-                    // 프로필 이미지 바꾸지 않으려면 키 자체를 빼도 됨
-                    put("user_profile_img", if (newProfileImg.isNotBlank()) newProfileImg else null)
+                var finalProfileImgUrl = newProfileImg
+
+                // URI가 로컬 파일인 경우 서버에 업로드
+                if (newProfileImg.startsWith("content://") || newProfileImg.startsWith("file://")) {
+                    val uri = Uri.parse(newProfileImg)
+                    val uploadedUrl = uploadImageToServer(uri, context, guardianUserNum)
+                    finalProfileImgUrl = uploadedUrl ?: ""
                 }
 
-                // partial 업데이트 호출
-                val result = (repository as? RealUserRepository)
-                    ?.updateUserProfilePartial(guardianUserNum, body)
-                    ?: throw IllegalStateException("RealUserRepository 필요")
+                val request = UpdateProfileRequest(
+                    userTel = newTel,
+                    userProfileImg = finalProfileImgUrl,
+                    userHomeLat = "0", // 보호자는 집 위치 정보 불필요
+                    userHomeLot = "0",
+                    userCondition = "0"
+                )
 
-                // 성공 반영
-                guardianTel = newTel
-                guardianProfileImg = newProfileImg
-                onSuccess()
+                val response = RetrofitClient.memberService.updateProfile(guardianUserNum, request)
+                if (response.isSuccessful) {
+                    // 성공 시 로컬 상태 업데이트
+                    guardianTel = newTel
+                    guardianProfileImg = finalProfileImgUrl
+                    onSuccess()
+                } else {
+                    errorMessage = "프로필 업데이트 실패: ${response.message()}"
+                }
             } catch (e: Exception) {
-                errorMessage = "업데이트 실패: ${e.localizedMessage}"
+                errorMessage = "네트워크 오류: ${e.message}"
+                Log.e("UpdateProfile", "프로필 업데이트 실패", e)
             } finally {
                 isLoading = false
             }
         }
     }
 
+    private suspend fun uploadImageToServer(uri: Uri, context: Context, userNum: Int): String? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val file = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+            inputStream?.use { input -> file.outputStream().use { output -> input.copyTo(output) } }
+
+            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+            val imagePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
+
+            val response = memberService.uploadProfileImage(userNum, imagePart)
+            if (response.isSuccessful) {
+                val body = response.body()
+                Log.d(TAG, "Upload rsCode=${body?.rsCode}, message=${body?.message}, path=${body?.path}")
+                if (body?.rsCode == 200) {
+                    return body.path
+                } else {
+                    Log.e(TAG, "이미지 업로드 실패(rsCode): ${body?.rsCode} / ${body?.message}")
+                    return null
+                }
+            } else {
+                Log.e(TAG, "이미지 업로드 실패(http): ${response.code()} / ${response.message()}")
+                return null
+            }
+        } catch (e: Exception) {
+            Log.e("Upload", "이미지 업로드 실패", e)
+            null
+        }
+    }
 
 }

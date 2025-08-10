@@ -1,8 +1,10 @@
+// app/src/main/java/com/example/dundun_hi/ui/guardianProfile/GuardianUpdateProfileScreen.kt
 package com.example.dundun_hi.ui.guardianProfile
 
 import android.content.ContentValues
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -28,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.dundun_hi.R
 
+private const val TAG = "GuardianUpdateScreen"
+
 /**
  * 보호자 전용 프로필 수정 화면
  * - 이름: 표시만
@@ -39,41 +43,39 @@ import com.example.dundun_hi.R
 fun GuardianUpdateProfileScreen(
     viewModel: GuardianProfileViewModel,
     userId: String,
+    userNum: Int, // 현재 미사용이지만 시그니처 유지
     onUpdateSuccess: () -> Unit
 ) {
     val context = LocalContext.current
 
-    // ViewModel 상태 관찰
+    // ViewModel 상태 관찰 (Single source of truth)
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
     val vmTel by remember { derivedStateOf { viewModel.guardianTel } }
     val vmProfile by remember { derivedStateOf { viewModel.guardianProfileImg } }
+    val profileUri: Uri? = vmProfile?.takeIf { it.isNotBlank() }?.let(Uri::parse)
 
-    // 입력 상태
     var telEditable by remember(vmTel) { mutableStateOf(vmTel) }
-    var profileImgUri by remember(vmProfile) {
-        mutableStateOf(vmProfile?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) })
-    }
-
-    // 이미지 선택 다이얼로그
     var showImageDialog by remember { mutableStateOf(false) }
+
+    // 카메라 촬영용 임시 URI (런처보다 위에서 remember)
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
 
     // 갤러리/카메라 런처
     val pickFromGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
+    ) { uri ->
+        Log.d(TAG, "Gallery picked uri=$uri")
         if (uri != null) {
-            profileImgUri = uri
             viewModel.onProfileImageSelected(uri.toString())
         }
     }
 
-    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
+        Log.d(TAG, "Camera takePicture success=$success, uri=$cameraImageUri")
         if (success && cameraImageUri != null) {
-            profileImgUri = cameraImageUri
             viewModel.onProfileImageSelected(cameraImageUri.toString())
         }
     }
@@ -82,9 +84,11 @@ fun GuardianUpdateProfileScreen(
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
         }
-        return context.contentResolver.insert(
+        val uri = context.contentResolver.insert(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
         )
+        Log.d(TAG, "Created camera content uri=$uri")
+        return uri
     }
 
     // 이미지 선택 다이얼로그
@@ -101,6 +105,7 @@ fun GuardianUpdateProfileScreen(
             confirmButton = {
                 Column {
                     TextButton(onClick = {
+                        Log.d(TAG, "Click: 앨범에서 가져오기")
                         pickFromGalleryLauncher.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
@@ -108,20 +113,24 @@ fun GuardianUpdateProfileScreen(
                     }) { Text("앨범에서 가져오기") }
 
                     TextButton(onClick = {
+                        Log.d(TAG, "Click: 카메라로 촬영하기")
                         cameraImageUri = createCameraUri()
                         cameraImageUri?.let { takePictureLauncher.launch(it) }
                         showImageDialog = false
                     }) { Text("카메라로 촬영하기") }
 
                     TextButton(onClick = {
-                        profileImgUri = null
-                        viewModel.onProfileImageSelected("")
+                        Log.d(TAG, "Click: 기본 이미지 사용")
+                        viewModel.onProfileImageSelected("") // 기본 이미지
                         showImageDialog = false
                     }) { Text("기본 이미지 사용") }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showImageDialog = false }) { Text("취소") }
+                TextButton(onClick = {
+                    Log.d(TAG, "Dialog dismissed")
+                    showImageDialog = false
+                }) { Text("취소") }
             }
         )
     }
@@ -171,13 +180,12 @@ fun GuardianUpdateProfileScreen(
                     ) {
                         // 프로필 이미지
                         Box(
-                            modifier = Modifier
-                                .size(110.dp),
+                            modifier = Modifier.size(110.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (profileImgUri != null) {
+                            if (profileUri != null) {
                                 AsyncImage(
-                                    model = profileImgUri,
+                                    model = profileUri,
                                     contentDescription = "프로필 사진",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
@@ -207,7 +215,10 @@ fun GuardianUpdateProfileScreen(
                                     .size(32.dp)
                                     .clip(CircleShape)
                                     .background(Color.White)
-                                    .clickable { showImageDialog = true },
+                                    .clickable {
+                                        Log.d(TAG, "Open image dialog")
+                                        showImageDialog = true
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
@@ -265,11 +276,17 @@ fun GuardianUpdateProfileScreen(
             // 하단 고정 저장 버튼
             Button(
                 onClick = {
+                    Log.d(
+                        TAG,
+                        "Save clicked: tel=$telEditable, rawImg=${viewModel.guardianProfileImg}"
+                    )
                     viewModel.updateProfile(
                         newTel = telEditable,
-                        newProfileImg = profileImgUri?.toString() ?: ""
+                        newProfileImg = viewModel.guardianProfileImg.orEmpty(),
+                        context = context
                     ) {
                         Toast.makeText(context, "프로필 수정 완료", Toast.LENGTH_SHORT).show()
+                        Log.d(TAG, "Save success; navigate back")
                         onUpdateSuccess()
                     }
                 },
