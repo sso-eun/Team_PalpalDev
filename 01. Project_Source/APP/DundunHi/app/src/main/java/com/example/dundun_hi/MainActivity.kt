@@ -3,6 +3,7 @@
 package com.example.dundun_hi
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -32,6 +34,7 @@ import androidx.navigation.navArgument
 import com.example.dundun_hi.data.RealUserRepository
 import com.example.dundun_hi.data.UserRepository
 import com.example.dundun_hi.data.WeatherRepository
+import com.example.dundun_hi.model.CallShortcut
 import com.example.dundun_hi.model.CallViewModel
 import com.example.dundun_hi.model.SharedPhoto
 import com.example.dundun_hi.model.WeatherUiState
@@ -39,10 +42,14 @@ import com.example.dundun_hi.model.WeatherViewModel
 import com.example.dundun_hi.network.RetrofitClient
 import com.example.dundun_hi.network.WeatherService
 import com.example.dundun_hi.ui.*
+import com.example.dundun_hi.ui.ActivityHistoryScreen
+import com.example.dundun_hi.ui.KioskScreen
+import com.example.dundun_hi.ui.LastPhotoScreen
+import com.example.dundun_hi.ui.SetupShortcutScreen
 import com.example.dundun_hi.ui.login.FindIdScreen
 import com.example.dundun_hi.ui.login.FindIdViewModel
-import com.example.dundun_hi.ui.login.Guardian_FindIdScreen
 import com.example.dundun_hi.ui.login.GuardianScreen
+import com.example.dundun_hi.ui.login.Guardian_FindIdScreen
 import com.example.dundun_hi.ui.login.LoginScreen
 import com.example.dundun_hi.ui.login.LoginViewModel
 import com.example.dundun_hi.ui.profile.ProfileScreen
@@ -50,30 +57,21 @@ import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.profile.ProfileViewModelFactory
 import com.example.dundun_hi.ui.profile.UpdatePasswordScreen
 import com.example.dundun_hi.ui.profile.UpdateProfileScreen
-import com.example.dundun_hi.ui.ActivityHistoryScreen
 import com.example.dundun_hi.ui.screen.CallScreen
-import com.example.dundun_hi.ui.KioskScreen
-import com.example.dundun_hi.ui.LastPhotoScreen
-import com.example.dundun_hi.ui.signup.LoadingScreen
-import com.example.dundun_hi.ui.SetupShortcutScreen
-import com.example.dundun_hi.ui.HomeScreen
-import com.example.dundun_hi.ui.MainScreen
 import com.example.dundun_hi.ui.signup.CombinedAuthScreen
+import com.example.dundun_hi.ui.signup.LoadingScreen
 import com.example.dundun_hi.ui.signup.SignupResult
 import com.example.dundun_hi.ui.signup.SignupScreen
 import com.example.dundun_hi.ui.signup.SignupViewModel
 import com.example.dundun_hi.ui.signup.LoadingScreen as SignupLoadingScreen
 import com.example.dundun_hi.ui.theme.DundunHiTheme
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.example.dundun_hi.model.CallShortcut
-import android.content.Intent
-import androidx.compose.ui.platform.LocalContext
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileScreen
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModel
 import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModelFactory
 import com.example.dundun_hi.ui.guardianProfile.GuardianUpdateProfileScreen
 import com.example.dundun_hi.ui.guardianProfile.SeniorEditScreen
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 class MainActivity : ComponentActivity() {
 
@@ -190,6 +188,27 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 vm = loginVm,
                                 onLoginSuccess = { userNumStr, userId ->
+                                    val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+
+                                    // 먼저 기존 데이터 확인
+                                    val existingUserNum = sharedPreferences.getString("user_num", null)
+                                    android.util.Log.d("MainActivity", "기존 SharedPreferences userNum: $existingUserNum")
+
+                                    // 새 데이터 저장
+                                    val editor = sharedPreferences.edit()
+                                    editor.putString("user_num", userNumStr)
+                                    editor.putString("user_id", userId)
+                                    editor.putString("user_type", "0") // 시니어는 0
+
+                                    val saveSuccess = editor.commit() // apply() 대신 commit() 사용하여 동기적 저장
+
+                                    android.util.Log.d("MainActivity", "SharedPreferences 저장 결과: $saveSuccess")
+                                    android.util.Log.d("MainActivity", "저장된 값 - userNum: $userNumStr, userId: $userId, userType: 0")
+
+                                    // 저장 후 즉시 확인
+                                    val savedUserNum = sharedPreferences.getString("user_num", "not_found")
+                                    android.util.Log.d("MainActivity", "저장 후 확인된 userNum: $savedUserNum")
+
                                     navController.navigate("main/$userNumStr/${Uri.encode(userId)}") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -233,6 +252,17 @@ class MainActivity : ComponentActivity() {
                         composable("guardian") {
                             GuardianScreen(
                                 onSubmit = { userNumStr, userId ->
+                                    // 가디언 로그인 시에도 SharedPreferences 저장
+                                    val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                    val editor = sharedPreferences.edit()
+                                    editor.putString("user_num", userNumStr)
+                                    editor.putString("user_id", userId)
+                                    editor.putString("user_type", "1") // 가디언은 1
+                                    val saveSuccess = editor.commit()
+
+                                    android.util.Log.d("MainActivity", "가디언 로그인 - SharedPreferences 저장 결과: $saveSuccess")
+                                    android.util.Log.d("MainActivity", "저장된 값 - userNum: $userNumStr, userId: $userId, userType: 1")
+
                                     navController.navigate("guardian_profile/$userNumStr") {
                                         popUpTo("guardian") { inclusive = true }
                                     }
@@ -286,6 +316,18 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
                             val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
+
+                            // ✅ 여기서부터 새로 추가된 코드
+                            // Main 화면에서도 SharedPreferences 업데이트 (보장)
+                            LaunchedEffect(userNum, userId) {
+                                val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                val editor = sharedPreferences.edit()
+                                editor.putString("user_num", userNum.toString())
+                                editor.putString("user_id", userId)
+                                val saveSuccess = editor.commit()
+                                android.util.Log.d("MainActivity", "Main화면 - SharedPreferences 업데이트: $saveSuccess")
+                            }
+                            // ✅ 여기까지 새로 추가된 코드
 
                             // ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
@@ -342,7 +384,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── ProfileScreen (userNum, userId 인자 전달) ────────────────────────────────────────
+                        // ─── ProfileScreen (userNum, userId 인자 전달)
                         composable(
                             route = "profile/{userNum}/{userId}",
                             arguments = listOf(
@@ -373,6 +415,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // ─── GuardianProfileScreen
                         composable(
                             route = "guardian_profile/{userNum}",
                             arguments = listOf(navArgument("userNum") { type = NavType.StringType })
@@ -396,19 +439,18 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
-// 네비게이션 그래프에서 파라미터를 명시적으로 정의
+
+                        // ─── Guardian 프로필 수정(명시적 파라미터)
                         composable(
                             route = "edit_guardian_profile/{guardianUserNum}",
                             arguments = listOf(navArgument("guardianUserNum") {
                                 type = NavType.IntType
-                                defaultValue = -1  // 기본값 설정
+                                defaultValue = -1
                             })
                         ) { backStackEntry ->
                             val guardianUserNum = backStackEntry.arguments?.getInt("guardianUserNum") ?: -1
 
-                            // -1인 경우 오류 처리
                             if (guardianUserNum == -1) {
-                                // 오류 화면 표시하거나 이전 화면으로 돌아가기
                                 LaunchedEffect(Unit) {
                                     navController.popBackStack()
                                 }
@@ -425,18 +467,17 @@ class MainActivity : ComponentActivity() {
                             GuardianUpdateProfileScreen(
                                 viewModel = guardianViewModel,
                                 userId = guardianViewModel.guardianId,
-                                userNum = guardianUserNum,          // ✅ 추가
+                                userNum = guardianUserNum,
                                 onUpdateSuccess = {
                                     navController.popBackStack()
                                 }
                             )
                         }
 
-
+                        // ─── SeniorEditScreen
                         composable("SeniorEditScreen/{userNum}") { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull()
 
-                            // GuardianProfileViewModel을 생성하거나 받아야 함 (중요)
                             val context = LocalContext.current
                             val guardianViewModel = remember {
                                 GuardianProfileViewModel(
@@ -448,16 +489,10 @@ class MainActivity : ComponentActivity() {
 
                             SeniorEditScreen(
                                 viewModel = guardianViewModel,
-                                onSaveSuccess = {
-                                    // 저장 성공 후 이동 (예: 뒤로 가기)
-                                    navController.popBackStack()
-                                },
-                                onBackClick = {
-                                    navController.popBackStack()
-                                }
+                                onSaveSuccess = { navController.popBackStack() },
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
-
 
                         // ─── UpdateProfileScreen
                         composable(
@@ -480,21 +515,17 @@ class MainActivity : ComponentActivity() {
                             UpdateProfileScreen(
                                 viewModel = profileVm,
                                 userId = userId,
-                                onUpdateSuccess = {
-                                    navController.popBackStack()
-                                }
+                                onUpdateSuccess = { navController.popBackStack() }
                             )
                         }
 
+                        // ─── GuardianUpdateProfileScreen (다른 경로)
                         composable(
                             route = "guardian_update_profile/{userNum}",
                             arguments = listOf(navArgument("userNum") { type = NavType.IntType })
                         ) { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getInt("userNum") ?: -1
-                            if (userNum == -1) {
-                                //Text("잘못된 파라미터: userNum") // 디버그용
-                                return@composable
-                            }
+                            if (userNum == -1) return@composable
 
                             val context = LocalContext.current
                             val guardianViewModel: GuardianProfileViewModel = viewModel(
@@ -508,11 +539,10 @@ class MainActivity : ComponentActivity() {
                             GuardianUpdateProfileScreen(
                                 viewModel = guardianViewModel,
                                 userId = guardianViewModel.guardianId,
-                                userNum = userNum,                  // ✅ 추가
+                                userNum = userNum,
                                 onUpdateSuccess = { navController.popBackStack() }
                             )
                         }
-
 
                         // ─── UpdatePasswordScreen
                         composable(
@@ -529,19 +559,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // ─── MapScreen
-                        composable("map") {
-                            MapScreen()
-                        }
+                        composable("map") { MapScreen() }
 
                         // ─── AlarmRecordScreen
-                        composable("alarm") {
-                            AlarmRecordScreen(navController)
-                        }
+                        composable("alarm") { AlarmRecordScreen(navController) }
 
                         // ─── AddAlarmScreen
-                        composable("add_alarm") {
-                            AddAlarmScreen(navController)
-                        }
+                        composable("add_alarm") { AddAlarmScreen(navController) }
 
                         // ─── EditAlertScreen
                         composable("edit_alarm/{alertId}") { backStackEntry ->
@@ -550,9 +574,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // ─── ActivityHistoryScreen
-                        composable("activity_history") {
-                            ActivityHistoryScreen()
-                        }
+                        composable("activity_history") { ActivityHistoryScreen() }
 
                         // ─── CameraScreen
                         composable(
@@ -577,9 +599,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // ─── KioskScreen
-                        composable("kiosk") {
-                            KioskScreen()
-                        }
+                        composable("kiosk") { KioskScreen() }
 
                         // ─── CallScreen
                         composable("call") {
@@ -597,10 +617,8 @@ class MainActivity : ComponentActivity() {
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
                             SetupShortcutScreen(
                                 index = idx,
-                                viewModel = callVm,  // 공유된 ViewModel 전달
-                                onDone = {
-                                    navController.popBackStack()
-                                }
+                                viewModel = callVm,
+                                onDone = { navController.popBackStack() }
                             )
                         }
 
@@ -609,9 +627,7 @@ class MainActivity : ComponentActivity() {
                             val findIdVm: FindIdViewModel = viewModel()
                             FindIdScreen(
                                 viewModel = findIdVm,
-                                onIdFound = {
-                                    navController.popBackStack()
-                                },
+                                onIdFound = { navController.popBackStack() },
                                 onLoginClick = { navController.navigate("login") }
                             )
                         }
@@ -621,9 +637,7 @@ class MainActivity : ComponentActivity() {
                             val findIdVm: FindIdViewModel = viewModel()
                             Guardian_FindIdScreen(
                                 viewModel = findIdVm,
-                                onIdFound = {
-                                    navController.popBackStack()
-                                },
+                                onIdFound = { navController.popBackStack() },
                                 onLoginClick = { navController.navigate("guardian") }
                             )
                         }
