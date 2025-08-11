@@ -16,7 +16,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.example.dundun_hi.data.SearchedMember
 import androidx.lifecycle.ViewModelProvider
-
+import com.example.dundun_hi.data.FindIdRequest
 
 
 // ViewModel 외부에서 검색 상태를 표현하기 위한 sealed class
@@ -40,37 +40,35 @@ class FamilyCertViewModel(private val apiService: MemberService) : ViewModel() {
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Idle)
     val searchState = _searchState.asStateFlow()
 
-    private var foundSenior: SearchedMember? = null
+    val foundSenior: SearchedMember?
+        get() = (searchState.value as? SearchState.Success)?.senior
 
-    // 회원 검증: 이름과 전화번호 모두 일치 시에만 성공, user_num을 senior_num에 저장
-    fun verifySenior(name: String, phone: String, onSuccess: (Int) -> Unit, onError: (String) -> Unit) {
+    // 회원 검증: onSuccess, onError 콜백을 제거하고 상태만 업데이트하도록 수정
+    fun verifySenior(name: String, phone: String) {
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
             try {
-                val response = apiService.findId(com.example.dundun_hi.data.FindIdRequest(phone))
+                val response = apiService.findId(FindIdRequest(phone))
                 if (response.isSuccessful && response.body() != null) {
                     val result = response.body()!!
                     if (result.userId == name) {
-                        // 이름과 전화번호 모두 일치: user_num을 senior_num에 저장
+                        // 이름과 전화번호 모두 일치: 상태를 Success로 변경
                         val seniorNum = result.userNum.toInt()
-                        foundSenior = com.example.dundun_hi.data.SearchedMember(seniorNum, name, phone)
-                        _searchState.value = SearchState.Success(foundSenior!!)
-                        onSuccess(seniorNum)
+                        val senior = SearchedMember(seniorNum, name, phone)
+                        _searchState.value = SearchState.Success(senior)
                     } else {
+                        // 이름 불일치: 상태를 NotFound로 변경
                         _searchState.value = SearchState.NotFound
-                        onError("등록되지 않은 회원입니다. 다시 입력해주세요.")
                     }
                 } else {
+                    // API 응답 실패: 상태를 NotFound로 변경
                     _searchState.value = SearchState.NotFound
-                    onError("등록되지 않은 회원입니다. 다시 입력해주세요.")
                 }
             } catch (e: Exception) {
                 _searchState.value = SearchState.Error(e.message ?: "네트워크 오류")
-                onError("네트워크 오류가 발생했습니다. 다시 시도해주세요.")
             }
         }
     }
-
     fun uploadCertificate(context: Context, uri: Uri, userNum: Int) {
 
         // 검색된 시니어의 userNum을 사용하도록 수정

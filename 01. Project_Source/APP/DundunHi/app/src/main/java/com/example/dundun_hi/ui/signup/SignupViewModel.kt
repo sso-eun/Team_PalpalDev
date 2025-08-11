@@ -11,31 +11,82 @@ import com.example.dundun_hi.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.lifecycle.viewModelScope
+import com.example.dundun_hi.data.*
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.launch
+
+// --- 1. '인증 후 임시 회원가입'의 결과를 나타내는 새로운 상태 클래스 ---
+sealed class UserCreationState {
+    object Idle : UserCreationState()
+    object Loading : UserCreationState()
+    data class Success(val userNum: Int, val userId: String) : UserCreationState()
+    data class Error(val message: String) : UserCreationState()
+}
 
 class SignupViewModel(
     private val repo: SignupRepository = SignupRepository()
 ) : ViewModel() {
 
-    // ---------------- SMS 인증 ----------------
-    private val codeAuthRepository = CodeAuthRepository(RetrofitClient.codeAuthService)
+    private val _userCreationState = MutableStateFlow<UserCreationState>(UserCreationState.Idle)
+    val userCreationState: StateFlow<UserCreationState> = _userCreationState
 
-    // 잠시만 번호 지정 나중에 주석처리한거로 바꾸기!____---------------------------------------------------
-//    var lastTelNum: String = "0102222"
-//        private set
-
-//    //1) 마지막에 보낸 전화번호 저장
-    var lastTelNum: String = ""
+    var createdUserNum: Int? = null
+        private set
+    var createdUserId: String? = null
         private set
 
-    // 2) 인증번호 발송 결과
+    var lastTelNum: String = ""
+        private set
+    private val codeAuthRepository = CodeAuthRepository(RetrofitClient.codeAuthService)
+
+    // --- 1. 누락되었던 변수들 추가 ---
     private val _sendCodeResult = MutableStateFlow<CodeAuthSendResponse?>(null)
     val sendCodeResult: StateFlow<CodeAuthSendResponse?> = _sendCodeResult
 
-    // 3) 인증번호 검증 결과
     private val _verifyCodeResult = MutableStateFlow<CodeAuthVerifyResponse?>(null)
     val verifyCodeResult: StateFlow<CodeAuthVerifyResponse?> = _verifyCodeResult
+    // ------------------------------------
 
-    // 발송 요청
+    fun verifyCodeAndCreateUser(name: String, phone: String, authCode: String, userType: Int) {
+        viewModelScope.launch {
+            _userCreationState.value = UserCreationState.Loading
+            try {
+                val verifyResponse = codeAuthRepository.verifyCode(phone, authCode)
+                if (verifyResponse.rsCode == 200) {
+                    // --- 2. 누락되었던 파라미터 추가 ---
+                    val signupRequest = SignupRequest(
+                        user_type = userType,
+                        user_id = name,
+                        user_pw = phone,
+                        user_tel = phone,
+                        user_profile_img = "", // 기본값
+                        user_home_lat = "",    // 기본값
+                        user_home_lot = "",    // 기본값
+                        user_condition = 0     // 기본값
+                    )
+                    // ------------------------------------
+                    val signupResponse = repo.signup(signupRequest)
+
+                    if (signupResponse.message == "회원가입 성공") {
+                        val userNumInt = signupResponse.userNum.toIntOrNull() ?: 0
+                        createdUserNum = userNumInt
+                        createdUserId = name
+                        _userCreationState.value = UserCreationState.Success(userNumInt, name)
+                        sendFcmTokenToServer(signupResponse.userNum)
+                    } else {
+                        _userCreationState.value = UserCreationState.Error(signupResponse.message)
+                    }
+                } else {
+                    _userCreationState.value = UserCreationState.Error(verifyResponse.message)
+                }
+            } catch (e: Exception) {
+                _userCreationState.value = UserCreationState.Error(e.message ?: "네트워크 오류")
+            }
+        }
+    }
+
     fun sendVerificationCode(telNum: String) {
         lastTelNum = telNum
         viewModelScope.launch {
@@ -48,33 +99,6 @@ class SignupViewModel(
         }
     }
 
-    // 검증 요청
-    fun verifyAuthCode(authCode: String) {
-        viewModelScope.launch {
-            try {
-                _verifyCodeResult.value =
-                    codeAuthRepository.verifyCode(lastTelNum, authCode)
-            } catch (e: Exception) {
-                _verifyCodeResult.value =
-                    CodeAuthVerifyResponse(-1, e.localizedMessage ?: "네트워크 오류")
-            }
-        }
-    }
-
-    // ---------------- 회원가입 ----------------
-    private val _state = MutableStateFlow<SignupResult>(SignupResult.Idle)
-    val state: StateFlow<SignupResult> = _state
-
-    // 성공 시 저장할 userId
-    var lastUserId: String = ""
-        private set
-
-
-    // 회원가입 후 로딩-> 메인 ----------------------------------------------------------------
-    //이거 해결한다고 2일은 걸렸다
-    // lastUserId에 resp.userId가 아닌 req.user_id를 넣어야됨(statevalue에도)
-    // 왜냐하면 resp에 userId가 정의되어있지만 서버에서 실제로 보내는 값은 userNum이랑 message밖에 없어서
-    // 계속 비어있는 값을 지니고 있어서 안넘어갔던거임
     fun signup(req: SignupRequest) = viewModelScope.launch {
         try {
             val resp = repo.signup(req)
@@ -88,5 +112,33 @@ class SignupViewModel(
             _state.value = SignupResult.Error(e.message ?: "네트워크 오류")
         }
     }
+
+    private fun sendFcmTokenToServer(userNumStr: String?) {
+        val userNumInt = userNumStr?.toIntOrNull()
+        if (userNumInt != null) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    viewModelScope.launch {
+                        try {
+                            val req = FcmTokenRequest(user_num = userNumInt, fcm_token = token)
+                            RetrofitClient.memberService.sendFcmToken(req)
+                        } catch (e: Exception) {
+                            Log.e("FCM", "Failed to send token", e)
+                        }
+                    }
+                } else {
+                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                }
+            }
+        }
+    }
+
+    // --- 기존 상태 변수들은 시니어 가입 흐름을 위해 유지 ---
+    private val _state = MutableStateFlow<SignupResult>(SignupResult.Idle)
+    val state: StateFlow<SignupResult> = _state
+    var lastUserId: String = ""
+        private set
 }
+
 

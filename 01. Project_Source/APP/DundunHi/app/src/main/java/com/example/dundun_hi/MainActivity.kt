@@ -74,6 +74,28 @@ import com.example.dundun_hi.ui.HomeAddressPopup
 import com.example.dundun_hi.ui.signup.AuthLoadingScreen
 import com.example.dundun_hi.ui.signup.SeniorProfileViewModel
 import com.example.dundun_hi.ui.signup.SeniorProfileViewModelFactory
+import com.example.dundun_hi.ui.signup.SearchState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
+
+import com.example.dundun_hi.ui.signup.FamilyCertViewModel
+import com.example.dundun_hi.ui.signup.FamilyCertViewModelFactory
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
 
 class MainActivity : ComponentActivity() {
 
@@ -160,6 +182,7 @@ class MainActivity : ComponentActivity() {
 
                     // ── NavController + NavHost 설정 ──────────────────────────────────────────────────
                     val navController = rememberNavController()
+
                     NavHost(
                         navController = navController,
                         startDestination = "splash"
@@ -174,42 +197,110 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
+                        // 로그인 통합과정으로 변경사항 다수 존재-----------------------------------
                         // ─── Home
+                        // 25-08-09 수정
                         composable("home") {
                             HomeScreen(
-                                onLoginClick   = { navController.navigate("login") },
-                                onSignupClick  = { navController.navigate("auth") },
-                                onGuardianClick = { navController.navigate("guardian") }
+                                // "구면이세요?" -> 통합 로그인 화면으로 연결
+                                onLoginClick = { navController.navigate("login") },
+                                // "초면이세요?" -> 새로운 회원가입 화면으로 연결
+                                onSignupClick = { navController.navigate("signup_entry") }
+                            )
+                        }
+                        // ─── 통합 Login (수정)
+                        composable("login") {
+                            // LoginViewModel은 LoginScreen 내부에서 생성되거나 상위에서 주입받습니다.
+                            LoginScreen(
+                                navController = navController,
+                                onFindIdClick = { navController.navigate("find_id") },
+                                onSignupClick = { navController.navigate("signup_entry") } // 회원가입 화면으로
                             )
                         }
 
                         // ─── Login
-                        composable("login") {
-                            val loginVm: LoginViewModel = viewModel()
-                            LoginScreen(
-                                vm = loginVm,
-                                onLoginSuccess = { userNumStr, userId ->
-                                    navController.navigate("main/$userNumStr/${Uri.encode(userId)}") {
-                                        popUpTo("login") { inclusive = true }
+//                        composable("login") {
+//                            val loginVm: LoginViewModel = viewModel()
+//                            LoginScreen(
+//                                vm = loginVm,
+//                                onLoginSuccess = { userNumStr, userId ->
+//                                    navController.navigate("main/$userNumStr/${Uri.encode(userId)}") {
+//                                        popUpTo("login") { inclusive = true }
+//                                    }
+//                                },
+//                                onFindIdClick = {
+//                                    navController.navigate("find_id")
+//                                }
+//                            )
+//                        }
+                        // 회원가입 프로세스도 변경함
+                        // 기존에는 home 자체에 "구면 / 초면 / 보호자용" 으로 구분됐음
+                        // 변경 후에는 "구면 / 초면"만 존재함
+                        // => 로그인은 통합해서 시니어든 가디언이든 상관없이 로그인, 이후 user_type으로 분기
+                        // => 회원가입은 디폴트가 시니어 전용이고 아래에 "보호자용 회원가입"으로 링킹 유도함
+
+                        // ─── 회원가입 입구 (시니어가 디폴트)
+                        composable("signup_entry") {
+                            CombinedAuthScreen(
+                                viewModel = signupVm,
+                                userType = 0, // 시니어
+                                onNext = { navController.navigate("senior_final_signup") },
+                                bottomContent = {
+                                    Spacer(Modifier.height(24.dp))
+                                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { // 중앙 정렬을 위한 Box 추가
+                                        Text(
+                                            text = "보호자이신가요? 보호자용 회원가입",
+                                            modifier = Modifier.clickable { navController.navigate("guardian_auth") },
+                                            color = Color.Gray,
+                                            textDecoration = TextDecoration.Underline,
+                                            fontSize = 18.sp // 글자 크기 키우기
+                                        )
                                     }
-                                },
-                                onFindIdClick = {
-                                    navController.navigate("find_id")
                                 }
                             )
                         }
 
-                        // ─── Combined Auth (선택적)
-                        composable("auth") {
+                        // ─── 보호자 전용 본인 인증
+                        composable("guardian_auth") {
                             CombinedAuthScreen(
                                 viewModel = signupVm,
+                                userType = 1, // 보호자
                                 onNext = { navController.navigate("family_certification") }
                             )
                         }
 
-                        // ─── Signup
-                        composable("signup") {
+                        // ─── 회원가입 입구 (시니어가 디폴트)
+//                        composable("signup_entry") {
+//                            // 생성해둔 signupVm 인스턴스를 전달
+//                            CombinedAuthScreen(
+//                                viewModel = signupVm,
+//                                userType = 0, // 시니어
+//                                onNext = { navController.navigate("senior_final_signup") },
+//                                bottomContent = { /* ... */ }
+//                            )
+//                        }
+//
+//
+//                        // ─── 보호자 전용 본인 인증
+//                        composable("guardian_auth") {
+//                            // 여기서도 동일한 signupVm 인스턴스를 전달
+//                            CombinedAuthScreen(
+//                                viewModel = signupVm,
+//                                userType = 1, // 보호자
+//                                onNext = { navController.navigate("family_certification") },
+//                            )
+//                        }
+
+//                        // ─── Combined Auth (선택적)
+//                        composable("auth") {
+//                            CombinedAuthScreen(
+//                                viewModel = signupVm,
+//                                onNext = { navController.navigate("family_certification") }
+//                            )
+//                        }
+
+                        // ─── 시니어 최종 Signup
+                        composable("senior_final_signup") {
                             val state by signupVm.state.collectAsState()
                             SignupScreen(
                                 viewModel = signupVm,
@@ -229,37 +320,9 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // ─── Guardian 로그인
-                        composable("guardian") {
-                            GuardianScreen(
-                                onSubmit = { _, _ -> },
-                                onSignupClick = { navController.navigate("auth") },
-                                onGuardianFindIdClick = { navController.navigate("guardian_find_id") }
-                            )
-                        }
 
-                        // ─── Guardian 회원가입
-                        composable("guardian_signup") {
-                            val state by signupVm.state.collectAsState()
-                            SignupScreen(
-                                viewModel = signupVm,
-                                onSignupSuccess = {
-                                    val newUserId = signupVm.lastUserId
-                                    navController.navigate("loadingScreen/$newUserId") {
-                                        popUpTo("guardian_signup") { inclusive = true }
-                                    }
-                                }
-                            )
-                            if (state is SignupResult.Error) {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    (state as SignupResult.Error).reason,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
 
-                        // ─── LoadingScreen (회원가입 직후 로딩 화면)
+                        // ─── LoadingScreen (시니어 회원가입 직후 로딩 화면)
                         composable(
                             route = "loadingScreen/{userId}",
                             arguments = listOf(navArgument("userId") {
@@ -271,6 +334,146 @@ class MainActivity : ComponentActivity() {
                                 userId = backEntry.arguments?.getString("userId") ?: ""
                             )
                         }
+
+                        // ─── FindIdScreen
+                        composable("find_id") {
+                            val findIdVm: FindIdViewModel = viewModel()
+                            FindIdScreen(
+                                viewModel = findIdVm,
+                                onIdFound = {
+                                    navController.popBackStack()
+                                },
+                                onLoginClick = { navController.navigate("login") }
+                            )
+                        }
+
+                        // ─── Guardian_FindIdScreen (수정)
+                        composable("guardian_find_id") {
+                            val findIdVm: FindIdViewModel = viewModel()
+                            Guardian_FindIdScreen(
+                                viewModel = findIdVm,
+                                onIdFound = { navController.popBackStack() },
+                                onLoginClick = { navController.navigate("login") } // 목적지를 "login"으로 수정
+                            )
+                        }
+
+                        // ─── Family Certification (수정)
+                        composable("family_certification") {
+                            // 1. 이 화면 전용 ViewModel인 FamilyCertViewModel을 여기서 생성합니다.
+                            val familyCertVm: FamilyCertViewModel = viewModel(
+                                factory = FamilyCertViewModelFactory(RetrofitClient.memberService)
+                            )
+
+                            FamilyCertificationScreen(
+                                // 2. 생성한 두 ViewModel 인스턴스를 모두 전달합니다.
+                                signupViewModel = signupVm,
+                                familyCertViewModel = familyCertVm,
+
+                                // 3. '확인' 버튼의 로직을 여기에 정의합니다.
+                                //    ViewModel들로부터 필요한 모든 정보를 수집하여 다음 화면으로 전달합니다.
+                                onConfirm = {
+                                    val userNum = signupVm.createdUserNum ?: 0
+                                    val userId = signupVm.createdUserId ?: ""
+
+                                    // --- 수정 ---
+                                    // 1. ViewModel의 현재 searchState 값을 가져옴
+                                    val currentSearchState = familyCertVm.searchState.value
+
+                                    // 2. searchState가 Success 상태일 때만 seniorNum을 추출.
+                                    val seniorNum = if (currentSearchState is SearchState.Success) {
+                                        currentSearchState.senior.userNum
+                                    } else {
+                                        0 // 또는 다른 오류 처리
+                                    }
+
+                                    navController.navigate("auth_loading/$userNum/${Uri.encode(userId)}/$seniorNum")
+                                },
+
+                                // 4. 테스트 버튼 로직도 깔끔하게 정리합니다.
+                                onTestConfirm = {
+                                    val testUserNum = 47
+                                    val testUserId = "박지성"
+                                    val testSeniorNum = 50
+                                    navController.navigate("auth_loading/$testUserNum/${Uri.encode(testUserId)}/$testSeniorNum")
+                                }
+                            )
+                        }
+
+                        // ─── 인증 상태 로딩 화면 (수정)
+                        composable(
+                            // family_certification에서 인자 전달해줌
+                            // 경로가 3개의 인자를 모두 받을 수 있도록 수정
+                            route = "auth_loading/{userNum}/{userId}/{seniorNum}",
+                            arguments = listOf(
+                                navArgument("userNum") { type = NavType.IntType },
+                                navArgument("userId") { type = NavType.StringType },
+                                navArgument("seniorNum") { type = NavType.IntType } // seniorNum 인자 추가
+                            )
+                        ) { backStackEntry ->
+                            // 전달받은 인자들을 모두 꺼내서 AuthLoadingScreen에 전달
+                            val userNum = backStackEntry.arguments?.getInt("userNum") ?: 0
+                            val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0 // seniorNum 추출
+
+                            AuthLoadingScreen(
+                                navController = navController,
+                                userNum = userNum,
+                                userId = userId,
+                                seniorNum = seniorNum // AuthLoadingScreen에 전달
+                            )
+                        }
+
+                        // ─── Senior Info (수정)
+                        // seniorNum을 인자로 받는 새로운 경로로 정의
+                        composable(
+                            route = "senior_profile/{seniorNum}",
+                            arguments = listOf(
+                                navArgument("seniorNum") { type = NavType.IntType }
+                            )
+                        ) { backStackEntry ->
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0
+
+                            // 1단계에서 만든 ViewModel과 Factory 사용
+                            val seniorViewModel: SeniorProfileViewModel = viewModel(
+                                factory = SeniorProfileViewModelFactory(RetrofitClient.memberService)
+                            )
+
+                            // 화면이 나타날 때 API 호출 실행
+                            LaunchedEffect(key1 = seniorNum) {
+                                if (seniorNum > 0) {
+                                    seniorViewModel.fetchSeniorProfile(seniorNum)
+                                }
+                            }
+
+                            SeniorInfoScreen(
+                                viewModel = seniorViewModel,
+                                onConfirm = {
+                                    navController.navigate("signup")
+                                }
+                            )
+                        }
+
+                        //                        // ─── Guardian 회원가입
+//                        composable("guardian_signup") {
+//                            val state by signupVm.state.collectAsState()
+//                            SignupScreen(
+//                                viewModel = signupVm,
+//                                onSignupSuccess = {
+//                                    val newUserId = signupVm.lastUserId
+//                                    navController.navigate("loadingScreen/$newUserId") {
+//                                        popUpTo("guardian_signup") { inclusive = true }
+//                                    }
+//                                }
+//                            )
+//                            if (state is SignupResult.Error) {
+//                                Toast.makeText(
+//                                    this@MainActivity,
+//                                    (state as SignupResult.Error).reason,
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                            }
+//                        }
+
 
                         // ─── Main (인자(userNum, userId) 전달 버전)
                         composable(
@@ -484,107 +687,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── FindIdScreen
-                        composable("find_id") {
-                            val findIdVm: FindIdViewModel = viewModel()
-                            FindIdScreen(
-                                viewModel = findIdVm,
-                                onIdFound = {
-                                    navController.popBackStack()
-                                },
-                                onLoginClick = { navController.navigate("login") }
-                            )
-                        }
 
-                        // ─── Guardian_FindIdScreen
-                        composable("guardian_find_id") {
-                            val findIdVm: FindIdViewModel = viewModel()
-                            Guardian_FindIdScreen(
-                                viewModel = findIdVm,
-                                onIdFound = {
-                                    navController.popBackStack()
-                                },
-                                onLoginClick = { navController.navigate("guardian") }
-                            )
-                        }
-
-                        // 가족관계 증명서 업로드 단계 이후에는 조건에 따른 로딩 화면이 나와야하므로 수정필요!
-                        // ─── Family Certification
-//                        composable("family_certification") {
-//                            FamilyCertificationScreen(
-//                                onConfirm = {
-//                                    navController.navigate("senior_info")
-//                                }
-//                            )
-//                        }
-
-                        // ─── Family Certification (수정)
-                        composable("family_certification") {
-                            FamilyCertificationScreen(
-                                onConfirm = { userNum, userId, seniorNum ->
-                                    // 어르신 정보 확인과 업로드가 모두 완료된 경우
-                                    navController.navigate("auth_loading/$userNum/${Uri.encode(userId)}/$seniorNum")
-                                },
-                                onTestConfirm = { userNum, userId, seniorNum ->
-                                    // 테스트용 임시버튼 - 조건 없이 바로 이동
-                                    navController.navigate("auth_loading/$userNum/${Uri.encode(userId)}/$seniorNum")
-                                }
-                            )
-                        }
-
-                        // ─── 인증 상태 로딩 화면 (수정)
-                        composable(
-                            // family_certification에서 인자 전달해줌
-                            // 경로가 3개의 인자를 모두 받을 수 있도록 수정
-                            route = "auth_loading/{userNum}/{userId}/{seniorNum}",
-                            arguments = listOf(
-                                navArgument("userNum") { type = NavType.IntType },
-                                navArgument("userId") { type = NavType.StringType },
-                                navArgument("seniorNum") { type = NavType.IntType } // seniorNum 인자 추가
-                            )
-                        ) { backStackEntry ->
-                            // 전달받은 인자들을 모두 꺼내서 AuthLoadingScreen에 전달
-                            val userNum = backStackEntry.arguments?.getInt("userNum") ?: 0
-                            val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
-                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0 // seniorNum 추출
-
-                            AuthLoadingScreen(
-                                navController = navController,
-                                userNum = userNum,
-                                userId = userId,
-                                seniorNum = seniorNum // AuthLoadingScreen에 전달
-                            )
-                        }
-
-                        // ─── Senior Info (수정)
-                        // seniorNum을 인자로 받는 새로운 경로로 정의
-                        composable(
-                            route = "senior_profile/{seniorNum}",
-                            arguments = listOf(
-                                navArgument("seniorNum") { type = NavType.IntType }
-                            )
-                        ) { backStackEntry ->
-                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0
-
-                            // 1단계에서 만든 ViewModel과 Factory 사용
-                            val seniorViewModel: SeniorProfileViewModel = viewModel(
-                                factory = SeniorProfileViewModelFactory(RetrofitClient.memberService)
-                            )
-
-                            // 화면이 나타날 때 API 호출 실행
-                            LaunchedEffect(key1 = seniorNum) {
-                                if (seniorNum > 0) {
-                                    seniorViewModel.fetchSeniorProfile(seniorNum)
-                                }
-                            }
-
-                            SeniorInfoScreen(
-                                viewModel = seniorViewModel,
-                                onConfirm = {
-                                    navController.navigate("signup")
-                                }
-                            )
-                        }
                         }
                     }
                 }
