@@ -27,7 +27,7 @@ object RetrofitClient {
     // 4) 공통 Retrofit 인스턴스
     private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
-        .client(client)
+        .client(client)                                  // <-- 로깅 클라이언트
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
 
@@ -44,5 +44,15 @@ object RetrofitClient {
 
     val talkApi: TalkApi by lazy { retrofit.create(TalkApi::class.java) }
 
+    private fun toAbsoluteUrl(path: String?): String? {
+        if (path.isNullOrBlank()) return null
+        return if (path.startsWith("http")) path
+        else RetrofitClient.apiBaseUrl + path.removePrefix("/")
+    }
+
+
+    // 외부에서 사용할 수 있도록 공개 getter
+    val apiBaseUrl: String
+        get() = BASE_URL
 
 }

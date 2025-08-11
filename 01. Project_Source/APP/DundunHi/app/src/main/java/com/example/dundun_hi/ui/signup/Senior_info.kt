@@ -40,7 +40,7 @@ fun SeniorInfoScreen(
         // 2. 화면 상단에 일관된 타이틀 블록 추가
         Text("든든하이", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
-        Text("어르신 정보", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
+        Text("어르신 정보", fontSize = 50.sp, fontWeight = FontWeight.ExtraBold)
         Spacer(Modifier.height(32.dp))
 
         if (isLoading) {
