@@ -82,7 +82,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 스플래시 화면이 표시되는 동안 하얀 배경 설정
         window.setBackgroundDrawableResource(android.R.color.white)
 
         // ── 위치 권한 요청 (registerForActivityResult 방식) ─────────────────────────────────────────
