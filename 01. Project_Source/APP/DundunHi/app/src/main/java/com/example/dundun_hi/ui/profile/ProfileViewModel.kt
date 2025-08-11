@@ -22,6 +22,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+
 class ProfileViewModel(
     private val repository: UserRepository,
     private val userNum: Int,
@@ -32,11 +33,16 @@ class ProfileViewModel(
         private const val TAG = "ProfileViewModel"
     }
 
-    private fun profileUrlOf(userNum: Int) =
-        "${RetrofitClient.apiBaseUrl}profile/$userNum"
+    /** 업로드/클리어 직후 한 번만 갱신되는 캐시버스트 토큰 */
+    private var cacheBustToken: String? = null
 
-    private val appPrefs: SharedPreferences? =
-        context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    /** 화면 표시는 항상 down/profile/{id} 규칙 + (선택)v=토큰 */
+    private fun profileUrlStable(): String {
+        val base = RetrofitClient.apiBaseUrl.let { if (it.endsWith("/")) it else "$it/" }
+        val url = "${base}down/profile/$userNum"
+        return cacheBustToken?.let { "$url?v=$it" } ?: url
+    }
+
 
     val userNumber: Int get() = userNum
     val userConditionString: String get() = if (userCondition) "1" else "0"
@@ -60,6 +66,33 @@ class ProfileViewModel(
     var userType by mutableStateOf<Int?>(null)
         private set
 
+    // 이 두 줄을 ProfileViewModel에 추가
+    var imageVersion by mutableStateOf(0L)
+        private set
+
+    // 필드
+    private val appPrefs: SharedPreferences? =
+        context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    private val imgVerKey = "profile_img_ver_$userNum"
+
+    // init에서 토큰 복원
+    init {
+        cacheBustToken = appPrefs?.getString(imgVerKey, null)
+        fetchUserFromServer()
+    }
+
+    // 토큰 갱신 시 저장
+    private fun bumpImageVersion() {
+        cacheBustToken = System.currentTimeMillis().toString()
+        appPrefs?.edit()?.putString(imgVerKey, cacheBustToken)?.apply()
+
+        userProfileImg = profileUrlStable()
+        imageVersion = System.currentTimeMillis() // 이 줄 추가!
+
+        Log.d(TAG, "이미지 버전 업데이트: $imageVersion, URL: $userProfileImg")
+    }
+
+
     init {
         Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
         fetchUserFromServer()
@@ -79,8 +112,8 @@ class ProfileViewModel(
                 userCondition = (response.userCondition == 1)
                 userType      = response.userType
 
-                // 화면 표시는 고정 규칙
-                userProfileImg = profileUrlOf(userNum)
+                // 캐시버스트 토큰이 있으면 유지한 채로 URL 구성
+                userProfileImg = profileUrlStable()
             } catch (e: Exception) {
                 Log.e(TAG, "fetchUserFromServer 오류", e)
                 errorMessage = e.message ?: "알 수 없는 오류"
@@ -110,7 +143,9 @@ class ProfileViewModel(
 
             if (res.isSuccessful) {
                 Log.d(TAG, "이미지 클리어 성공")
-                userProfileImg = profileUrlOf(userNumber)
+                // 토큰 갱신 → 즉시 새 URL
+                bumpImageVersion()
+                userProfileImg = profileUrlStable()
                 onResult(true, null)
             } else {
                 Log.e(TAG, "이미지 클리어 실패: ${res.code()} - ${res.message()}")
@@ -137,7 +172,6 @@ class ProfileViewModel(
                 // 1) 파일 준비 (cache에 복사)
                 val input = ctx.contentResolver.openInputStream(uri)
                     ?: return@launch onResult(false, "파일을 열 수 없습니다.")
-
                 val temp = File(ctx.cacheDir, "senior_${System.currentTimeMillis()}.jpg")
                 temp.outputStream().use { output -> input.copyTo(output) }
 
@@ -157,12 +191,12 @@ class ProfileViewModel(
                     return@launch onResult(false, errorMsg)
                 }
 
-                val uploadedUrl = body.path!!
-                Log.d(TAG, "업로드 성공, 받은 path: $uploadedUrl")
+                val uploadedPath = body.path!! // e.g., "profile/profile_*.jpg"
+                Log.d(TAG, "업로드 성공, 받은 path: $uploadedPath")
 
                 // 3) DB에 업로드된 경로 저장
-                Log.d(TAG, "프로필 업데이트 시작: userNum=$userNum, path=$uploadedUrl")
-                val updateData = mapOf("user_profile_img" to uploadedUrl)
+                Log.d(TAG, "프로필 업데이트 시작: userNum=$userNum, path=$uploadedPath")
+                val updateData = mapOf("user_profile_img" to uploadedPath)
                 val putRes = memberService.updateProfilePartial(userNum, updateData)
 
                 if (!putRes.isSuccessful) {
@@ -174,10 +208,11 @@ class ProfileViewModel(
 
                 Log.d(TAG, "프로필 업데이트 성공")
 
-                // 4) 화면 표시는 고정 규칙 (또는 실제 업로드된 URL 사용)
-                userProfileImg = profileUrlOf(userNum)
-                onResult(true, null)
+                // 4) 즉시 반영: 토큰 갱신 + URL 재세팅
+                bumpImageVersion()
+                userProfileImg = profileUrlStable()
 
+                onResult(true, null)
             } catch (e: Exception) {
                 Log.e(TAG, "이미지 업로드 예외", e)
                 onResult(false, "이미지 업로드 오류: ${e.message}")
