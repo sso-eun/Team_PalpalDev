@@ -174,7 +174,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── Home
+                        // ─── Home // 수정
                         composable("home") {
                             HomeScreen(
                                 onLoginClick   = { navController.navigate("login") },
@@ -182,6 +182,7 @@ class MainActivity : ComponentActivity() {
                                 onGuardianClick = { navController.navigate("guardian") }
                             )
                         }
+
 
                         // ─── Login
                         composable("login") {
