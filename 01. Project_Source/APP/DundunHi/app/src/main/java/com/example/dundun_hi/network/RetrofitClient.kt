@@ -44,5 +44,15 @@ object RetrofitClient {
 
     val talkApi: TalkApi by lazy { retrofit.create(TalkApi::class.java) }
 
+    private fun toAbsoluteUrl(path: String?): String? {
+        if (path.isNullOrBlank()) return null
+        return if (path.startsWith("http")) path
+        else RetrofitClient.apiBaseUrl + path.removePrefix("/")
+    }
+
+
+    // 외부에서 사용할 수 있도록 공개 getter
+    val apiBaseUrl: String
+        get() = BASE_URL
 
 }

@@ -300,6 +300,7 @@ class MainActivity : ComponentActivity() {
 
                             // ProfileViewModel의 상태를 실시간으로 관찰
                             val userProfileImg by remember { derivedStateOf { profileViewModel.userProfileImg } }
+                            val currentUserNum by remember { derivedStateOf { profileViewModel.userNumber } } // ✅ userNum → userNumber로 변경
 
                             // 날씨 상태 가져오기
                             val weatherState by weatherVM.uiState.collectAsState()
@@ -316,7 +317,8 @@ class MainActivity : ComponentActivity() {
                             MainScreen(
                                 profileViewModel = profileViewModel,
                                 userName = "${userId}님",
-                                userProfileImg = userProfileImg,
+                                userProfileImg = userProfileImg, // ProfileViewModel에서 가져온 정확한 값
+                                userNum = currentUserNum, // ProfileViewModel.userNumber에서 가져온 정확한 값
                                 temperature = weatherData?.currentTempInt ?: 0,
                                 highTemp = weatherData?.maxTempInt ?: 0,
                                 lowTemp = weatherData?.minTempInt ?: 0,
@@ -324,7 +326,7 @@ class MainActivity : ComponentActivity() {
                                 precipitationType = 0,
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
-                                onCameraPageClick = { navController.navigate("camera/$userNum")},
+                                onCameraPageClick = { navController.navigate("camera/$currentUserNum") },
                                 onMapPageClick = { navController.navigate("map") },
                                 onFindCultureCenter = {
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.cjmh.or.kr/study.html"))
@@ -333,8 +335,8 @@ class MainActivity : ComponentActivity() {
                                 onKioskPageClick = { navController.navigate("kiosk") },
                                 onProfileClick = {
                                     when (profileViewModel.userType) {
-                                        1 -> navController.navigate("guardian_profile/$userNum")
-                                        else -> navController.navigate("profile/$userNum/${Uri.encode(userId)}")
+                                        1 -> navController.navigate("guardian_profile/$currentUserNum")
+                                        else -> navController.navigate("profile/$currentUserNum/${Uri.encode(userId)}")
                                     }
                                 }
                             )

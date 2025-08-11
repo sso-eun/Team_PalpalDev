@@ -62,6 +62,7 @@ enum class PrecipitationType(val code: Int, val iconRes: Int) {
 fun MainScreen(
     userName: String,
     userProfileImg: String = "",
+    userNum: Int, // userNum 파라미터 추가
     temperature: Int,
     highTemp: Int,
     lowTemp: Int,
@@ -77,6 +78,15 @@ fun MainScreen(
     profileViewModel: ProfileViewModel
 ) {
     val context = LocalContext.current
+
+    // 프로필 이미지 URL 생성 (user_num 기반)
+    val profileImageUrl = remember(userNum) {
+        if (userNum > 0) {
+            "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/down/profile/$userNum"
+        } else {
+            ""
+        }
+    }
 
     // 오늘 날짜를 기준으로 억제 상태 관리
     val today = remember {
@@ -143,8 +153,8 @@ fun MainScreen(
     }
 
     // 프로필 이미지 로딩 상태 추적
-    LaunchedEffect(userProfileImg) {
-        Log.d("MainScreen", "프로필 이미지 업데이트: $userProfileImg")
+    LaunchedEffect(profileImageUrl) {
+        Log.d("MainScreen", "프로필 이미지 업데이트: $profileImageUrl")
     }
 
     Column(
@@ -177,10 +187,10 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 프로필 이미지
-                if (userProfileImg.isNotEmpty()) {
+                // 프로필 이미지 (userNum 기반 URL 사용)
+                if (profileImageUrl.isNotEmpty()) {
                     AsyncImage(
-                        model = userProfileImg,
+                        model = profileImageUrl,
                         contentDescription = "프로필 사진",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -340,6 +350,7 @@ fun MainScreen(
                     .fillMaxWidth()
                     .background(LightGray, RoundedCornerShape(8.dp))
                     .clickable { action() }
+                    .padding(vertical = 12.dp, horizontal = 16.dp)
                     .padding(vertical = 12.dp, horizontal = 16.dp)
             )
             if (index == 0) Spacer(modifier = Modifier.height(12.dp))
