@@ -1,6 +1,7 @@
 package com.example.dundun_hi.network
 
 import com.example.dundun_hi.data.CertListResponse
+import com.example.dundun_hi.data.DateListResponse
 import com.example.dundun_hi.data.FindIdRequest
 import com.example.dundun_hi.data.FindIdResponse
 import com.example.dundun_hi.data.LoginRequest
@@ -61,6 +62,10 @@ interface MemberService {
     @POST("/date/setdate")
     suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
 
+    // 일정 조회 (get_date_list)
+    @GET("/date/getdate/{user_num}")
+    suspend fun getDateList(@Path("user_num") userNum: Int): retrofit2.Response<DateListResponse>
+
     @POST("/member/fcm_token")
     suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
 
@@ -70,6 +75,7 @@ interface MemberService {
         @Query("limit") limit: Int
     ): Response<CertListResponse> //
 
+    @PUT("member/profile/{user_num}")
     suspend fun updateProfilePartial(
         @Path("user_num") userNum: Int,
         @Body body: Map<String, @JvmSuppressWildcards Any?>
