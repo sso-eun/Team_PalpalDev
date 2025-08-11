@@ -70,7 +70,6 @@ interface MemberService {
         @Query("limit") limit: Int
     ): Response<CertListResponse> //
 
-    @PUT("member/profile/{user_num}")
     suspend fun updateProfilePartial(
         @Path("user_num") userNum: Int,
         @Body body: Map<String, @JvmSuppressWildcards Any?>
