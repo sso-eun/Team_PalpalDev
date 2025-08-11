@@ -68,6 +68,12 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.example.dundun_hi.model.CallShortcut
 import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import com.example.dundun_hi.ui.guardianProfile.GuardianProfileScreen
+import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModel
+import com.example.dundun_hi.ui.guardianProfile.GuardianProfileViewModelFactory
+import com.example.dundun_hi.ui.guardianProfile.GuardianUpdateProfileScreen
+import com.example.dundun_hi.ui.guardianProfile.SeniorEditScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -184,6 +190,28 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 vm = loginVm,
                                 onLoginSuccess = { userNumStr, userId ->
+                                    // SharedPreferences에 확실히 저장
+                                    val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+
+                                    // 먼저 기존 데이터 확인
+                                    val existingUserNum = sharedPreferences.getString("user_num", null)
+                                    android.util.Log.d("MainActivity", "기존 SharedPreferences userNum: $existingUserNum")
+
+                                    // 새 데이터 저장
+                                    val editor = sharedPreferences.edit()
+                                    editor.putString("user_num", userNumStr)
+                                    editor.putString("user_id", userId)
+                                    editor.putString("user_type", "0") // 시니어는 0
+
+                                    val saveSuccess = editor.commit() // apply() 대신 commit() 사용하여 동기적 저장
+
+                                    android.util.Log.d("MainActivity", "SharedPreferences 저장 결과: $saveSuccess")
+                                    android.util.Log.d("MainActivity", "저장된 값 - userNum: $userNumStr, userId: $userId, userType: 0")
+
+                                    // 저장 후 즉시 확인
+                                    val savedUserNum = sharedPreferences.getString("user_num", "not_found")
+                                    android.util.Log.d("MainActivity", "저장 후 확인된 userNum: $savedUserNum")
+
                                     navController.navigate("main/$userNumStr/${Uri.encode(userId)}") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -226,7 +254,22 @@ class MainActivity : ComponentActivity() {
                         // ─── Guardian 로그인
                         composable("guardian") {
                             GuardianScreen(
-                                onSubmit = { _, _ -> },
+                                onSubmit = { userNumStr, userId ->
+                                    // 가디언 로그인 시에도 SharedPreferences 저장
+                                    val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                    val editor = sharedPreferences.edit()
+                                    editor.putString("user_num", userNumStr)
+                                    editor.putString("user_id", userId)
+                                    editor.putString("user_type", "1") // 가디언은 1
+                                    val saveSuccess = editor.commit()
+
+                                    android.util.Log.d("MainActivity", "가디언 로그인 - SharedPreferences 저장 결과: $saveSuccess")
+                                    android.util.Log.d("MainActivity", "저장된 값 - userNum: $userNumStr, userId: $userId, userType: 1")
+
+                                    navController.navigate("guardian_profile/$userNumStr") {
+                                        popUpTo("guardian") { inclusive = true }
+                                    }
+                                },
                                 onSignupClick = { navController.navigate("auth") },
                                 onGuardianFindIdClick = { navController.navigate("guardian_find_id") }
                             )
@@ -277,6 +320,16 @@ class MainActivity : ComponentActivity() {
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
                             val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
 
+                            // Main 화면에서도 SharedPreferences 업데이트 (보장)
+                            LaunchedEffect(userNum, userId) {
+                                val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                val editor = sharedPreferences.edit()
+                                editor.putString("user_num", userNum.toString())
+                                editor.putString("user_id", userId)
+                                val saveSuccess = editor.commit()
+                                android.util.Log.d("MainActivity", "Main화면 - SharedPreferences 업데이트: $saveSuccess")
+                            }
+
                             // ProfileViewModel 생성
                             val repository: UserRepository = RealUserRepository()
                             val profileViewModel: ProfileViewModel = viewModel(
@@ -287,14 +340,14 @@ class MainActivity : ComponentActivity() {
                             LaunchedEffect(Unit) {
                                 profileViewModel.fetchUserFromServer()
                             }
-                            
+
                             // ProfileViewModel의 상태를 실시간으로 관찰
                             val userProfileImg by remember { derivedStateOf { profileViewModel.userProfileImg } }
-                            
+
                             // 날씨 상태 가져오기
                             val weatherState by weatherVM.uiState.collectAsState()
                             val weatherData = (weatherState as? WeatherUiState.Success)?.data
-                            
+
                             // sky 값을 weatherState 코드로 변환
                             val weatherStateCode = when (weatherData?.sky?.lowercase()) {
                                 "맑음" -> 1  // SUNNY
@@ -316,16 +369,16 @@ class MainActivity : ComponentActivity() {
                                 onMessagePageClick = { /* TODO */ },
                                 onCameraPageClick = { navController.navigate("camera/$userNum")},
                                 onMapPageClick = { navController.navigate("map") },
-                                onFindCultureCenter = { 
+                                onFindCultureCenter = {
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.cjmh.or.kr/study.html"))
                                     startActivity(intent)
                                 },
                                 onKioskPageClick = { navController.navigate("kiosk") },
-                                onProfileClick = { 
-                                    navController.navigate("profile/$userNum/${Uri.encode(userId)}") {
-                                        launchSingleTop = true
+                                onProfileClick = {
+                                    when (profileViewModel.userType) {
+                                        1 -> navController.navigate("guardian_profile/$userNum")
+                                        else -> navController.navigate("profile/$userNum/${Uri.encode(userId)}")
                                     }
-
                                 }
                             )
                         }
@@ -361,6 +414,92 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable(
+                            route = "guardian_profile/{userNum}",
+                            arguments = listOf(navArgument("userNum") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
+                            val context = LocalContext.current
+
+                            // 실제 리포지토리 생성
+                            val repository = RealUserRepository()
+
+                            // 뷰모델 생성
+                            val guardianViewModel: GuardianProfileViewModel = viewModel(
+                                factory = GuardianProfileViewModelFactory(repository, userNum, context)
+                            )
+
+                            GuardianProfileScreen(
+                                viewModel = guardianViewModel,
+                                onEditSeniorClick = {
+                                    navController.navigate("SeniorEditScreen/$userNum")
+                                },
+                                navController = navController
+                            )
+                        }
+// 네비게이션 그래프에서 파라미터를 명시적으로 정의
+                        composable(
+                            route = "edit_guardian_profile/{guardianUserNum}",
+                            arguments = listOf(navArgument("guardianUserNum") {
+                                type = NavType.IntType
+                                defaultValue = -1  // 기본값 설정
+                            })
+                        ) { backStackEntry ->
+                            val guardianUserNum = backStackEntry.arguments?.getInt("guardianUserNum") ?: -1
+
+                            // -1인 경우 오류 처리
+                            if (guardianUserNum == -1) {
+                                // 오류 화면 표시하거나 이전 화면으로 돌아가기
+                                LaunchedEffect(Unit) {
+                                    navController.popBackStack()
+                                }
+                                return@composable
+                            }
+
+                            val context = LocalContext.current
+                            val repository = RealUserRepository()
+
+                            val guardianViewModel = remember {
+                                GuardianProfileViewModel(repository, guardianUserNum, context)
+                            }
+
+                            GuardianUpdateProfileScreen(
+                                viewModel = guardianViewModel,
+                                userId = guardianViewModel.guardianId,
+                                userNum = guardianUserNum,          // ✅ 추가
+                                onUpdateSuccess = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+
+                        composable("SeniorEditScreen/{userNum}") { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull()
+
+                            // GuardianProfileViewModel을 생성하거나 받아야 함 (중요)
+                            val context = LocalContext.current
+                            val guardianViewModel = remember {
+                                GuardianProfileViewModel(
+                                    repository = RealUserRepository(),
+                                    guardianUserNum = userNum ?: -1,
+                                    context = context
+                                )
+                            }
+
+                            SeniorEditScreen(
+                                viewModel = guardianViewModel,
+                                onSaveSuccess = {
+                                    // 저장 성공 후 이동 (예: 뒤로 가기)
+                                    navController.popBackStack()
+                                },
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+
                         // ─── UpdateProfileScreen
                         composable(
                             route = "update_profile/{userNum}/{userId}",
@@ -387,6 +526,34 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable(
+                            route = "guardian_update_profile/{userNum}",
+                            arguments = listOf(navArgument("userNum") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getInt("userNum") ?: -1
+                            if (userNum == -1) {
+                                //Text("잘못된 파라미터: userNum") // 디버그용
+                                return@composable
+                            }
+
+                            val context = LocalContext.current
+                            val guardianViewModel: GuardianProfileViewModel = viewModel(
+                                factory = GuardianProfileViewModelFactory(
+                                    RealUserRepository(),
+                                    userNum,
+                                    context
+                                )
+                            )
+
+                            GuardianUpdateProfileScreen(
+                                viewModel = guardianViewModel,
+                                userId = guardianViewModel.guardianId,
+                                userNum = userNum,                  // ✅ 추가
+                                onUpdateSuccess = { navController.popBackStack() }
+                            )
+                        }
+
 
                         // ─── UpdatePasswordScreen
                         composable(
@@ -450,7 +617,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-
                         // ─── KioskScreen
                         composable("kiosk") {
                             KioskScreen()
@@ -508,4 +674,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

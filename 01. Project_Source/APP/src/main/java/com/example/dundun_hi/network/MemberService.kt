@@ -1,5 +1,7 @@
 package com.example.dundun_hi.network
 
+import com.example.dundun_hi.data.CertListResponse
+import com.example.dundun_hi.data.DateListResponse
 import com.example.dundun_hi.data.FindIdRequest
 import com.example.dundun_hi.data.FindIdResponse
 import com.example.dundun_hi.data.LoginRequest
@@ -13,7 +15,7 @@ import com.example.dundun_hi.data.UpdateProfileRequest
 import com.example.dundun_hi.data.UpdateProfileResponse
 import com.example.dundun_hi.data.SimpleResponse
 import com.example.dundun_hi.data.SetDateRequest
-import okhttp3.MultipartBody
+import com.example.dundun_hi.data.FcmTokenRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -22,9 +24,12 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 
 interface MemberService {
+
+
     // /member/login 엔드포인트
     @POST("member/login")
     suspend fun login(@Body req: LoginRequest): Response<LoginResponse>
@@ -49,11 +54,31 @@ interface MemberService {
     @POST("/upload/profile/{user_num}")
     suspend fun uploadProfileImage(
         @Path("user_num") userNum: Int,
-        @Part file: MultipartBody.Part
-    ): Response<UpdateProfileResponse>
+        @Part file: okhttp3.MultipartBody.Part
+    ): retrofit2.Response<com.example.dundun_hi.data.SimpleResponse>
+
 
     // 일정 추가 (set_date)
     @POST("/date/setdate")
-    suspend fun setDate(@Body body: SetDateRequest): SimpleResponse
+    suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
+
+    // 일정 조회 (get_date_list)
+    @GET("/date/getdate/{user_num}")
+    suspend fun getDateList(@Path("user_num") userNum: Int): retrofit2.Response<DateListResponse>
+
+    @POST("/member/fcm_token")
+    suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
+
+    @GET("/cert/list")
+    suspend fun getCertList(
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): Response<CertListResponse> //
+
+    @PUT("member/profile/{user_num}")
+    suspend fun updateProfilePartial(
+        @Path("user_num") userNum: Int,
+        @Body body: Map<String, @JvmSuppressWildcards Any?>
+    ): retrofit2.Response<UpdateProfileResponse>
 
 }
