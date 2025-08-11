@@ -22,7 +22,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-
 class ProfileViewModel(
     private val repository: UserRepository,
     private val userNum: Int,
@@ -83,6 +82,7 @@ class ProfileViewModel(
                 // 화면 표시는 고정 규칙
                 userProfileImg = profileUrlOf(userNum)
             } catch (e: Exception) {
+                Log.e(TAG, "fetchUserFromServer 오류", e)
                 errorMessage = e.message ?: "알 수 없는 오류"
             } finally {
                 isLoading = false
@@ -94,6 +94,7 @@ class ProfileViewModel(
     fun setSuppressedDate(date: String) {
         appPrefs?.edit()?.putString("suppressed_date", date)?.apply()
     }
+
     fun getSuppressedDate(): String? {
         return appPrefs?.getString("suppressed_date", null)
     }
@@ -101,20 +102,29 @@ class ProfileViewModel(
     // ---- 이미지 클리어 (기본 이미지로) ----
     fun clearSeniorProfileImage(onResult: (Boolean, String?) -> Unit) = viewModelScope.launch {
         try {
+            Log.d(TAG, "이미지 클리어 시작: userNumber=$userNumber")
             val res = memberService.updateProfilePartial(
                 userNumber,
                 mapOf("user_profile_img" to "")
             )
+
             if (res.isSuccessful) {
+                Log.d(TAG, "이미지 클리어 성공")
                 userProfileImg = profileUrlOf(userNumber)
                 onResult(true, null)
-            } else onResult(false, res.message())
+            } else {
+                Log.e(TAG, "이미지 클리어 실패: ${res.code()} - ${res.message()}")
+                val errorBody = res.errorBody()?.string()
+                Log.e(TAG, "Error body: $errorBody")
+                onResult(false, "이미지 클리어 실패: ${res.message()}")
+            }
         } catch (e: Exception) {
-            onResult(false, e.message)
+            Log.e(TAG, "이미지 클리어 예외", e)
+            onResult(false, "이미지 클리어 오류: ${e.message}")
         }
     }
 
-    // ---- 이미지 업로드 전용 (업로드 → path 그대로 DB 저장) ----
+    // ---- 이미지 업로드 전용 ----
     fun uploadSeniorProfileImage(
         uri: Uri,
         onResult: (Boolean, String?) -> Unit
@@ -122,9 +132,12 @@ class ProfileViewModel(
         val ctx = context ?: return onResult(false, "Context is null")
         viewModelScope.launch {
             try {
+                Log.d(TAG, "이미지 업로드 시작: uri=$uri")
+
                 // 1) 파일 준비 (cache에 복사)
                 val input = ctx.contentResolver.openInputStream(uri)
                     ?: return@launch onResult(false, "파일을 열 수 없습니다.")
+
                 val temp = File(ctx.cacheDir, "senior_${System.currentTimeMillis()}.jpg")
                 temp.outputStream().use { output -> input.copyTo(output) }
 
@@ -132,27 +145,42 @@ class ProfileViewModel(
                 val part = MultipartBody.Part.createFormData("file", temp.name, reqFile)
 
                 // 2) 업로드
+                Log.d(TAG, "파일 업로드 요청: userNum=$userNum")
                 val upRes = memberService.uploadProfileImage(userNum, part)
                 val body = upRes.body()
+
+                Log.d(TAG, "업로드 응답: ${upRes.code()}, body=$body")
+
                 if (!upRes.isSuccessful || body?.rsCode != 200 || body.path.isNullOrBlank()) {
-                    return@launch onResult(false, "업로드 실패: ${body?.message ?: upRes.message()}")
+                    val errorMsg = "업로드 실패: ${body?.message ?: upRes.message()}"
+                    Log.e(TAG, errorMsg)
+                    return@launch onResult(false, errorMsg)
                 }
-                val uploadedUrl = body.path!! // ← 서버 응답의 URL/경로 "그대로"
 
-                // 3) DB에 path 그대로 저장 (Partial)
-                val putRes = memberService.updateProfilePartial(
-                    userNum,
-                    mapOf("user_profile_img" to uploadedUrl)
-                )
+                val uploadedUrl = body.path!!
+                Log.d(TAG, "업로드 성공, 받은 path: $uploadedUrl")
+
+                // 3) DB에 업로드된 경로 저장
+                Log.d(TAG, "프로필 업데이트 시작: userNum=$userNum, path=$uploadedUrl")
+                val updateData = mapOf("user_profile_img" to uploadedUrl)
+                val putRes = memberService.updateProfilePartial(userNum, updateData)
+
                 if (!putRes.isSuccessful) {
-                    return@launch onResult(false, "프로필 업데이트 실패: ${putRes.message()}")
+                    val errorBody = putRes.errorBody()?.string()
+                    val errorMsg = "프로필 업데이트 실패: ${putRes.code()} - ${putRes.message()}"
+                    Log.e(TAG, "$errorMsg, errorBody: $errorBody")
+                    return@launch onResult(false, errorMsg)
                 }
 
-                // 4) 화면 표시는 고정 규칙
+                Log.d(TAG, "프로필 업데이트 성공")
+
+                // 4) 화면 표시는 고정 규칙 (또는 실제 업로드된 URL 사용)
                 userProfileImg = profileUrlOf(userNum)
                 onResult(true, null)
+
             } catch (e: Exception) {
-                onResult(false, e.message)
+                Log.e(TAG, "이미지 업로드 예외", e)
+                onResult(false, "이미지 업로드 오류: ${e.message}")
             }
         }
     }
@@ -167,27 +195,36 @@ class ProfileViewModel(
     ) {
         viewModelScope.launch {
             try {
-                val resp = memberService.updateProfilePartial(
-                    userNum,
-                    mapOf(
-                        "user_tel" to newTel,
-                        "user_home_lat" to newHomeLat.toString(),
-                        "user_home_lot" to newHomeLon.toString(),
-                        "user_condition" to (if (isOuting) "1" else "0")
-                    )
+                Log.d(TAG, "프로필 업데이트 시작 (이미지 제외): userNum=$userNum")
+                Log.d(TAG, "업데이트 데이터: tel=$newTel, lat=$newHomeLat, lon=$newHomeLon, condition=$isOuting")
+
+                val updateData = mapOf(
+                    "user_tel" to newTel,
+                    "user_home_lat" to newHomeLat.toString(),
+                    "user_home_lot" to newHomeLon.toString(),
+                    "user_condition" to (if (isOuting) "1" else "0")
                 )
+
+                val resp = memberService.updateProfilePartial(userNum, updateData)
+
                 if (resp.isSuccessful) {
+                    Log.d(TAG, "프로필 업데이트 성공")
                     // 로컬 상태 갱신
                     userTel = newTel
                     userHomeLat = newHomeLat
                     userHomeLon = newHomeLon
                     userCondition = isOuting
+                    errorMessage = null
                     onSuccess()
                 } else {
-                    errorMessage = resp.message()
+                    val errorBody = resp.errorBody()?.string()
+                    val errorMsg = "프로필 업데이트 실패: ${resp.code()} - ${resp.message()}"
+                    Log.e(TAG, "$errorMsg, errorBody: $errorBody")
+                    errorMessage = errorMsg
                 }
             } catch (e: Exception) {
-                errorMessage = e.message
+                Log.e(TAG, "프로필 업데이트 예외", e)
+                errorMessage = "프로필 업데이트 오류: ${e.message}"
             }
         }
     }
@@ -195,14 +232,14 @@ class ProfileViewModel(
     // ---- 과거 호출 호환: 항상 이미지 제외로 위임 ----
     fun updateProfile(
         newTel: String,
-        newProfileImg: String, // 무시
+        newProfileImg: String, // 무시됨
         newHomeLat: Double,
         newHomeLon: Double,
         isOuting: Boolean,
         onSuccess: () -> Unit
     ) = updateProfileWithoutImage(newTel, newHomeLat, newHomeLon, isOuting, onSuccess)
 
-    // ---- 위치 기반 자동 상태 업데이트(이미지 전송 없음) ----
+    // ---- 위치 기반 자동 상태 업데이트 ----
     fun autoUpdateConditionBasedOnLocation(
         currentLat: Double,
         currentLon: Double,
@@ -213,7 +250,8 @@ class ProfileViewModel(
             val dist = distanceBetweenMeters(userHomeLat, userHomeLon, currentLat, currentLon)
             val shouldBeOuting = (dist > thresholdInMeters)
             if (shouldBeOuting == userCondition) {
-                onResult(false); return@launch
+                onResult(false)
+                return@launch
             }
             updateProfileWithoutImage(
                 newTel = userTel,
@@ -252,9 +290,9 @@ class ProfileViewModel(
         return userHomeLat == 0.0 || userHomeLon == 0.0
     }
 
-    // 미리보기용 훅이더라도 DB엔 영향 주지 않게 no-op 권장
+    // 미리보기용 - 실제로는 아무것도 하지 않음
     fun onProfileImageSelected(uriString: String) {
-        // no-op (이미지는 반드시 uploadSeniorProfileImage()로 처리)
+        // no-op - 실제 업로드는 uploadSeniorProfileImage()로만 처리
     }
 
     fun setHomeLocation(
@@ -278,9 +316,9 @@ class ProfileViewModel(
                 val response = memberService.updateProfile(userNum, request)
                 callback(response.isSuccessful)
             } catch (e: Exception) {
+                Log.e(TAG, "setHomeLocation 오류", e)
                 callback(false)
             }
         }
     }
-
 }
