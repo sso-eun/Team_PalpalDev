@@ -26,6 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
+import com.example.dundun_hi.data.OnboardingManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.BorderStroke
+
 
 @Composable
 fun AuthLoadingScreen(
@@ -44,7 +48,7 @@ fun AuthLoadingScreen(
         viewModel.setUserName(userId)
     }
 
-
+    val context = LocalContext.current
     val status by viewModel.authStatus.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val finalSeniorNum by viewModel.seniorNum.collectAsState()
@@ -59,30 +63,36 @@ fun AuthLoadingScreen(
 
             // Case 0: 확인 중
             0 -> {
-                Text(text = "가족관계 확인 중", fontSize = 40.sp, textAlign = TextAlign.Center)
+                Text(text = "가족관계 확인 중", fontSize = 40.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "시간이 소요될 수 있습니다!", fontSize = 20.sp, color = Color(0xFF1AB277))
-                Spacer(modifier = Modifier.height(24.dp))
-                CircularProgressIndicator()
+
+                Text(
+                    text = "시간이 소요될 수 있습니다!",
+                    fontSize = 28.sp,
+                    color = Color(0xFF1AB277),
+                    fontWeight = FontWeight.Bold
+                )
+                // 로딩표시 - 동글뱅이
+                // Spacer(modifier = Modifier.height(24.dp))
+                // CircularProgressIndicator()
+
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = {
+                        // navController.navigate("main/$userNum/${Uri.encode(userId)}")
+                        navController.navigate("home") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            // popUpTo("auth_loading/{userNum}/{userId}/{seniorNum}") { inclusive = true }
+                        }
+                    },
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
+                    // border = BorderStroke(1.dp, Color.Gray)
+                ) {
+                    Text("메인으로 돌아가기", color = Color.White, fontSize = 18.sp)
+                }
             }
 
-//            // Case 1: 승인 (수정)
-//            1 -> {
-//                Text(text = "$userName 님 환영합니다!", fontSize = 40.sp, textAlign = TextAlign.Center)
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Text(text = "메인 화면으로 이동합니다.", fontSize = 20.sp, color = Color(0xFF1AB277))
-//
-//                // status가 1로 변경되면 3초 후 메인 화면으로 자동 이동
-//                LaunchedEffect(Unit) {
-//                    delay(3000)
-//                    // 로그인 성공 시와 동일하게 main 경로로 userNum과 userId를 전달
-//                    navController.navigate("main/$userNum/${Uri.encode(userId)}") {
-//                        // 로딩 화면은 스택에서 완전히 제거
-//                        popUpTo("auth_loading/{userNum}/{userId}") { inclusive = true }
-//                    }
-//                }
-//            }
 
             // Case 1: 승인 (수정된 디자인)
             1 -> {
@@ -91,7 +101,7 @@ fun AuthLoadingScreen(
                 ) {
                     Text(
                         text = "$userName 님 환영합니다!",
-                        fontSize = 32.sp,
+                        fontSize = 36.sp,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
@@ -100,7 +110,12 @@ fun AuthLoadingScreen(
                     // 확인 버튼
                     Button(
                         onClick = {
-                            navController.navigate("senior_profile/$finalSeniorNum")
+                            // 1. 다음 화면으로 넘어가기 직전에, '온보딩 완료' 상태를 저장합니다.
+                            OnboardingManager.setOnboardingCompleted(context)
+
+                            // 2. 그리고 나서 다음 화면으로 이동합니다.
+                            // navController.navigate("senior_profile/$finalSeniorNum")
+                            navController.navigate("senior_profile/$userNum/${Uri.encode(userId)}/$finalSeniorNum")
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -113,7 +128,7 @@ fun AuthLoadingScreen(
                     ) {
                         Text(
                             text = "어르신 정보 확인하러 가기",
-                            fontSize = 18.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White
                         )
@@ -123,15 +138,42 @@ fun AuthLoadingScreen(
 
             // Case 2: 반려
             2 -> {
-                Text(text = "가족관계 확인이\n반려되었습니다.", fontSize = 40.sp, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "가족관계 확인이\n반려되었습니다.",
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 50.sp
+                )
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // "가족관계확인 페이지로 돌아가기" 버튼
-                Button(onClick = {
-                    // FamilyCertificationScreen으로 돌아감
-                    navController.popBackStack()
-                }) {
-                    Text("가족관계증명서 다시 업로드 하기", color = Color.Red)
+                Button(
+                    onClick = {
+                    // --- popBackStack() 대신 명시적인 경로로 이동 ---
+                    // FamilyCertificationScreen으로 이동하기 위한 경로
+
+                    navController.navigate("family_certification") {
+                        // 이전 로딩 화면은 스택에서 제거
+                        popUpTo("auth_loading/{userNum}/{userId}/{seniorNum}") { inclusive = true }
+                    }
+                    // ---------------------------------------------
+                },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(56.dp),
+                        //.clip(RoundedCornerShape(12.dp)),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1AB277)
+                        ),
+                        shape = RoundedCornerShape(28.dp)
+                ){
+                    Text(
+                        "가족관계증명서 다시 업로드 하기",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        // fontWeight = FontWeight.Medium,
+                        )
                 }
             }
             // null: 초기 로딩 상태

@@ -15,6 +15,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.example.dundun_hi.data.OnboardingManager
+
+
 // ViewModel이 UI에게 전달할 내비게이션 상태 정의
 sealed class LoginResult {
     object Idle : LoginResult()
@@ -24,9 +29,12 @@ sealed class LoginResult {
     data class Error(val message: String) : LoginResult()
 }
 
+// ViewModel을 AndroidViewModel로 변경하고 Application을 받도록 수정
 class LoginViewModel(
+    // Application context를 받음
+    application: Application,
     private val repo: SignupRepository = SignupRepository()
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _loginResult = MutableStateFlow<LoginResult>(LoginResult.Idle)
     val loginResult = _loginResult.asStateFlow()
@@ -45,11 +53,12 @@ class LoginViewModel(
                 // 1. 로그인 API 호출
                 val loginResponse = RetrofitClient.memberService.login(LoginRequest(name, phone))
                 if (loginResponse.isSuccessful && loginResponse.body() != null) {
+
+
                     val loginData = loginResponse.body()!!
                     val userNum = loginData.userNum.toIntOrNull() ?: 0
+                    val userType = loginData.userType                   // 중요: API가 user_type을 반환한다고 가정
 
-                    // 중요: API가 user_type을 반환한다고 가정
-                    val userType = loginData.userType
 
                     if (userNum == 0) {
                         _loginResult.value = LoginResult.Error("사용자 정보를 찾을 수 없습니다.")
@@ -57,13 +66,28 @@ class LoginViewModel(
                     }
 
                     // 2. user_type에 따라 분기
-                    if (userType == 1) { // 보호자인 경우
-                        // 3. 이어서 가족 인증 상태 조회
+                    // 보호자인 경우
+                    if (userType == 1) {
                         val authStatusResponse = RetrofitClient.memberService.getAuthStatusByGuardianNo(userNum)
                         if (authStatusResponse.isSuccessful && authStatusResponse.body() != null) {
                             val authData = authStatusResponse.body()!!
-                            // 대기, 승인, 반려 상태 모두 로딩화면으로 보내서 처리
-                            _loginResult.value = LoginResult.GoToAuthLoading(userNum, name, authData.seniorNum)
+
+                            // --- 여기가 핵심적인 변경 부분입니다 ---
+                            if (authData.status == 1) { // 인증이 승인된 상태라면
+                                // 1. OnboardingManager를 통해 완료 여부를 확인
+                                val hasCompleted = OnboardingManager.hasCompletedOnboarding(getApplication())
+
+                                if (hasCompleted) {
+                                    // 2. 이미 완료했다면, 바로 메인 화면으로 보냄
+                                    _loginResult.value = LoginResult.GoToMain(userNum, name)
+                                } else {
+                                    // 3. 아직 완료하지 않았다면, 온보딩을 위해 AuthLoadingScreen으로 보냄
+                                    _loginResult.value = LoginResult.GoToAuthLoading(userNum, name, authData.seniorNum)
+                                }
+                            } else { // 대기(0) 또는 반려(2) 상태
+                                _loginResult.value = LoginResult.GoToAuthLoading(userNum, name, authData.seniorNum)
+                            }
+                            // ------------------------------------------
                         } else {
                             // 인증 기록이 없는 보호자는 메인으로
                             _loginResult.value = LoginResult.GoToMain(userNum, name)

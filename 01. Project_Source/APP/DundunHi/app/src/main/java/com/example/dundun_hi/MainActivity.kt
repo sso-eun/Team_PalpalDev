@@ -95,7 +95,8 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dundun_hi.ui.login.LoginViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -208,11 +209,19 @@ class MainActivity : ComponentActivity() {
                                 onSignupClick = { navController.navigate("signup_entry") }
                             )
                         }
+                        // 25-08-11 수정 ------------------------------------------------------
                         // ─── 통합 Login (수정)
+                        // LoginViewModel은 LoginScreen 내부에서 생성되거나 상위에서 주입받음
                         composable("login") {
-                            // LoginViewModel은 LoginScreen 내부에서 생성되거나 상위에서 주입받습니다.
+
+                            // Factory를 사용하여 LoginViewModel을 올바르게 생성
+                            val loginVm: LoginViewModel = viewModel(
+                                factory = LoginViewModelFactory(application = this@MainActivity.application)
+                            )
+                            // 생성된 ViewModel 인스턴스를 LoginScreen에 전달
                             LoginScreen(
                                 navController = navController,
+                                vm = loginVm,
                                 onFindIdClick = { navController.navigate("find_id") },
                                 onSignupClick = { navController.navigate("signup_entry") } // 회원가입 화면으로
                             )
@@ -269,36 +278,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── 회원가입 입구 (시니어가 디폴트)
-//                        composable("signup_entry") {
-//                            // 생성해둔 signupVm 인스턴스를 전달
-//                            CombinedAuthScreen(
-//                                viewModel = signupVm,
-//                                userType = 0, // 시니어
-//                                onNext = { navController.navigate("senior_final_signup") },
-//                                bottomContent = { /* ... */ }
-//                            )
-//                        }
-//
-//
-//                        // ─── 보호자 전용 본인 인증
-//                        composable("guardian_auth") {
-//                            // 여기서도 동일한 signupVm 인스턴스를 전달
-//                            CombinedAuthScreen(
-//                                viewModel = signupVm,
-//                                userType = 1, // 보호자
-//                                onNext = { navController.navigate("family_certification") },
-//                            )
-//                        }
-
-//                        // ─── Combined Auth (선택적)
-//                        composable("auth") {
-//                            CombinedAuthScreen(
-//                                viewModel = signupVm,
-//                                onNext = { navController.navigate("family_certification") }
-//                            )
-//                        }
-
                         // ─── 시니어 최종 Signup
                         composable("senior_final_signup") {
                             val state by signupVm.state.collectAsState()
@@ -319,7 +298,6 @@ class MainActivity : ComponentActivity() {
                                 ).show()
                             }
                         }
-
 
 
                         // ─── LoadingScreen (시니어 회원가입 직후 로딩 화면)
@@ -422,15 +400,20 @@ class MainActivity : ComponentActivity() {
                                 seniorNum = seniorNum // AuthLoadingScreen에 전달
                             )
                         }
-
+                        // ───25-08-11 수정────────────────────────────────────────────────
                         // ─── Senior Info (수정)
                         // seniorNum을 인자로 받는 새로운 경로로 정의
                         composable(
-                            route = "senior_profile/{seniorNum}",
+                            // 1. 경로가 guardianNum, guardianId, seniorNum을 모두 받도록 수정
+                            route = "senior_profile/{guardianNum}/{guardianId}/{seniorNum}",
                             arguments = listOf(
-                                navArgument("seniorNum") { type = NavType.IntType }
+                                navArgument("seniorNum") { type = NavType.IntType },
+                                navArgument("guardianNum") { type = NavType.IntType },
+                                navArgument("guardianId") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
+                            val guardianNum = backStackEntry.arguments?.getInt("guardianNum") ?: 0
+                            val guardianId = backStackEntry.arguments?.getString("guardianId")?.let { Uri.decode(it) } ?: ""
                             val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0
 
                             // 1단계에서 만든 ViewModel과 Factory 사용
@@ -445,14 +428,20 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
+                            // 온보딩 - 수정 진행
                             SeniorInfoScreen(
                                 viewModel = seniorViewModel,
                                 onConfirm = {
-                                    navController.navigate("signup")
+                                    navController.navigate("main/$guardianNum/${Uri.encode(guardianId)}") {
+                                        // 이전의 모든 화면을 스택에서 제거
+                                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                    }
                                 }
+//                                onConfirm = {
+//                                    navController.navigate("senior_final_signup")
+//                                }
                             )
                         }
-
                         //                        // ─── Guardian 회원가입
 //                        composable("guardian_signup") {
 //                            val state by signupVm.state.collectAsState()
