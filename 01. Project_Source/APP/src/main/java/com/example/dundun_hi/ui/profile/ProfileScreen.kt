@@ -77,15 +77,17 @@ fun ProfileScreen(
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
+    val userType by remember { derivedStateOf { viewModel.userType } }
+    val seniorUserNum by remember { derivedStateOf { viewModel.seniorUserNum } }
 
     // 오늘 날짜의 알림만 필터링
-    val today = remember { 
+    val today = remember {
         SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
     }
-    
+
     // AlertRepository의 알림 목록을 관찰
     val alerts by remember { derivedStateOf { alertRepository.alertList } }
-    
+
     // 오늘 날짜의 알림만 필터링
     val todayAlerts = remember(alerts) {
         alerts.filter { it.date == today }
@@ -146,7 +148,7 @@ fun ProfileScreen(
                             contentDescription = "기본 프로필",
                             tint = Color.White,
                             modifier = Modifier.size(48.dp)
-                    )
+                        )
                     }
                 } else {
                     AsyncImage(
@@ -250,8 +252,8 @@ fun ProfileScreen(
                         color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = if (userCondition) "외출중이에요" else "집에 있어요",
+                    Text(
+                        text = if (userCondition) "외출중이에요" else "집에 있어요",
                         fontSize = 22.sp,
                         color = if (userCondition) Color(0xFF2196F3) else Color(0xFF1AB277),
                         fontWeight = FontWeight.Bold
@@ -300,7 +302,7 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "일정 관리",
+                            text = if (userType == 1 && seniorUserNum != null) "시니어 일정 관리" else "일정 관리",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -311,7 +313,7 @@ fun ProfileScreen(
                         tint = Color(0xFF2196F3),
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable { 
+                            .clickable {
                                 navController.navigate("alarm")
                             }
                     )
@@ -329,7 +331,7 @@ fun ProfileScreen(
                     if (todayAlerts.isEmpty()) {
                         // 오늘의 알림이 없을 경우
                         Text(
-                            text = "오늘의 알림이 없습니다.",
+                            text = if (userType == 1 && seniorUserNum != null) "오늘의 시니어 일정이 없습니다." else "오늘의 알림이 없습니다.",
                             fontSize = 22.sp,
                             color = Color.Gray,
                             modifier = Modifier.padding(vertical = 8.dp)

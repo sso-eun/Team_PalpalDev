@@ -1,14 +1,13 @@
 package com.example.dundun_hi.network
 
 import com.google.gson.GsonBuilder
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://dundunhi.onrender.com/"
+    private const val BASE_URL = "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/"
 
     // 1) 로깅 인터셉터 설정
     private val logging = HttpLoggingInterceptor().apply {
@@ -45,5 +44,15 @@ object RetrofitClient {
 
     val talkApi: TalkApi by lazy { retrofit.create(TalkApi::class.java) }
 
+    // DateService는 제거 (MemberService 사용)
 
+    private fun toAbsoluteUrl(path: String?): String? {
+        if (path.isNullOrBlank()) return null
+        return if (path.startsWith("http")) path
+        else RetrofitClient.apiBaseUrl + path.removePrefix("/")
+    }
+
+    // 외부에서 사용할 수 있도록 공개 getter
+    val apiBaseUrl: String
+        get() = BASE_URL
 }

@@ -134,17 +134,8 @@ fun UpdateProfileScreen(
         if (uri != null) {
             profileImgUri = uri
             viewModel.onProfileImageSelected(uri.toString())
-
-            viewModel.uploadProfileImageToServerAndUpdate(uri) { success, msg ->
-                Toast.makeText(
-                    context,
-                    if (success) "프로필 사진 업로드 성공" else "업로드 실패: $msg",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
         }
     }
-
 
     // ── 7) 카메라 촬영해서 이미지 얻어올 때 사용하는 launcher
     val takePictureLauncher = rememberLauncherForActivityResult(
@@ -153,17 +144,8 @@ fun UpdateProfileScreen(
         if (success && cameraImageUri != null) {
             profileImgUri = cameraImageUri
             viewModel.onProfileImageSelected(cameraImageUri.toString())
-
-            viewModel.uploadProfileImageToServerAndUpdate(cameraImageUri!!) { success, msg ->
-                Toast.makeText(
-                    context,
-                    if (success) "프로필 사진 업로드 성공" else "업로드 실패: $msg",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
         }
     }
-
 
     // ── 8) 위치 권한 요청 런처 (집 위치 버튼이 눌렸을 때 사용) ──────────────────────
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -215,7 +197,13 @@ fun UpdateProfileScreen(
                     }) {
                         Text("카메라로 촬영하기", fontSize = 16.sp)
                     }
-
+                    TextButton(onClick = {
+                        profileImgUri = null
+                        viewModel.onProfileImageSelected("")
+                        showImageDialog = false
+                    }) {
+                        Text("기본 이미지 사용", fontSize = 16.sp)
+                    }
                 }
             },
             dismissButton = {

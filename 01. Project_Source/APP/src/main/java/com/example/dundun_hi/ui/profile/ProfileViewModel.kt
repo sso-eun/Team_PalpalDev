@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.util.CoilUtils.result
 import com.example.dundun_hi.data.MemberResponse
 import com.example.dundun_hi.data.UpdatePasswordRequest
 import com.example.dundun_hi.data.UpdatePasswordResponse
@@ -29,19 +30,24 @@ import java.io.InputStream
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
 
 class ProfileViewModel(
     private val repository: UserRepository,
     private val userNum: Int,
-    private val context: Context? = null,
-
+    private val context: Context? = null
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "ProfileViewModel"
     }
+
     private val uploadRepo = UploadProfileRepository(RetrofitClient.memberService)
     private val sharedPreferences: SharedPreferences? = context?.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+    private val appPrefs: SharedPreferences? = context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     private val profileImageKey = "profile_image_$userNum"
 
     val userNumber: Int
@@ -49,7 +55,6 @@ class ProfileViewModel(
 
     val userConditionString: String
         get() = if (userCondition) "1" else "0"
-
 
     /** 서버에서 받아온 로그인 ID(화면에 표시할 이름) */
     var userId by mutableStateOf("")
@@ -83,10 +88,77 @@ class ProfileViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    var userType by mutableStateOf<Int?>(null)
+        private set
+
+    /** 시니어 번호 (cert_list API로 찾은) */
+    var seniorUserNum by mutableStateOf<Int?>(null)
+        private set
+
+    fun fetchUserFromServer() {
+        viewModelScope.launch {
+            try {
+                isLoading = true
+                errorMessage = null
+
+                // 1) cert_list API로 시니어 번호 찾기
+                val certResponse = RetrofitClient.memberService.getCertList(
+                    page = 1,
+                    limit = 10
+                )
+                if (!certResponse.isSuccessful || certResponse.body() == null) {
+                    throw Exception("인증서 목록을 가져올 수 없습니다.")
+                }
+                val certList = certResponse.body()!!.results
+                val seniorCert = certList.find { it.guardian_no == userNum }
+                if (seniorCert != null) {
+                    seniorUserNum = seniorCert.senior_num
+                    Log.d(TAG, "시니어 번호 찾음: $seniorUserNum")
+                    
+                    // 2) 시니어의 일정을 서버에서 가져오기
+                    if (context != null) {
+                        val alertRepository = com.example.dundun_hi.data.AlertRepository.getInstance(context)
+                        val success = alertRepository.loadAlertsFromServer(seniorUserNum!!)
+                        if (success) {
+                            Log.d(TAG, "시니어 일정 로드 성공")
+                        } else {
+                            Log.w(TAG, "시니어 일정 로드 실패")
+                        }
+                    }
+                }
+
+                // 3) 현재 사용자 정보 가져오기
+                val response: MemberResponse = repository.getUserByNum(userNum)
+                userId          = response.userId
+                userTel         = response.userTel
+                userProfileImg  = response.userProfileImg ?: ""
+                userHomeLat     = response.userHomeLat.toDoubleOrNull() ?: 0.0
+                userHomeLon     = response.userHomeLot.toDoubleOrNull() ?: 0.0
+                userCondition   = (response.userCondition == 1)
+                userType        = response.userType
+                setProfileImageFromLocalOrDefault()
+
+                Log.d(TAG, "사용자 정보 로드 완료: $userId (시니어 번호: $seniorUserNum)")
+            } catch (e: Exception) {
+                Log.e(TAG, "사용자 정보 로드 실패", e)
+                errorMessage = e.message ?: "알 수 없는 오류"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+
     init {
         // 화면이 처음 생성될 때 한 번 자동으로 호출
         Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
         fetchUserFromServer()
+    }
+
+
+
+    fun getSuppressedDate(): String? {
+        return appPrefs?.getString("suppressed_date", null)
     }
 
     /**
@@ -137,25 +209,7 @@ class ProfileViewModel(
      * 2) 이 메서드를 public으로 변경했기 때문에,
      *    Compose 쪽에서 `viewModel.fetchUserFromServer()`를 직접 호출할 수 있다.
      */
-    fun fetchUserFromServer() {
-        viewModelScope.launch {
-            try {
-                isLoading = true
-                errorMessage = null
-                val response: MemberResponse = repository.getUserByNum(userNum)
-                userId          = response.userId
-                userTel         = response.userTel
-                userHomeLat     = response.userHomeLat.toDoubleOrNull() ?: 0.0
-                userHomeLon     = response.userHomeLot.toDoubleOrNull() ?: 0.0
-                userCondition   = (response.userCondition == 1)
-                setProfileImageFromLocalOrDefault()
-            } catch (e: Exception) {
-                errorMessage = e.message ?: "알 수 없는 오류"
-            } finally {
-                isLoading = false
-            }
-        }
-    }
+
 
     /**
      * UpdateProfileScreen에서 "수정 완료"를 눌렀을 때 호출될 메서드.
@@ -347,11 +401,17 @@ class ProfileViewModel(
             }
         }
     }
+
     fun isHomeLocationEmpty(): Boolean {
-        return userHomeLat == null || userHomeLon == null || userHomeLat == 0.0 || userHomeLon == 0.0
+        return userHomeLat == 0.0 || userHomeLon == 0.0
+    }
+
+    // 팝업 억제 관련 메서드들
+    fun setSuppressedDate(date: String) {
+        appPrefs?.edit()
+            ?.putString("suppressed_date", date)
+            ?.apply()
     }
 
 
 }
-
-
