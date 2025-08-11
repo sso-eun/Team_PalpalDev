@@ -5,11 +5,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.dundun_hi.data.FcmTokenRequest
 import com.example.dundun_hi.data.LoginRequest
 import com.example.dundun_hi.data.LoginResponse
 import com.example.dundun_hi.data.SignupRepository
 import com.example.dundun_hi.network.RetrofitClient
+import com.example.dundun_hi.data.FcmTokenRequest
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.example.dundun_hi.data.OnboardingManager
+
 
 
 // ViewModel이 UI에게 전달할 내비게이션 상태 정의
@@ -59,7 +60,8 @@ class LoginViewModel(
                     val userNum = loginData.userNum.toIntOrNull() ?: 0
                     val userType = loginData.userType                   // 중요: API가 user_type을 반환한다고 가정
 
-
+                    // --- 여기에 FCM 토큰 전송 로직 호출 추가 ---
+                    sendFcmTokenToServer(loginData.userNum)
                     if (userNum == 0) {
                         _loginResult.value = LoginResult.Error("사용자 정보를 찾을 수 없습니다.")
                         return@launch
@@ -104,4 +106,33 @@ class LoginViewModel(
             }
         }
     }
+    // --- FCM 토큰 전송을 위한 private 함수 추가 ---
+    // 우리 서버에서 user_num을 성공적으로 받은 직후에 → Firebase에 토큰을 요청하여 받아오고 → 그 두 가지 정보를 묶어 다시 우리 서버에 전송하는 순서
+    private fun sendFcmTokenToServer(userNumStr: String?) {
+        val userNumInt = userNumStr?.toIntOrNull()
+        if (userNumInt != null) {
+            
+            // Firebase에 토큰 요청 및 member DB에 토큰 적재
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+
+                // 요청 성공시, 우리 DB에 저장
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d("FCM", "Login Success - FCM Token: $token")
+                    viewModelScope.launch {
+                        try {
+                            val req = FcmTokenRequest(user_num = userNumInt, user_token = token)
+                            RetrofitClient.memberService.sendFcmToken(req)
+                            Log.d("FCM", "Token sent to server successfully from login.")
+                        } catch (e: Exception) {
+                            Log.e("FCM", "Failed to send token from login", e)
+                        }
+                    }
+                } else {
+                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                }
+            }
+        }
+    }
+    // ------------------------------------------
 }

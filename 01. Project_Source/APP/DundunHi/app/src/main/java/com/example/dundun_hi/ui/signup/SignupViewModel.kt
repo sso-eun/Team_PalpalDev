@@ -74,9 +74,9 @@ class SignupViewModel(
                         createdUserNum = userNumInt
                         createdUserId = name
                         _userCreationState.value = UserCreationState.Success(userNumInt, name)
+
+                        //fcm 토큰 전송------------------------------------
                         sendFcmTokenToServer(signupResponse.userNum)
-                    } else {
-                        _userCreationState.value = UserCreationState.Error(signupResponse.message)
                     }
                 } else {
                     _userCreationState.value = UserCreationState.Error(verifyResponse.message)
@@ -87,6 +87,30 @@ class SignupViewModel(
         }
     }
 
+    // --- FCM 토큰 전송을 위한 private 함수 추가 ---S
+    private fun sendFcmTokenToServer(userNumStr: String?) {
+        val userNumInt = userNumStr?.toIntOrNull()
+        if (userNumInt != null) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d("FCM", "Signup Success - FCM Token: $token")
+                    viewModelScope.launch {
+                        try {
+                            val req = FcmTokenRequest(user_num = userNumInt, user_token = token)
+                            RetrofitClient.memberService.sendFcmToken(req)
+                            Log.d("FCM", "Token sent to server successfully from signup.")
+                        } catch (e: Exception) {
+                            Log.e("FCM", "Failed to send token from signup", e)
+                        }
+                    }
+                } else {
+                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                }
+            }
+        }
+    }
+    // ------------------------------------------
     fun sendVerificationCode(telNum: String) {
         lastTelNum = telNum
         viewModelScope.launch {
@@ -110,27 +134,6 @@ class SignupViewModel(
             }
         } catch (e: Exception) {
             _state.value = SignupResult.Error(e.message ?: "네트워크 오류")
-        }
-    }
-
-    private fun sendFcmTokenToServer(userNumStr: String?) {
-        val userNumInt = userNumStr?.toIntOrNull()
-        if (userNumInt != null) {
-            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val token = task.result
-                    viewModelScope.launch {
-                        try {
-                            val req = FcmTokenRequest(user_num = userNumInt, fcm_token = token)
-                            RetrofitClient.memberService.sendFcmToken(req)
-                        } catch (e: Exception) {
-                            Log.e("FCM", "Failed to send token", e)
-                        }
-                    }
-                } else {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                }
-            }
         }
     }
 

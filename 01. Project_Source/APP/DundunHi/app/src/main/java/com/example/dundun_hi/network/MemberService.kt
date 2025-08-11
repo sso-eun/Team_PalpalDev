@@ -87,8 +87,10 @@ interface MemberService {
     // 일정 추가 (set_date)
     @POST("/date/setdate")
     suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
-
-    @POST("/member/fcm_token")
+    
+    // 25-08-10 은재 수정
+    // 요청 경로 수정
+    @POST("/member/updatetoken")
     suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
 
 }
