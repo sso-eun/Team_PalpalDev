@@ -1,5 +1,7 @@
 package com.example.dundun_hi.data
 
+
+
 data class Certificate(
     val req_no: Int,
     val guardian_no: Int,

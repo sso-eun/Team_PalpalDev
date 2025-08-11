@@ -5,7 +5,8 @@ import com.google.gson.annotations.SerializedName
 data class LoginResponse(
     @SerializedName("message") val message: String,
     @SerializedName("user_num") val userNum: String,
-    @SerializedName("user_id")  val userId: String
+    @SerializedName("user_id")  val userId: String,
+    @SerializedName("user_type")  val userType: Int
 )
 
 //서버가 반환하는 json구조를 받을 모델

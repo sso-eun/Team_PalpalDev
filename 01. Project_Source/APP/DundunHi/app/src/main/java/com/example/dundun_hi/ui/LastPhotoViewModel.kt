@@ -17,7 +17,7 @@ class LastPhotoViewModel(
     private val repo: TalkRepository,
     private val senderId: Int,
     private val receiverId: Int,
-    private val viewerId: Int,
+    private val viewerId: Int
 ) : ViewModel() {
 
     private val _photos = MutableStateFlow<List<SharedPhoto>>(emptyList())
@@ -36,13 +36,9 @@ class LastPhotoViewModel(
         }
     }
 
-    fun onPhotoPicked(uri: Uri) = viewModelScope.launch {
-        val temp = SharedPhoto(
-            fromMe = true,
-            senderUserId = viewerId.toString(),
-            localUri = uri
-        )
 
+    fun onPhotoPicked(uri: Uri) = viewModelScope.launch {
+        val temp = SharedPhoto(fromMe = true, localUri = uri)
         _photos.update { it + temp }
 
         runCatching {

@@ -1,7 +1,7 @@
 package com.example.dundun_hi.data
 
-data class SimpleResponse(
+data class FileUploadResponse(
     val rsCode: Int,
     val message: String,
-    val path: String? = null
+    val filePath: String
 )
