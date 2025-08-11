@@ -36,7 +36,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // 서버로 토큰 전송 (코루틴 사용)
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val req = FcmTokenRequest(user_num = userNum, fcm_token = token)
+                val req = FcmTokenRequest(user_num = userNum, user_token = token)
                 val res = RetrofitClient.memberService.sendFcmToken(req)
                 if (res.isSuccessful) {
                     android.util.Log.d("FCM", "onNewToken: 토큰 서버 전송 성공")

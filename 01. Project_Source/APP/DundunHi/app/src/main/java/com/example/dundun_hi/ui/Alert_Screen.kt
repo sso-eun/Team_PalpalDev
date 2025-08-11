@@ -33,19 +33,19 @@ import androidx.lifecycle.LifecycleOwner
 fun AlarmRecordScreen(navController: NavController) {
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
-    
+
     val fullFormat = SimpleDateFormat("yyyy/MM/dd", Locale.KOREA)
     val dayFormat = SimpleDateFormat("dd", Locale.KOREA)
     val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
 
     // AlertRepository의 상태를 관찰
     val alerts by remember { derivedStateOf { alertRepository.alertList } }
-    
+
     // 화면 갱신을 위한 키
     var updateKey by remember { mutableStateOf(0) }
 
     // 현재 날짜로 초기화된 캘린더
-    var calendar by remember { 
+    var calendar by remember {
         mutableStateOf(Calendar.getInstance().apply {
             // 시간, 분, 초는 0으로 설정하여 날짜만 비교할 수 있게 함
             set(Calendar.HOUR_OF_DAY, 0)
@@ -65,7 +65,7 @@ fun AlarmRecordScreen(navController: NavController) {
             // 현재 요일만큼 뺀 날짜가 그 주의 시작일
             add(Calendar.DAY_OF_MONTH, -get(Calendar.DAY_OF_WEEK) + 1)
         }
-        
+
         List(7) { i ->
             Calendar.getInstance().apply {
                 time = firstDayOfWeek.time
@@ -82,7 +82,7 @@ fun AlarmRecordScreen(navController: NavController) {
 
     // 수정할 알림을 저장할 상태
     var editingAlert by remember { mutableStateOf<AlertItem?>(null) }
-    
+
     // 삭제 확인 다이얼로그 상태
     var showDeleteDialog by remember { mutableStateOf(false) }
     var alertToDelete by remember { mutableStateOf<AlertItem?>(null) }
@@ -248,17 +248,17 @@ fun AlarmRecordScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                            Text("${alert.date} ${alert.time}", fontSize = 18.sp, color = Color.Black)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(alert.content, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Text("${alert.date} ${alert.time}", fontSize = 18.sp, color = Color.Black)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(alert.content, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             }
-                            
+
                             Row {
-                                // 수정 버튼
+                                // 수정 버튼 - MainActivity.kt의 경로와 일치하도록 수정
                                 IconButton(
                                     onClick = {
                                         editingAlert = alert
-                                        navController.navigate("edit_alert/${alert.id}")
+                                        navController.navigate("edit_alarm/${alert.id}")
                                     }
                                 ) {
                                     Icon(
@@ -267,7 +267,7 @@ fun AlarmRecordScreen(navController: NavController) {
                                         tint = Color(0xFF2196F3)
                                     )
                                 }
-                                
+
                                 // 삭제 버튼
                                 IconButton(
                                     onClick = {
@@ -300,11 +300,11 @@ fun AlarmRecordScreen(navController: NavController) {
             Icon(painter = painterResource(id = R.drawable.ic_plus), contentDescription = "추가")
         }
     }
-    
+
     // 삭제 확인 다이얼로그
     if (showDeleteDialog && alertToDelete != null) {
         AlertDialog(
-            onDismissRequest = { 
+            onDismissRequest = {
                 showDeleteDialog = false
                 alertToDelete = null
             },
@@ -326,7 +326,7 @@ fun AlarmRecordScreen(navController: NavController) {
             },
             dismissButton = {
                 TextButton(
-                    onClick = { 
+                    onClick = {
                         showDeleteDialog = false
                         alertToDelete = null
                     }

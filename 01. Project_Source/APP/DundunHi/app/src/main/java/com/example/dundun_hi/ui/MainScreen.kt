@@ -29,6 +29,11 @@ import androidx.compose.ui.layout.ContentScale
 import android.util.Log
 import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.HomeAddressPopup
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 // 날씨 상태를 나타내는 enum class
 enum class WeatherState(val code: Int, val iconRes: Int) {
@@ -57,6 +62,7 @@ enum class PrecipitationType(val code: Int, val iconRes: Int) {
 fun MainScreen(
     userName: String,
     userProfileImg: String = "",
+    userNum: Int, // userNum 파라미터 추가
     temperature: Int,
     highTemp: Int,
     lowTemp: Int,
@@ -72,10 +78,61 @@ fun MainScreen(
     profileViewModel: ProfileViewModel
 ) {
     val context = LocalContext.current
-    val showPopup = remember { mutableStateOf(false) }
-    val suppressedToday = remember { mutableStateOf(false) }
 
-    if (!suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
+    // 프로필 이미지 URL 생성 (user_num 기반)
+    val profileImageUrl = remember(userNum) {
+        if (userNum > 0) {
+            "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/down/profile/$userNum"
+        } else {
+            ""
+        }
+    }
+
+    // 오늘 날짜를 기준으로 억제 상태 관리
+    val today = remember {
+        java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            .format(java.util.Date())
+    }
+    val suppressedToday = remember {
+        mutableStateOf(
+            profileViewModel.getSuppressedDate() == today
+        )
+    }
+
+    // 데이터 로딩 상태 관리
+    var isDataLoaded by remember { mutableStateOf(false) }
+    var shouldShowPopup by remember { mutableStateOf(false) }
+
+    // ProfileViewModel의 데이터 로딩 상태를 관찰
+    LaunchedEffect(profileViewModel) {
+        // ProfileViewModel에서 데이터가 로드될 때까지 기다림
+        // 이 부분은 ProfileViewModel의 구조에 따라 조정이 필요할 수 있습니다
+
+        // 방법 1: 짧은 딜레이 후 체크 (임시 방편)
+        delay(500) // 500ms 후에 체크
+
+        // 방법 2: ProfileViewModel에 isLoading 상태가 있다면
+        // while (profileViewModel.isLoading.value) {
+        //     delay(100)
+        // }
+
+        isDataLoaded = true
+
+        // 데이터가 로드된 후에 팝업 표시 여부 결정
+        if (!suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
+            shouldShowPopup = true
+        }
+    }
+
+    // 홈 위치가 설정되면 팝업 숨김
+    LaunchedEffect(profileViewModel.isHomeLocationEmpty()) {
+        if (isDataLoaded && !profileViewModel.isHomeLocationEmpty()) {
+            shouldShowPopup = false
+        }
+    }
+
+    // 팝업 표시
+    if (shouldShowPopup && !suppressedToday.value) {
         HomeAddressPopup(
             context = context,
             userNum = profileViewModel.userNumber,
@@ -83,17 +140,21 @@ fun MainScreen(
             userProfileImg = profileViewModel.userProfileImg,
             userCondition = profileViewModel.userConditionString,
             viewModel = profileViewModel,
-            onDismiss = { /* 아무 것도 안 해도 됨 */ },
-            onSuppressToday = { suppressedToday.value = true },
-            onHomeSet = { /* 집 위치 설정 후 필요한 동작 (없으면 생략 가능) */ }
+            onDismiss = { shouldShowPopup = false },
+            onSuppressToday = {
+                profileViewModel.setSuppressedDate(today)
+                suppressedToday.value = true
+                shouldShowPopup = false
+            },
+            onHomeSet = {
+                shouldShowPopup = false
+            }
         )
     }
 
-
-
     // 프로필 이미지 로딩 상태 추적
-    LaunchedEffect(userProfileImg) {
-        Log.d("MainScreen", "프로필 이미지 업데이트: $userProfileImg")
+    LaunchedEffect(profileImageUrl) {
+        Log.d("MainScreen", "프로필 이미지 업데이트: $profileImageUrl")
     }
 
     Column(
@@ -126,10 +187,10 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 프로필 이미지
-                if (userProfileImg.isNotEmpty()) {
+                // 프로필 이미지 (userNum 기반 URL 사용)
+                if (profileImageUrl.isNotEmpty()) {
                     AsyncImage(
-                        model = userProfileImg,
+                        model = profileImageUrl,
                         contentDescription = "프로필 사진",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -289,6 +350,7 @@ fun MainScreen(
                     .fillMaxWidth()
                     .background(LightGray, RoundedCornerShape(8.dp))
                     .clickable { action() }
+                    .padding(vertical = 12.dp, horizontal = 16.dp)
                     .padding(vertical = 12.dp, horizontal = 16.dp)
             )
             if (index == 0) Spacer(modifier = Modifier.height(12.dp))

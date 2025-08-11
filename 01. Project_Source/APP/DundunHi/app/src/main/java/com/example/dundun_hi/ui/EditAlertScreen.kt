@@ -19,20 +19,30 @@ import androidx.navigation.NavController
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertItem
 import com.example.dundun_hi.data.AlertRepository
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
 fun EditAlertScreen(navController: NavController, alertId: String) {
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
-    val alert = remember { alertRepository.getAlertById(alertId) }
-    
-    var date by remember { mutableStateOf(alert?.date ?: "") }
-    var time by remember { mutableStateOf(alert?.time ?: "") }
-    var content by remember { mutableStateOf(alert?.content ?: "") }
-    
+
+    // 기존 알림 데이터 가져오기
+    val existingAlert = remember { alertRepository.getAlertById(alertId) }
+
+    // 상태 변수들
+    var date by remember { mutableStateOf(existingAlert?.date ?: "") }
+    var time by remember { mutableStateOf(existingAlert?.time ?: "") }
+    var content by remember { mutableStateOf(existingAlert?.content ?: "") }
+
     val calendar = Calendar.getInstance()
+
+    // 기존 알림이 없으면 뒤로 가기
+    if (existingAlert == null) {
+        LaunchedEffect(Unit) {
+            navController.navigateUp()
+        }
+        return
+    }
 
     Box(
         modifier = Modifier
@@ -61,55 +71,57 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Date and Time Selection
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // Date Selection
+            Text("날짜", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = {
+                    DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            date = String.format("%04d/%02d/%02d", year, month + 1, dayOfMonth)
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(
-                    onClick = {
-                        DatePickerDialog(
-                            context,
-                            { _, year, month, dayOfMonth ->
-                                date = String.format("%04d/%02d/%02d", year, month + 1, dayOfMonth)
-                            },
-                            calendar.get(Calendar.YEAR),
-                            calendar.get(Calendar.MONTH),
-                            calendar.get(Calendar.DAY_OF_MONTH)
-                        ).show()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(date.ifEmpty { "날짜 선택" })
-                }
+                Text(date.ifEmpty { "날짜 선택" })
+            }
 
-                Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedButton(
-                    onClick = {
-                        TimePickerDialog(
-                            context,
-                            { _, hourOfDay, minute ->
-                                time = String.format("%02d:%02d", hourOfDay, minute)
-                            },
-                            calendar.get(Calendar.HOUR_OF_DAY),
-                            calendar.get(Calendar.MINUTE),
-                            true
-                        ).show()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(time.ifEmpty { "시간 선택" })
-                }
+            // Time Selection
+            Text("시간", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = {
+                    TimePickerDialog(
+                        context,
+                        { _, hourOfDay, minute ->
+                            time = String.format("%02d:%02d", hourOfDay, minute)
+                        },
+                        calendar.get(Calendar.HOUR_OF_DAY),
+                        calendar.get(Calendar.MINUTE),
+                        true
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(time.ifEmpty { "시간 선택" })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Content Input
+            Text("내용", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = content,
                 onValueChange = { content = it },
-                label = { Text("알림 내용") },
+                placeholder = { Text("알림 내용을 입력하세요") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp),
@@ -138,6 +150,16 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
             ) {
                 Text("수정 완료", fontSize = 16.sp, color = Color.White)
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Cancel Button
+            OutlinedButton(
+                onClick = { navController.navigateUp() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("취소", fontSize = 16.sp)
+            }
         }
     }
-} 
+}

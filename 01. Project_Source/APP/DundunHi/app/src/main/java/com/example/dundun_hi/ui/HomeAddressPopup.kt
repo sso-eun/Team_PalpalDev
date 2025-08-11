@@ -51,41 +51,40 @@ fun HomeAddressPopup(
         },
         confirmButton = {
             TextButton(onClick = {
-                onSuppressToday()
+                // ✅ 체크박스 상태에 따라 억제 설정
+                if (suppressChecked) onSuppressToday()
 
                 coroutineScope.launch {
                     fusedLocationClient.lastLocation
                         .addOnSuccessListener { location: Location? ->
                             if (location != null) {
-                                viewModel.setHomeLocation(
-                                    userNum = userNum,
-                                    userTel = userTel,
-                                    userProfileImg = userProfileImg,
-                                    userCondition = userCondition,
-                                    newLat = location.latitude.toString(),
-                                    newLot = location.longitude.toString(),
-                                    callback = { success ->
-                                        Toast.makeText(
-                                            context,
-                                            if (success) "자택이 설정되었습니다" else "설정 실패",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        if (success) onHomeSet()
-                                    }
-                                )
+                                viewModel.updateProfileWithoutImage(
+                                    newTel = userTel,
+                                    newHomeLat = location.latitude,
+                                    newHomeLon = location.longitude,
+                                    isOuting = (userCondition == "1") // 문자열이면 이렇게 변환
+                                ) {
+                                    Toast.makeText(
+                                        context,
+                                        "자택이 설정되었습니다",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    onHomeSet()
+                                }
                             } else {
                                 Toast.makeText(context, "위치를 가져오지 못했습니다", Toast.LENGTH_SHORT).show()
                             }
                         }
+
                 }
+                onDismiss() // ✅ 마지막에 팝업 닫기
             }) {
                 Text("자택으로 설정")
             }
-
         },
         dismissButton = {
             TextButton(onClick = {
-                if (suppressChecked) onSuppressToday()
+                if (suppressChecked) onSuppressToday() // ✅ 체크되어 있으면 억제
                 onDismiss()
             }) {
                 Text("아니요")
