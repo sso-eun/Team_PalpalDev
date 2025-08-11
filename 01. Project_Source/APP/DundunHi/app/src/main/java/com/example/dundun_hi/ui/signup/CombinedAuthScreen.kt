@@ -41,20 +41,35 @@ import androidx.compose.foundation.BorderStroke
 @Composable
 fun CombinedAuthScreen(
     viewModel: SignupViewModel = viewModel(),
-    onNext: () -> Unit
+    userType: Int,
+    onNext: () -> Unit,
+    // 수정1: 하단에 추가할 UI를 위한 '슬롯' 파라미터 추가
+    // 기본값은 비어있으므로, 아무것도 넘겨주지 않으면 아무것도 표시되지 않음
+    bottomContent: @Composable () -> Unit = {}
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var code  by remember { mutableStateOf("") }
     var isCodeWrong by remember { mutableStateOf(false) }
 
+    // userType에 따라 제목 텍스트를 결정하는 변수 추가
+    val title = if (userType == 1) "보호자 회원가입" else "회원가입"
+
     val sendResult   by viewModel.sendCodeResult.collectAsState()
-    val verifyResult by viewModel.verifyCodeResult.collectAsState()
+    val userCreationState by viewModel.userCreationState.collectAsState()
+    // val verifyResult by viewModel.verifyCodeResult.collectAsState()
+
+    LaunchedEffect(userCreationState) {
+        if (userCreationState is UserCreationState.Success) {
+            onNext()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 24.dp),
+        //horizontalAlignment = Alignment.CenterHorizontally // 중앙 정렬로 변경
         horizontalAlignment = Alignment.Start
     ) {
         // 상단 든든하이, 2
@@ -76,7 +91,7 @@ fun CombinedAuthScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "회원가입",
+                text = title,
                 fontSize = 50.sp,
                 fontWeight = FontWeight.ExtraBold
             )
@@ -138,7 +153,15 @@ fun CombinedAuthScreen(
         Spacer(Modifier.height(32.dp))
         // 인증번호 확인하기 버튼
         Button(
-            onClick = { viewModel.verifyAuthCode(code.trim()) },
+            onClick = {
+                // ViewModel 함수 호출 시, 받아온 userType을 함께 전달합니다.
+                viewModel.verifyCodeAndCreateUser(
+                    name = name.trim(),
+                    phone = phone.trim(),
+                    authCode = code.trim(),
+                    userType = userType // 전달받은 userType 사용
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -191,17 +214,20 @@ fun CombinedAuthScreen(
                 fontWeight = FontWeight.Bold
             )
         }
+        // --- 2. '슬롯'에 전달된 UI를 실제로 화면에 표시하는 부분 ---
+        // MainActivity에서 보호자 링크를 넘겨주면 그 링크가 여기에 표시됩니다.
+        bottomContent()
     }
 
     // 인증 성공/실패 시 상태 변경
-    LaunchedEffect(verifyResult) {
-        verifyResult?.let { result ->
-            if (result.rsCode == 200) {
-                isCodeWrong = false
-                onNext()
-            } else {
-                isCodeWrong = true
-            }
-        }
-    }
+//    LaunchedEffect(verifyResult) {
+//        verifyResult?.let { result ->
+//            if (result.rsCode == 200) {
+//                isCodeWrong = false
+//                onNext()
+//            } else {
+//                isCodeWrong = true
+//            }
+//        }
+//    }
 }
