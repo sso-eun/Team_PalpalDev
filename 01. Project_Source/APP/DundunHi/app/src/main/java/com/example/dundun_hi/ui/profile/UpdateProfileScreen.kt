@@ -223,7 +223,7 @@ fun UpdateProfileScreen(
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFEAF6FB))
+            .background(Color(0xFFE6F0FA))
     ) {
         Column(
             modifier = Modifier
