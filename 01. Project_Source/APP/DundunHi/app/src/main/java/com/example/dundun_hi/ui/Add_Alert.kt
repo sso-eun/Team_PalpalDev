@@ -1,10 +1,16 @@
 package com.example.dundun_hi.ui
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.pm.PackageManager
+import android.media.MediaRecorder
+import android.os.Environment
 import android.widget.DatePicker
 import android.widget.TimePicker
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertItem
@@ -26,6 +33,7 @@ import com.example.dundun_hi.data.AlertRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
 
 @Composable
@@ -34,6 +42,29 @@ fun AddAlarmScreen(navController: NavController) {
     val calendar = Calendar.getInstance()
     val alertRepository = remember { AlertRepository.getInstance(context) }
     val coroutineScope = rememberCoroutineScope()
+
+    // 녹음 관련 상태
+    var isRecording by remember { mutableStateOf(false) }
+    var mediaRecorder: MediaRecorder? by remember { mutableStateOf(null) }
+    var currentRecordingPath by remember { mutableStateOf<String?>(null) }
+    var hasRecordPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // 권한 요청 launcher - 녹음 권한만 필요
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasRecordPermission = isGranted
+        if (!isGranted) {
+            Toast.makeText(context, "녹음 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // userNum을 SharedPreferences에서 안정적으로 불러오기
     val sharedPreferences = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
@@ -82,6 +113,66 @@ fun AddAlarmScreen(navController: NavController) {
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
     var contentText by remember { mutableStateOf("") }
+
+    // 녹음 시작 함수
+    fun startRecording() {
+        try {
+            // 앱 전용 외부 저장소 사용 (권한 불필요)
+            val recordingsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "DunDunHi_Recordings")
+
+            // 디렉토리가 없으면 생성
+            if (!recordingsDir.exists()) {
+                recordingsDir.mkdirs()
+            }
+
+            // 파일명: 현재 날짜시간으로 생성
+            val fileName = "recording_${System.currentTimeMillis()}.m4a"
+            val audioFile = File(recordingsDir, fileName)
+            currentRecordingPath = audioFile.absolutePath
+
+            mediaRecorder = MediaRecorder().apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(audioFile.absolutePath)
+                prepare()
+                start()
+            }
+
+            isRecording = true
+            Toast.makeText(context, "녹음을 시작합니다.\n저장 위치: 앱 전용 폴더", Toast.LENGTH_LONG).show()
+            android.util.Log.d("Recording", "녹음 시작 - 파일 경로: ${audioFile.absolutePath}")
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "녹음 시작 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+            android.util.Log.e("Recording", "녹음 시작 실패", e)
+        }
+    }
+
+    // 녹음 정지 함수
+    fun stopRecording() {
+        try {
+            mediaRecorder?.apply {
+                stop()
+                release()
+            }
+            mediaRecorder = null
+            isRecording = false
+
+            currentRecordingPath?.let { path ->
+                val file = File(path)
+                if (file.exists()) {
+                    val fileSize = file.length() / 1024 // KB 단위
+                    Toast.makeText(context, "녹음이 완료되었습니다.\n파일 크기: ${fileSize}KB", Toast.LENGTH_LONG).show()
+                    android.util.Log.d("Recording", "녹음 완료 - 파일: $path, 크기: ${fileSize}KB")
+                }
+            }
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "녹음 정지 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+            android.util.Log.e("Recording", "녹음 정지 실패", e)
+        }
+    }
 
     // 가디언인 경우 시니어 번호 찾기
     LaunchedEffect(userNum, userType) {
@@ -155,6 +246,7 @@ fun AddAlarmScreen(navController: NavController) {
                 ).show()
             }
         ) {
+
             OutlinedTextField(
                 value = selectedDate,
                 onValueChange = {},
@@ -203,8 +295,103 @@ fun AddAlarmScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("내용작성", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        // 내용작성 섹션에 녹음 기능 추가
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("내용작성", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+
+            // 녹음 버튼들
+            Row {
+                Button(
+                    onClick = {
+                        if (!hasRecordPermission) {
+                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        } else if (!isRecording) {
+                            startRecording()
+                        }
+                    },
+                    enabled = !isRecording,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isRecording) Color.Gray else Color(0xFFFF6B6B)
+                    ),
+                    modifier = Modifier.size(width = 80.dp, height = 40.dp)
+                ) {
+                    Text("녹음", color = Color.White, fontSize = 14.sp)
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = { stopRecording() },
+                    enabled = isRecording,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isRecording) Color(0xFF4CAF50) else Color.Gray
+                    ),
+                    modifier = Modifier.size(width = 80.dp, height = 40.dp)
+                ) {
+                    Text("정지", color = Color.White, fontSize = 14.sp)
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
+
+        // 녹음 상태 표시
+        if (isRecording) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 녹음 중 표시 (빨간 원)
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(Color.Red, shape = androidx.compose.foundation.shape.CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "녹음 중...",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        // 녹음 파일 정보 표시
+        currentRecordingPath?.let { path ->
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        "저장된 녹음 파일:",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        File(path).name,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        "위치: 앱 전용 저장소",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        // OutlinedTextField를 추가하여 컴포저블을 올바르게 호출합니다.
         OutlinedTextField(
             value = contentText,
             onValueChange = { contentText = it },

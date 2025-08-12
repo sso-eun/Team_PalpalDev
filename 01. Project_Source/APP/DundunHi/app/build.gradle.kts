@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -96,5 +98,5 @@ dependencies {
     implementation(libs.coil.kt.coil.compose)
 
     implementation(libs.accompanist.permissions)
-
+    implementation ("androidx.activity:activity-compose:1.10.1")
 }
