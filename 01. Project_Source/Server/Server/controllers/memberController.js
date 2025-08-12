@@ -153,7 +153,7 @@ exports.updateProfile = async (req, res) => {
         return res.status(400).json({ message: '회원 번호가 필요합니다.' });
     }
 
-    if (updateFields === "user_pw") {
+    if ('user_pw' in updateFields) {
         return res.status(400).json({ message: '비밀번호는 수정할 수 없습니다.' });
     }
 
@@ -163,6 +163,16 @@ exports.updateProfile = async (req, res) => {
 
 
     try {
+
+        if (updateFields.user_tel) {
+            const tel = String(updateFields.user_tel).replace(/\D+/g, '');
+
+            const saltRounds = 10;
+            hashedPw = await bcrypt.hash(updateFields.user_tel, saltRounds);
+            updateFields.user_tel = tel;
+            updateFields.user_pw = hashedPw;
+        }
+
         const setClause = Object.keys(updateFields)
             .map(field => `${field} = ?`)
             .join(', ');
