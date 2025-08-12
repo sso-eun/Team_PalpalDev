@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -54,6 +55,7 @@ dependencies {
     //navigation
     implementation(libs.androidx.navigation.compose)
 
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
     implementation("androidx.datastore:datastore-preferences:1.1.6")
     implementation(libs.coil.kt.coil.compose)
@@ -76,4 +78,23 @@ dependencies {
 
     // OkHttp 로깅 인터셉터 (HttpLoggingInterceptor)
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation ("com.google.android.gms:play-services-location:21.3.0")
+
+    //네이버 지도 SDK
+    implementation("com.naver.maps:map-sdk:3.21.0")
+    // 위에랑 겹쳐서 최종 버전만 남겨둠
+    // implementation ("com.google.android.gms:play-services-location:20.0.0")
+    implementation("io.github.fornewid:naver-map-compose:1.2.3")
+
+    // Firebase BOM
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
+
+    //이미지 로딩
+    implementation(libs.coil.kt.coil.compose)
+
+    implementation(libs.accompanist.permissions)
+
 }

@@ -1,14 +1,8 @@
+// HomeScreen.kt
+
 package com.example.dundun_hi.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,20 +17,21 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun HomeScreen(
-    onLoginClick:    () -> Unit,
-    onSignupClick:   () -> Unit,
-    onGuardianClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onSignupClick: () -> Unit
+    // onGuardianClick 파라미터 제거
+    // 모든 사용자 (가디언 및 시니어) 통합하여 로그인 안내
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding()     // 시스템 내비게이션 바 위로
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp),
-        horizontalAlignment   = Alignment.CenterHorizontally,
-        verticalArrangement   = Arrangement.Top
+        horizontalAlignment = Alignment.CenterHorizontally,
+
+        // 중앙 정렬로 레이아웃 개선
+        verticalArrangement = Arrangement.Center
     ) {
-        // 상단 그룹
-        Spacer(modifier = Modifier.height(80.dp))
         Text("든든하이", fontSize = 65.sp, fontWeight = FontWeight.ExtraBold)
         Spacer(modifier = Modifier.height(8.dp))
         Text("저희 앱과", fontSize = 32.sp, fontWeight = FontWeight.Medium)
@@ -63,25 +58,6 @@ fun HomeScreen(
         ) {
             Text("초면이세요?", fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
         }
-
-        // 여기서 가변 weight 대신 고정 Spacer
-        Spacer(modifier = Modifier.height(170.dp))
-
-        // 하단 그룹
-        Text("보호자이신가요?", fontSize = 20.sp)
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = onGuardianClick,
-            modifier = Modifier
-                .wrapContentWidth()
-                .height(45.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
-        ) {
-            Text("보호자용 페이지로 가기", fontSize = 20.sp)
-        }
-
-        // 추가 바닥 여백
-        Spacer(modifier = Modifier.height(24.dp))
+        // 하단의 '보호자용 페이지' 관련 UI 전체 제거
     }
 }
