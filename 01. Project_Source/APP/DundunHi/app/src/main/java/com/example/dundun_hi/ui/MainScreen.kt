@@ -81,6 +81,14 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
+    // 예: 0=시니어, 1=보호자 라고 가정
+    val isGuardian by remember { derivedStateOf { profileViewModel.userType == 1 } }
+
+    // 디버깅용 로그
+    LaunchedEffect(profileViewModel.userType) {
+        Log.d("MainScreen_DEBUG", "=== userType: ${profileViewModel.userType}, isGuardian: $isGuardian ===")
+    }
+
     // ✅ 메인은 ViewModel이 관리하는 URL(= 캐시버스트 포함)을 그대로 사용
     val profileImageUrl by remember { derivedStateOf { profileViewModel.userProfileImg } }
     val imageVersion by remember { derivedStateOf { profileViewModel.imageVersion } }
@@ -107,7 +115,6 @@ fun MainScreen(
         }
     }
 
-
     // 오늘 날짜를 기준으로 억제 상태 관리
     val today = remember {
         java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
@@ -125,20 +132,32 @@ fun MainScreen(
     LaunchedEffect(profileViewModel) {
         delay(500)
         isDataLoaded = true
-        if (!suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
+
+        Log.d("MainScreen_DEBUG", "=== 팝업 조건 체크 시작 ===")
+        Log.d("MainScreen_DEBUG", "isGuardian: $isGuardian (userType: ${profileViewModel.userType})")
+        Log.d("MainScreen_DEBUG", "suppressedToday: ${suppressedToday.value}")
+        Log.d("MainScreen_DEBUG", "isHomeEmpty: ${profileViewModel.isHomeLocationEmpty()}")
+
+        // ✅ 보호자가 아니고, 오늘 억제되지 않았고, 홈 위치가 비어있을 때만 팝업 표시
+        if (!isGuardian && !suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
             shouldShowPopup = true
+            Log.d("MainScreen_DEBUG", "=== 팝업 표시 결정됨 ===")
+        } else {
+            Log.d("MainScreen_DEBUG", "=== 팝업 표시 안함 ===")
         }
     }
 
     // 홈 위치가 설정되면 팝업 숨김
     LaunchedEffect(profileViewModel.isHomeLocationEmpty()) {
-        if (isDataLoaded && !profileViewModel.isHomeLocationEmpty()) {
+        // ✅ 보호자가 아닐 때만 팝업 로직 실행
+        if (!isGuardian && isDataLoaded && !profileViewModel.isHomeLocationEmpty()) {
             shouldShowPopup = false
         }
     }
 
-    // 팝업 표시
-    if (shouldShowPopup && !suppressedToday.value) {
+    // ✅ 보호자가 아닐 때만 팝업 표시
+    if (!isGuardian && shouldShowPopup && !suppressedToday.value) {
+        Log.d("MainScreen_DEBUG", "=== 실제 팝업 렌더링 중 ===")
         HomeAddressPopup(
             context = context,
             userNum = profileViewModel.userNumber,
@@ -154,6 +173,8 @@ fun MainScreen(
             },
             onHomeSet = { shouldShowPopup = false }
         )
+    } else {
+        Log.d("MainScreen_DEBUG", "팝업 렌더링 건너뜀 - isGuardian: $isGuardian, shouldShow: $shouldShowPopup, suppressedToday: ${suppressedToday.value}")
     }
 
     Column(
