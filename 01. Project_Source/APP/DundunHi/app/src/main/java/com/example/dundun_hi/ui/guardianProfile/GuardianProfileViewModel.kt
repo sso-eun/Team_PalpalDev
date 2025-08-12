@@ -62,6 +62,20 @@ class GuardianProfileViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    // 추가
+    var imageVersion by mutableStateOf(0L)
+        private set
+
+    private fun bumpImageVersion() {
+        imageVersion = System.currentTimeMillis()
+    }
+
+    // URL 생성 시 캐시버스트 토큰 포함
+    private fun createProfileImageUrl(userNum: Int): String {
+        val baseUrl = RetrofitClient.apiBaseUrl.let { if (it.endsWith("/")) it else "$it/" }
+        return "${baseUrl}down/profile/$userNum?v=$imageVersion"
+    }
+
     fun onProfileImageSelected(uri: String) {
         // 미리보기: 로컬 URI 그대로 보여주기 (AsyncImage가 content:// 도 표시 가능)
         guardianProfileImg = uri

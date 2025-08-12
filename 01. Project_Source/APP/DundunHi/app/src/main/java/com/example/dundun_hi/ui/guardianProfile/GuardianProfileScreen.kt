@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertItem
 import com.example.dundun_hi.data.AlertRepository
@@ -53,6 +55,21 @@ fun GuardianProfileScreen(
     val alerts by remember { derivedStateOf { alertRepository.alertList } }
     val todayAlerts = remember(alerts) {
         alerts.filter { it.date == today }.sortedBy { it.time }
+    }
+    // imageVersion 관찰 추가
+    val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
+
+    // imageModel 생성
+    val guardianImageModel = remember(guardianProfileImg, imageVersion) {
+        if (guardianProfileImg.isNullOrEmpty()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(guardianProfileImg)
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .diskCachePolicy(CachePolicy.WRITE_ONLY)
+                .build()
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -120,7 +137,7 @@ fun GuardianProfileScreen(
             GuardianProfileCard(
                 guardianId = guardianId,
                 guardianTel = guardianTel,
-                guardianProfileImg = guardianProfileImg
+                guardianImageModel = guardianImageModel
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -140,8 +157,6 @@ fun GuardianProfileScreen(
         }
         Spacer(modifier = Modifier.height(24.dp))
 
-
-
         Button(
             onClick = {
                 navController.navigate("guardian_update_profile/${viewModel.guardianUserNum}")
@@ -155,12 +170,15 @@ fun GuardianProfileScreen(
         ) {
             Text("내 정보 수정하기", fontSize = 18.sp, color = Color.White)
         }
-
     }
 }
 
 @Composable
-fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfileImg: String?) {
+fun GuardianProfileCard(
+    guardianId: String,
+    guardianTel: String,
+    guardianImageModel: ImageRequest?
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -174,7 +192,7 @@ fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfile
             verticalArrangement = Arrangement.Top,
             modifier = Modifier.padding(16.dp)
         ) {
-            if (guardianProfileImg.isNullOrEmpty()) {
+            if (guardianImageModel == null) {
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -192,7 +210,7 @@ fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfile
                 }
             } else {
                 AsyncImage(
-                    model = guardianProfileImg,
+                    model = guardianImageModel,
                     contentDescription = "프로필 사진",
                     modifier = Modifier
                         .size(100.dp)
@@ -207,9 +225,6 @@ fun GuardianProfileCard(guardianId: String, guardianTel: String, guardianProfile
             Text(text = guardianId, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = guardianTel, fontSize = 20.sp, color = Color.Gray)
-
-
-
         }
     }
 }
