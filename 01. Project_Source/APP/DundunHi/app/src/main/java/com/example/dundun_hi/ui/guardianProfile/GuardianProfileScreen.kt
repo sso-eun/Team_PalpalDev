@@ -149,7 +149,8 @@ fun GuardianProfileScreen(
             GuardianProfileCard(
                 guardianId = guardianId,
                 guardianTel = guardianTel,
-                guardianImageModel = guardianImageModel
+                guardianImageModel = guardianImageModel,
+                modifier = Modifier.fillMaxWidth() // 전체 폭
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -160,7 +161,9 @@ fun GuardianProfileScreen(
                 seniorImageModel = seniorImageModel,
                 seniorCondition = seniorCondition,
                 seniorAddress = seniorAddress,
-                onEditSeniorClick = onEditSeniorClick
+                onEditSeniorClick = onEditSeniorClick,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)   // ⬅ 가운데 정렬
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -184,25 +187,27 @@ fun GuardianProfileScreen(
         }
     }
 }
-
 @Composable
 fun GuardianProfileCard(
     guardianId: String,
     guardianTel: String,
-    guardianImageModel: ImageRequest?
+    guardianImageModel: ImageRequest?,
+    modifier: Modifier = Modifier
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth() // 전체 폭
             .height(200.dp)
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize() // ⬅ 내부 Column도 전체 폭 차지
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, // ⬅ 내용 가로 중앙 정렬
+            verticalArrangement = Arrangement.Top
         ) {
             if (guardianImageModel == null) {
                 Box(
@@ -215,7 +220,7 @@ fun GuardianProfileCard(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_default_profile),
-                        contentDescription = "기본 프로필",
+                        contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(48.dp)
                     )
@@ -223,7 +228,7 @@ fun GuardianProfileCard(
             } else {
                 AsyncImage(
                     model = guardianImageModel,
-                    contentDescription = "프로필 사진",
+                    contentDescription = null,
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
@@ -233,10 +238,9 @@ fun GuardianProfileCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            Text(text = guardianId, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(guardianId, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = guardianTel, fontSize = 20.sp, color = Color.Gray)
+            Text(guardianTel, fontSize = 20.sp, color = Color.Gray)
         }
     }
 }
@@ -248,70 +252,102 @@ fun SeniorProfileCard(
     seniorImageModel: ImageRequest?,
     seniorCondition: Boolean,
     seniorAddress: String,
-    onEditSeniorClick: () -> Unit
+    onEditSeniorClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            if (seniorImageModel == null) {
-                Box(
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // 헤더: 연결된 계정 + 편집 아이콘
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("연결된 계정", fontSize = 18.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_edit), // 연필 아이콘 리소스
+                    contentDescription = "수정",
+                    tint = Color(0xFF9E9E9E),
                     modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFCCCCCC))
-                        .border(1.dp, Color.Gray, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_default_profile),
-                        contentDescription = "기본 프로필",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            } else {
-                AsyncImage(
-                    model = seniorImageModel,
-                    contentDescription = "어르신 프로필 사진",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .border(1.dp, Color.Gray, CircleShape),
-                    contentScale = ContentScale.Crop
+                        .size(22.dp)
+                        .clickable { onEditSeniorClick() }
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-            Text(text = seniorId, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = seniorTel, fontSize = 16.sp, color = Color.Gray)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = seniorAddress, fontSize = 14.sp, color = Color.DarkGray)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = if (seniorCondition) "외출중" else "집에 있는중",
-                fontSize = 14.sp,
-                color = if (seniorCondition) Color(0xFF1AB277) else Color.Red
-            )
+            // 프로필 행
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // 아바타
+                if (seniorImageModel == null) {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE0E0E0))
+                            .border(1.dp, Color.Gray, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_default_profile),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                } else {
+                    AsyncImage(
+                        model = seniorImageModel,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Color.Gray, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
-                onClick = onEditSeniorClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
-            ) {
-                Text("어르신 정보 수정", color = Color.White)
+                Spacer(Modifier.width(14.dp))
+
+                Column {
+                    Text(seniorId, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    Text("번호: $seniorTel", fontSize = 16.sp, color = Color(0xFF424242))
+                    Spacer(Modifier.height(4.dp))
+                    Text("주소:  $seniorAddress", fontSize = 16.sp, color = Color(0xFF424242))
+                }
             }
+
+            Spacer(Modifier.height(16.dp))
+            Divider(color = Color(0xFFE0E0E0))
+
+            // 위치 섹션
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("위치", fontSize = 18.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_location), // 핀 아이콘 리소스
+                    contentDescription = null,
+                    tint = Color(0xFF1AB277),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = if (seniorCondition) "외출 중 입니다." else "집에 있습니다.",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
