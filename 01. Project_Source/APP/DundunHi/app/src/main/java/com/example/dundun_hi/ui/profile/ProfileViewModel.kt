@@ -97,6 +97,10 @@ class ProfileViewModel(
         Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
         fetchUserFromServer()
     }
+    // 또는 더 구체적으로
+    fun refreshImageData() {
+        fetchUserFromServer() // 기존 함수 재사용
+    }
 
     fun fetchUserFromServer() {
         viewModelScope.launch {

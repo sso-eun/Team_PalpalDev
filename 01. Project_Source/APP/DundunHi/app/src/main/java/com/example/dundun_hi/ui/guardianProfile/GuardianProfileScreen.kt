@@ -72,6 +72,18 @@ fun GuardianProfileScreen(
         }
     }
 
+    val seniorImageModel = remember(seniorProfileImg, imageVersion) {
+        if (seniorProfileImg.isNullOrEmpty()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(seniorProfileImg)
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .diskCachePolicy(CachePolicy.WRITE_ONLY)
+                .build()
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.loadProfileData()
     }
@@ -145,7 +157,7 @@ fun GuardianProfileScreen(
             SeniorProfileCard(
                 seniorId = seniorId,
                 seniorTel = seniorTel,
-                seniorProfileImg = seniorProfileImg,
+                seniorImageModel = seniorImageModel,
                 seniorCondition = seniorCondition,
                 seniorAddress = seniorAddress,
                 onEditSeniorClick = onEditSeniorClick
@@ -233,7 +245,7 @@ fun GuardianProfileCard(
 fun SeniorProfileCard(
     seniorId: String,
     seniorTel: String,
-    seniorProfileImg: String?,
+    seniorImageModel: ImageRequest?,
     seniorCondition: Boolean,
     seniorAddress: String,
     onEditSeniorClick: () -> Unit
@@ -251,7 +263,7 @@ fun SeniorProfileCard(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier.padding(16.dp)
         ) {
-            if (seniorProfileImg.isNullOrEmpty()) {
+            if (seniorImageModel == null) {
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -269,7 +281,7 @@ fun SeniorProfileCard(
                 }
             } else {
                 AsyncImage(
-                    model = seniorProfileImg,
+                    model = seniorImageModel,
                     contentDescription = "어르신 프로필 사진",
                     modifier = Modifier
                         .size(100.dp)

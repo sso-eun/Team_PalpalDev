@@ -20,6 +20,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -95,7 +97,7 @@ fun ProfileScreen(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            modifier = Modifier.fillMaxWidth().height(200.dp)
+            modifier = Modifier.fillMaxWidth().height(230.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -143,8 +145,15 @@ fun ProfileScreen(
                 Text(text = userId, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = userTel, fontSize = 24.sp)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = userTel,
+                    fontSize = 24.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Visible,
+                    textAlign = TextAlign.Center,       // ✅ 가운데 정렬
+                    modifier = Modifier.fillMaxWidth()  // ✅ 폭 전체 사용
+                )
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
@@ -261,30 +270,20 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── 버튼들 (기존 코드 그대로)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // 기존 Row 전체를 삭제하고 위 코드로 교체
+        Spacer(modifier = Modifier.height(16.dp)) // 버튼 위 여백
+        Button(
+            onClick = onUpdateProfileClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
+            contentPadding = PaddingValues(vertical = 12.dp)
         ) {
-            Button(
-                onClick = onUpdateProfileClick,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) { Text("프로필 수정하기", fontSize = 22.sp, color = Color.White) }
-
-            Button(
-                onClick = onUpdatePasswordClick,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) { Text("비밀번호 수정하기", fontSize = 22.sp, color = Color.White) }
+            Text("프로필 수정하기", fontSize = 22.sp, color = Color.White)
         }
+
 
         if (isLoading) {
             Spacer(modifier = Modifier.height(16.dp))

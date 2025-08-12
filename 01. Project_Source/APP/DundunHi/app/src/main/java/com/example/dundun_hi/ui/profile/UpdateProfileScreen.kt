@@ -31,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,10 +51,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
+import kotlinx.coroutines.delay
 import com.example.dundun_hi.R
 import com.google.android.gms.location.LocationServices
 
@@ -73,6 +78,7 @@ fun UpdateProfileScreen(
     val userCondition by remember { derivedStateOf { viewModel.userCondition } }
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
+    val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
 
     // 로컬 UI 상태
     var telEditable by remember { mutableStateOf(userTel) }
@@ -82,6 +88,19 @@ fun UpdateProfileScreen(
     var hLon by remember { mutableStateOf(userHomeLon) }
     var condition by remember { mutableStateOf(userCondition) }
     var showImageDialog by remember { mutableStateOf(false) }
+    var isImageUploading by remember { mutableStateOf(false) }
+
+    // 이미지 모델 생성 (캐시 정책 개선)
+    val imageModel = remember(userProfileImg, imageVersion) {
+        if (userProfileImg.isNotEmpty()) {
+            ImageRequest.Builder(context)
+                .data(userProfileImg)
+                .memoryCachePolicy(CachePolicy.ENABLED) // 메모리 캐시 활성화
+                .diskCachePolicy(CachePolicy.ENABLED) // 디스크 캐시 활성화
+                .crossfade(true) // 부드러운 전환 효과
+                .build()
+        } else null
+    }
 
     // ViewModel 변화 반영
     LaunchedEffect(userTel) { telEditable = userTel }
@@ -109,59 +128,71 @@ fun UpdateProfileScreen(
         context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
 
+    // 이미지 업로드 처리 함수 (개선된 에러 핸들링)
+    val handleImageUpload = { uri: Uri ->
+        isImageUploading = true
+        val originalUri = profileImgUri
+        profileImgUri = uri // 즉시 미리보기
+
+        viewModel.uploadSeniorProfileImage(uri) { success, error ->
+            isImageUploading = false
+            if (success) {
+                // 성공 시 약간의 지연 후 성공 메시지
+                Toast.makeText(context, "이미지 업로드 성공!", Toast.LENGTH_SHORT).show()
+            } else {
+                // 실패 시 롤백하되, 실제 서버 상태를 다시 확인
+                profileImgUri = originalUri
+
+                // 잠시 후 실제 이미지 상태 다시 로드
+                viewModel.refreshImageData()
+
+                val errorMsg = error ?: "업로드에 실패했습니다"
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     // 갤러리 선택 런처
     val pickFromGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
-            val prev = profileImgUri
-            profileImgUri = uri // 즉시 미리보기
-            viewModel.uploadSeniorProfileImage(uri) { ok, err ->
-                if (!ok) {
-                    profileImgUri = prev // 실패 시 롤백
-                    Toast.makeText(context, err ?: "업로드 실패", Toast.LENGTH_SHORT).show()
-                }
-            }
+            handleImageUpload(uri)
         }
     }
 
-    // 카메라 촬영 런처 (스마트 캐스트 회피)
+    // 카메라 촬영 런처
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
         val shotUri = cameraImageUri
         if (success && shotUri != null) {
-            val prev = profileImgUri
-            profileImgUri = shotUri // 즉시 미리보기
-            viewModel.uploadSeniorProfileImage(shotUri) { ok, err ->
-                if (!ok) {
-                    profileImgUri = prev // 실패 시 롤백
-                    Toast.makeText(context, err ?: "업로드 실패", Toast.LENGTH_SHORT).show()
-                }
-            }
+            handleImageUpload(shotUri)
         }
     }
-
-    // 이미지 선택 다이얼로그
     if (showImageDialog) {
         AlertDialog(
             onDismissRequest = { showImageDialog = false },
-            title = { Text(text = "프로필 사진 선택") },
-            text = {
-                Column {
-                    Text("사진을 선택하세요", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(8.dp))
-                    Text("1. 앨범에서 가져오기\n2. 카메라로 촬영하기\n3. 기본 이미지 사용", fontSize = 14.sp)
-                }
+            title = {
+                Text(
+                    text = "프로필 사진 선택",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             },
-            confirmButton = {
-                Column {
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally, // ✅ 가운데 정렬
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     TextButton(onClick = {
                         pickFromGalleryLauncher.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
                         showImageDialog = false
-                    }) { Text("앨범에서 가져오기", fontSize = 16.sp) }
+                    }) {
+                        Text("앨범에서 가져오기", fontSize = 16.sp)
+                    }
 
                     TextButton(onClick = {
                         cameraImageUri = createCameraUri()
@@ -172,22 +203,21 @@ fun UpdateProfileScreen(
                             takePictureLauncher.launch(uri)
                         }
                         showImageDialog = false
-                    }) { Text("카메라로 촬영하기", fontSize = 16.sp) }
+                    }) {
+                        Text("카메라로 촬영하기", fontSize = 16.sp)
+                    }
 
-                    TextButton(onClick = {
-                        profileImgUri = null
-                        viewModel.clearSeniorProfileImage { ok, err ->
-                            if (!ok) Toast.makeText(context, err ?: "이미지 초기화 실패", Toast.LENGTH_SHORT).show()
-                        }
-                        showImageDialog = false
-                    }) { Text("기본 이미지 사용", fontSize = 16.sp) }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(onClick = { showImageDialog = false }) {
+                        Text("취소", fontSize = 16.sp) // ✅ 원래 색상 유지
+                    }
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showImageDialog = false }) { Text("취소") }
-            }
+            confirmButton = {} // 버튼은 text 영역에서 관리
         )
     }
+
 
     // 화면 UI
     Surface(
@@ -235,7 +265,16 @@ fun UpdateProfileScreen(
                             .height(120.dp),
                         contentAlignment = Alignment.TopCenter
                     ) {
-                        if (profileImgUri != null) {
+                        if (imageModel != null) {
+                            AsyncImage(
+                                model = imageModel,
+                                contentDescription = "프로필 사진",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else if (profileImgUri != null) {
                             AsyncImage(
                                 model = profileImgUri,
                                 contentDescription = "프로필 사진",
@@ -260,22 +299,41 @@ fun UpdateProfileScreen(
                                 )
                             }
                         }
-                        // “+” 아이콘
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .offset(x = 8.dp, y = 8.dp)
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .clickable { showImageDialog = true },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_plus),
-                                contentDescription = "프로필 수정 아이콘",
-                                modifier = Modifier.size(20.dp)
-                            )
+
+                        // 업로드 중일 때 로딩 표시
+                        if (isImageUploading) {
+                            Box(
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        // "+" 아이콘
+                        if (!isImageUploading) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .offset(x = 8.dp, y = 8.dp)
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White)
+                                    .clickable { showImageDialog = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_plus),
+                                    contentDescription = "프로필 수정 아이콘",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
 
@@ -360,7 +418,7 @@ fun UpdateProfileScreen(
 
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "집 위치를 “예”로 설정하면 수정 완료 시 현재 위도·경도 값을 보냅니다.",
+                        text = "집 위치를 예로 설정하면 수정 완료 시 현재 위도·경도 값을 보냅니다.",
                         fontSize = 14.sp,
                         color = Color(0xFFAAAAAA),
                         lineHeight = 20.sp
@@ -417,7 +475,7 @@ fun UpdateProfileScreen(
                     }
 
                     Spacer(Modifier.height(8.dp))
-                    Text("외출 중으로 상태를 변경하려면 “예”를 선택하세요.", fontSize = 14.sp, color = Color(0xFFAAAAAA), lineHeight = 20.sp)
+                    Text("외출 중으로 상태를 변경하려면 예를 선택하세요.", fontSize = 14.sp, color = Color(0xFFAAAAAA), lineHeight = 20.sp)
                 }
             }
 
