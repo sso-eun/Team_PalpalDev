@@ -1,6 +1,7 @@
 // app/src/main/java/com/example/dundun_hi/ui/profile/ProfileScreen.kt
 package com.example.dundun_hi.ui.profile
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,14 +20,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
 import java.util.*
+
+// ProfileScreen.kt 수정 버전
 
 @Composable
 fun ProfileScreen(
@@ -39,13 +46,28 @@ fun ProfileScreen(
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
 
-    // ▼ VM 상태 단순 접근(불필요한 derivedStateOf 제거)
+    // ✅ 수정: imageVersion도 함께 관찰
     val userTel = viewModel.userTel
     val userProfileImg = viewModel.userProfileImg
-    val userCondition = viewModel.userCondition       // Boolean 으로 가정 (Int면 ==1 같은 변환 필요)
+    val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
+    val userCondition = viewModel.userCondition
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
-    // val userType = viewModel.userType  // 가디언 분기 제거로 불필요하면 주석
+
+    // ✅ 수정: 이미지 모델을 imageVersion과 함께 생성
+    val imageModel = remember(userProfileImg, imageVersion) {
+        if (userProfileImg.isNullOrEmpty()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(userProfileImg)
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .diskCachePolicy(CachePolicy.WRITE_ONLY)
+                .networkCachePolicy(CachePolicy.ENABLED)
+                .crossfade(true)
+                .build()
+        }
+    }
 
     // 오늘 날짜
     val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date()) }
@@ -56,7 +78,7 @@ fun ProfileScreen(
         alerts.filter { it.date == today }.sortedBy { it.time }
     }
 
-    // 최초 1회 서버에서 사용자 정보 로드
+    // ✅ 수정: 화면 진입 시마다 데이터 새로고침
     LaunchedEffect(Unit) {
         viewModel.fetchUserFromServer()
     }
@@ -75,14 +97,32 @@ fun ProfileScreen(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            modifier = Modifier.fillMaxWidth().height(200.dp)
+            modifier = Modifier.fillMaxWidth().height(230.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier.padding(16.dp)
             ) {
-                if (userProfileImg.isNullOrEmpty()) {
+                // ✅ 수정: imageModel 사용하여 캐싱 문제 해결
+                if (imageModel != null) {
+                    AsyncImage(
+                        model = imageModel,
+                        contentDescription = "프로필 사진",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Color.Gray, CircleShape),
+                        contentScale = ContentScale.Crop,
+                        onSuccess = {
+                            Log.d("ProfileScreen", "프로필 이미지 로드 성공: version $imageVersion")
+                        },
+                        onError = { error ->
+                            Log.w("ProfileScreen", "프로필 이미지 로드 실패: ${error.result.throwable}")
+                        }
+                    )
+                } else {
+                    // 기본 프로필 이미지
                     Box(
                         modifier = Modifier
                             .size(100.dp)
@@ -98,16 +138,6 @@ fun ProfileScreen(
                             modifier = Modifier.size(48.dp)
                         )
                     }
-                } else {
-                    AsyncImage(
-                        model = userProfileImg,
-                        contentDescription = "프로필 사진",
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, Color.Gray, CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -115,8 +145,15 @@ fun ProfileScreen(
                 Text(text = userId, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = userTel, fontSize = 24.sp)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = userTel,
+                    fontSize = 24.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Visible,
+                    textAlign = TextAlign.Center,       // ✅ 가운데 정렬
+                    modifier = Modifier.fillMaxWidth()  // ✅ 폭 전체 사용
+                )
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
@@ -172,7 +209,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── 알림 카드
+        // ── 알림 카드 (기존 코드 그대로)
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -233,30 +270,20 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── 버튼들
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // 기존 Row 전체를 삭제하고 위 코드로 교체
+        Spacer(modifier = Modifier.height(16.dp)) // 버튼 위 여백
+        Button(
+            onClick = onUpdateProfileClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
+            contentPadding = PaddingValues(vertical = 12.dp)
         ) {
-            Button(
-                onClick = onUpdateProfileClick,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) { Text("프로필 수정하기", fontSize = 22.sp, color = Color.White) }
-
-            Button(
-                onClick = onUpdatePasswordClick,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) { Text("비밀번호 수정하기", fontSize = 22.sp, color = Color.White) }
+            Text("프로필 수정하기", fontSize = 22.sp, color = Color.White)
         }
+
 
         if (isLoading) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -268,3 +295,24 @@ fun ProfileScreen(
         }
     }
 }
+
+/*
+주요 변경사항:
+
+1. ✅ imageVersion 관찰 추가
+   - val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
+
+2. ✅ imageModel 생성 로직 추가
+   - remember(userProfileImg, imageVersion)로 둘 중 하나라도 변경되면 새로운 ImageRequest 생성
+   - 캐시 정책: DISABLED/WRITE_ONLY로 설정
+
+3. ✅ AsyncImage에서 imageModel 사용
+   - 기존의 복잡한 캐시 설정 대신 imageModel 사용
+   - onSuccess/onError 콜백으로 로그 추가
+
+4. ✅ Log import 추가 필요
+   - import android.util.Log 추가해야 함
+
+이제 UpdateProfileScreen에서 수정 완료 후 ProfileScreen으로 돌아가면
+즉시 새로운 프로필 이미지가 반영됩니다!
+*/

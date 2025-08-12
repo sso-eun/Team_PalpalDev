@@ -1,6 +1,6 @@
-// MainScreen.kt
 package com.example.dundun_hi.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,24 +16,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.dundun_hi.R
-import com.example.dundun_hi.ui.theme.*
-import androidx.compose.ui.layout.ContentScale
-import android.util.Log
-import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.HomeAddressPopup
+import com.example.dundun_hi.ui.profile.ProfileViewModel
+import com.example.dundun_hi.ui.theme.BorderGray
+import com.example.dundun_hi.ui.theme.ButtonCamBlue
+import com.example.dundun_hi.ui.theme.ButtonMapBlue
+import com.example.dundun_hi.ui.theme.ButtonMsgTeal
+import com.example.dundun_hi.ui.theme.ButtonPhoneGreen
+import com.example.dundun_hi.ui.theme.LightGray
+import com.example.dundun_hi.ui.theme.Sky
 import kotlinx.coroutines.delay
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 
 // 날씨 상태를 나타내는 enum class
 enum class WeatherState(val code: Int, val iconRes: Int) {
@@ -61,13 +63,13 @@ enum class PrecipitationType(val code: Int, val iconRes: Int) {
 @Composable
 fun MainScreen(
     userName: String,
-    userProfileImg: String = "",
-    userNum: Int, // userNum 파라미터 추가
+    userProfileImg: String = "",   // 사용 안 해도 시그니처 유지
+    userNum: Int,                  // 사용 안 해도 시그니처 유지
     temperature: Int,
     highTemp: Int,
     lowTemp: Int,
-    weatherState: Int = 1, // 기본값은 맑음(1)
-    precipitationType: Int = 0, // 기본값은 없음(0)
+    weatherState: Int = 1,
+    precipitationType: Int = 0,
     onPhonePageClick: () -> Unit,
     onMessagePageClick: () -> Unit,
     onCameraPageClick: () -> Unit,
@@ -79,14 +81,32 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
-    // 프로필 이미지 URL 생성 (user_num 기반)
-    val profileImageUrl = remember(userNum) {
-        if (userNum > 0) {
-            "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/down/profile/$userNum"
-        } else {
-            ""
+    // ✅ 메인은 ViewModel이 관리하는 URL(= 캐시버스트 포함)을 그대로 사용
+    val profileImageUrl by remember { derivedStateOf { profileViewModel.userProfileImg } }
+    val imageVersion by remember { derivedStateOf { profileViewModel.imageVersion } }
+
+    // ── 이미지 강제 새로고침 1회 옵션: URL이 바뀌면 한 번만 캐시 무시
+    var forceNoCache by remember { mutableStateOf(false) }
+    LaunchedEffect(profileImageUrl) {
+        if (profileImageUrl.isNotBlank()) {
+            forceNoCache = true
+            Log.d("MainScreen", "프로필 이미지 업데이트(강제 새로고침 1회): $profileImageUrl")
         }
     }
+
+    val imageModel = remember(profileImageUrl, imageVersion) {
+        if (profileImageUrl.isBlank()) {
+            null
+        } else {
+            ImageRequest.Builder(context)
+                .data(profileImageUrl)
+                .crossfade(true)
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .diskCachePolicy(CachePolicy.WRITE_ONLY)
+                .build()
+        }
+    }
+
 
     // 오늘 날짜를 기준으로 억제 상태 관리
     val today = remember {
@@ -94,9 +114,7 @@ fun MainScreen(
             .format(java.util.Date())
     }
     val suppressedToday = remember {
-        mutableStateOf(
-            profileViewModel.getSuppressedDate() == today
-        )
+        mutableStateOf(profileViewModel.getSuppressedDate() == today)
     }
 
     // 데이터 로딩 상태 관리
@@ -105,20 +123,8 @@ fun MainScreen(
 
     // ProfileViewModel의 데이터 로딩 상태를 관찰
     LaunchedEffect(profileViewModel) {
-        // ProfileViewModel에서 데이터가 로드될 때까지 기다림
-        // 이 부분은 ProfileViewModel의 구조에 따라 조정이 필요할 수 있습니다
-
-        // 방법 1: 짧은 딜레이 후 체크 (임시 방편)
-        delay(500) // 500ms 후에 체크
-
-        // 방법 2: ProfileViewModel에 isLoading 상태가 있다면
-        // while (profileViewModel.isLoading.value) {
-        //     delay(100)
-        // }
-
+        delay(500)
         isDataLoaded = true
-
-        // 데이터가 로드된 후에 팝업 표시 여부 결정
         if (!suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
             shouldShowPopup = true
         }
@@ -146,15 +152,8 @@ fun MainScreen(
                 suppressedToday.value = true
                 shouldShowPopup = false
             },
-            onHomeSet = {
-                shouldShowPopup = false
-            }
+            onHomeSet = { shouldShowPopup = false }
         )
-    }
-
-    // 프로필 이미지 로딩 상태 추적
-    LaunchedEffect(profileImageUrl) {
-        Log.d("MainScreen", "프로필 이미지 업데이트: $profileImageUrl")
     }
 
     Column(
@@ -164,7 +163,7 @@ fun MainScreen(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // 타이틀-----------------------------------------------------------------------
+        // 타이틀
         Text(
             text = "든든하이",
             style = MaterialTheme.typography.titleLarge,
@@ -172,13 +171,12 @@ fun MainScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 인사 + 날씨 카드 ---------------------------------------------------------------
+        // 인사 + 날씨 카드
         Surface(
             tonalElevation = 4.dp,
             shape = RoundedCornerShape(12.dp),
             color = Sky,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier
@@ -187,24 +185,39 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 프로필 이미지 (userNum 기반 URL 사용)
-                if (profileImageUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = profileImageUrl,
-                        contentDescription = "프로필 사진",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .scale(1.1f)
-                            .clip(CircleShape)
-                            .border(
-                                width = 2.dp,
-                                color = Color.White,
-                                shape = CircleShape
-                            )
-                    )
+                // ✅ ViewModel이 주는 URL 사용(업데이트 직후 1회 캐시 무시)
+                if (imageModel != null) {
+                    key(profileImageUrl, forceNoCache) {
+                        AsyncImage(
+                            model = imageModel,
+                            contentDescription = "프로필 사진",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .scale(1.1f)
+                                .clip(CircleShape)
+                                .border(
+                                    width = 2.dp,
+                                    color = Color.White,
+                                    shape = CircleShape
+                                ),
+                            onSuccess = {
+                                if (forceNoCache) {
+                                    Log.d("MainScreen", "프로필 새로고침 성공(캐시 OFF 1회)")
+                                    forceNoCache = false
+                                }
+                            },
+                            onError = {
+                                if (forceNoCache) {
+                                    Log.w("MainScreen", "프로필 새로고침 실패(캐시 OFF 1회) - ${it.result.throwable}")
+                                    forceNoCache = false
+                                }
+                            },
+                            onLoading = { /* no-op */ }
+                        )
+                    }
                 } else {
-                    // 기본 프로필 이미지 (사진이 없을 경우)
+                    // 기본 프로필
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -229,10 +242,7 @@ fun MainScreen(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text("환영해요!", fontSize = 30.sp, fontWeight = FontWeight.Bold)
                     Text(userName, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
@@ -258,7 +268,6 @@ fun MainScreen(
                             contentDescription = "날씨 상태",
                             modifier = Modifier.size(36.dp)
                         )
-                        // 강수 형태가 있는 경우에만 아이콘 표시
                         if (precipitationType > 0) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
@@ -275,7 +284,7 @@ fun MainScreen(
         }
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 중앙 버튼 ------------------------------------------------------------------
+        // 중앙 버튼
         val buttons = listOf(
             Triple("전화", R.drawable.ic_phone, ButtonPhoneGreen) to onPhonePageClick,
             Triple("내 정보", R.drawable.ic_profile, ButtonMsgTeal) to onProfileClick,
@@ -326,7 +335,7 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 키오스크, 문화센터 ------------------------------------------------------------------
+        // 키오스크, 문화센터
         val items = listOf(
             "문화센터 찾기" to onFindCultureCenter,
             "키오스크" to onKioskPageClick
@@ -339,7 +348,7 @@ fun MainScreen(
                 },
                 supportingContent = {
                     Text(
-                        text = when(label) {
+                        text = when (label) {
                             "문화센터 찾기" -> "주변 문화센터 활동을 찾아보세요"
                             else -> "키오스크 사용법을 같이 배워봐요"
                         },
@@ -350,7 +359,6 @@ fun MainScreen(
                     .fillMaxWidth()
                     .background(LightGray, RoundedCornerShape(8.dp))
                     .clickable { action() }
-                    .padding(vertical = 12.dp, horizontal = 16.dp)
                     .padding(vertical = 12.dp, horizontal = 16.dp)
             )
             if (index == 0) Spacer(modifier = Modifier.height(12.dp))
