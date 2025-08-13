@@ -87,6 +87,7 @@ fun AlarmRecordScreen(navController: NavController) {
 
     // ✅ 화면 진입시 새로고침
     LaunchedEffect(Unit) {
+        android.util.Log.d("AlarmRecordScreen", "🖥 AlarmRecordScreen 최초 진입")
         alertRepository.refreshFromServer()
     }
 
