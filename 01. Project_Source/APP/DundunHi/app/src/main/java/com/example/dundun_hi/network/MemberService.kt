@@ -98,9 +98,17 @@ interface MemberService {
     @POST("/date/setdate")
     suspend fun setDate(@Body body: SetDateRequest): retrofit2.Response<SimpleResponse>
 
-    // 일정 조회
+    // ✅ 일정 조회 - API 명세서에 맞게 쿼리 파라미터 방식으로 수정
+    @GET("/date/getdate")
+    suspend fun getDateList(
+        @Query("user_num") userNum: Int,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 100
+    ): retrofit2.Response<DateListResponse>
+
+    // ✅ 기존 함수도 호환성을 위해 유지 (사용하지 않을 예정)
     @GET("/date/getdate/{user_num}")
-    suspend fun getDateList(@Path("user_num") userNum: Int): retrofit2.Response<DateListResponse>
+    suspend fun getDateListOld(@Path("user_num") userNum: Int): retrofit2.Response<DateListResponse>
 
     // ═══════════════════════════════════════════════════════════════════
     // 인증서/가디언 관리 API
