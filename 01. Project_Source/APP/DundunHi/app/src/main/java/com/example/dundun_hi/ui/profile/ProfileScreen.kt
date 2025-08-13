@@ -71,8 +71,15 @@ fun ProfileScreen(
         }
     }
 
-    // 오늘 날짜
-//    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date()) }
+
+    // 오늘 날짜 (한국 시간대 기준)
+    val today = remember { 
+        val koreaTimeZone = java.util.TimeZone.getTimeZone("Asia/Seoul")
+        val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+        dateFormat.timeZone = koreaTimeZone
+        dateFormat.format(Date())
+    }
+
 
 //    // ✅ 수정: AlertRepository의 상태를 관찰하고 화면 갱신시 새로고침
 //    val alerts = alertRepository.alertList
