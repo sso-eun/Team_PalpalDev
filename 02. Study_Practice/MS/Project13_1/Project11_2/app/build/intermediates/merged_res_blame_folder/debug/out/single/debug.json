@@ -1,0 +1,122 @@
+[
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov13.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov13.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/xml_data_extraction_rules.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov16.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov16.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov18.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov18.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov11.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov11.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov12.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov12.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_movie.png.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/movie.png"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov14.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov14.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov19.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov19.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_movie_icon.png.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/movie_icon.png"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_ic_launcher.png.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/ic_launcher.png"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov15.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov15.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov20.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov20.jpg"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/layout_activity_main.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/xml_backup_rules.xml.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.cookandroid.project11_2.app-merged_res-31:/drawable_mov17.jpg.flat",
+        "source": "com.cookandroid.project11_2.app-main-33:/drawable/mov17.jpg"
+    }
+]
