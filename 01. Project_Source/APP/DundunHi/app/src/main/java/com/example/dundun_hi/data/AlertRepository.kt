@@ -24,6 +24,14 @@ class AlertRepository private constructor(private val context: Context) {
 
         fun getInstance(context: Context): AlertRepository {
             return INSTANCE ?: synchronized(this) {
+
+                //소은수정
+                if (INSTANCE != null) {
+                    Log.d("AlertRepository", "⚠ 기존 인스턴스 재사용")
+                } else {
+                    Log.d("AlertRepository", "✅ 새 인스턴스 생성 & initializeData 실행 예정")
+                }
+
                 INSTANCE ?: AlertRepository(context.applicationContext).also { instance ->
                     INSTANCE = instance
                     // ✅ 인스턴스 생성 시 자동으로 서버에서 데이터 로드

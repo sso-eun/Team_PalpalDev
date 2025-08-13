@@ -72,32 +72,44 @@ fun ProfileScreen(
     }
 
     // 오늘 날짜
-    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date()) }
+//    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date()) }
 
-    // ✅ 수정: AlertRepository의 상태를 관찰하고 화면 갱신시 새로고침
-    val alerts = alertRepository.alertList
+//    // ✅ 수정: AlertRepository의 상태를 관찰하고 화면 갱신시 새로고침
+//    val alerts = alertRepository.alertList
     val isAlertLoading = alertRepository.isLoading
-    
+//
+
+    //소은 수정. remember 제거
+    val alerts = alertRepository.alertList          // SnapshotStateList 그대로 읽기
+    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.KOREA).format(Date()) }
+
+    val todayAlerts = alerts
+        .filter { it.date == today }
+        .sortedBy { it.time }
+
+
+
     // ✅ 디버깅을 위한 로그 추가
     LaunchedEffect(alerts) {
         Log.d("ProfileScreen", "=== 알림 데이터 상태 ===")
         Log.d("ProfileScreen", "전체 알림 개수: ${alerts.size}")
         Log.d("ProfileScreen", "오늘 날짜: $today")
-        Log.d("ProfileScreen", "로딩 상태: $isAlertLoading")
-        
+//        Log.d("ProfileScreen", "로딩 상태: $isAlertLoading")
+
         alerts.forEachIndexed { index, alert ->
             Log.d("ProfileScreen", "[$index] ${alert.date} ${alert.time} - ${alert.content}")
         }
     }
     
-    val todayAlerts = remember(alerts, today) {
-        val filtered = alerts.filter { it.date == today }.sortedBy { it.time }
-        Log.d("ProfileScreen", "오늘 알림 필터링 결과: ${filtered.size}개")
-        filtered.forEachIndexed { index, alert ->
-            Log.d("ProfileScreen", "오늘 알림 [$index]: ${alert.date} ${alert.time} - ${alert.content}")
-        }
-        filtered
-    }
+//    val todayAlerts = remember(alerts, today) {
+//        val filtered = alerts.filter { it.date == today }.sortedBy { it.time }
+//        Log.d("ProfileScreen", "오늘 알림 필터링 결과: ${filtered.size}개")
+//        filtered.forEachIndexed { index, alert ->
+//            Log.d("ProfileScreen", "오늘 알림 [$index]: ${alert.date} ${alert.time} - ${alert.content}")
+//        }
+//        filtered
+//    }
+
 
     // ✅ 강화된 데이터 로딩 로직
     var isDataLoaded by remember { mutableStateOf(false) }
@@ -140,69 +152,69 @@ fun ProfileScreen(
 
     // ✅ 화면이 다시 포커스를 받을 때 갱신
     LaunchedEffect(Unit) {
-        navController.currentBackStackEntry?.lifecycle?.addObserver(object : LifecycleEventObserver {
-            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                if (event == Lifecycle.Event.ON_RESUME) {
-                    Log.d("ProfileScreen", "화면 재진입 - 데이터 새로고침")
-                    viewModel.fetchUserFromServer()
-                    alertRepository.forceRefreshFromServer() // 강제 새로고침 사용
-                }
-            }
-        })
+//        navController.currentBackStackEntry?.lifecycle?.addObserver(object : LifecycleEventObserver {
+//            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+//                if (event == Lifecycle.Event.ON_RESUME) {
+//                    Log.d("ProfileScreen", "화면 재진입 - 데이터 새로고침")
+//                    viewModel.fetchUserFromServer()
+//                    alertRepository.forceRefreshFromServer() // 강제 새로고침 사용
+//                }
+//            }
+//        })
     }
 
-    // ✅ 데이터 로딩 상태 모니터링
-    LaunchedEffect(alerts.size, isDataLoaded) {
-        Log.d("ProfileScreen", "알림 데이터 상태 변경 - 전체: ${alerts.size}, 오늘: ${todayAlerts.size}")
-        todayAlerts.forEach { alert ->
-            Log.d("ProfileScreen", "오늘 알림: ${alert.date} ${alert.time} - ${alert.content}")
-        }
-    }
-
-    // ✅ 데이터 로딩 완료 후 추가 보장
-    LaunchedEffect(isDataLoaded) {
-        if (isDataLoaded && alerts.isEmpty()) {
-            delay(100) // 데이터 로딩 완료 후에도 데이터가 없으면 추가 시도
-            Log.d("ProfileScreen", "데이터 로딩 완료 후에도 데이터가 없어 추가 시도")
-            alertRepository.forceRefreshFromServer()
-        }
-    }
-
-    // ✅ 데이터가 로드되지 않았을 때 강제 새로고침
-    LaunchedEffect(Unit) {
-        delay(1000) // 1초 후에도 데이터가 없으면 강제 새로고침
-        if (alerts.isEmpty()) {
-            Log.d("ProfileScreen", "1초 후 데이터가 없어 강제 새로고침 실행")
-            alertRepository.forceRefreshFromServer()
-        }
-    }
-
-    // ✅ 추가적인 데이터 로딩 보장
-    LaunchedEffect(Unit) {
-        delay(2000) // 2초 후에도 데이터가 없으면 다시 시도
-        if (alerts.isEmpty() && !isAlertLoading) {
-            Log.d("ProfileScreen", "2초 후에도 데이터가 없어 재시도")
-            alertRepository.forceRefreshFromServer()
-        }
-    }
-
-    // ✅ 콜백 기반 데이터 로딩 보장
-    LaunchedEffect(dataLoadAttempts) {
-        if (dataLoadAttempts == 0 && alerts.isEmpty()) {
-            delay(500) // 0.5초 후에도 콜백이 호출되지 않았으면 강제 새로고침
-            Log.d("ProfileScreen", "콜백이 호출되지 않아 강제 새로고침 실행")
-            alertRepository.forceRefreshFromServer()
-        }
-    }
-
-    // ✅ 최종 보장 로직
-    LaunchedEffect(Unit) {
-        delay(3000) // 3초 후에도 데이터가 없으면 최종 시도
-        if (alerts.isEmpty()) {
-            Log.d("ProfileScreen", "3초 후 최종 시도")
-            alertRepository.forceRefreshFromServer()
-        }
-    }
+//    // ✅ 데이터 로딩 상태 모니터링
+//    LaunchedEffect(alerts.size, isDataLoaded) {
+//        Log.d("ProfileScreen", "알림 데이터 상태 변경 - 전체: ${alerts.size}, 오늘: ${todayAlerts.size}")
+//        todayAlerts.forEach { alert ->
+//            Log.d("ProfileScreen", "오늘 알림: ${alert.date} ${alert.time} - ${alert.content}")
+//        }
+//    }
+//
+//    // ✅ 데이터 로딩 완료 후 추가 보장
+//    LaunchedEffect(isDataLoaded) {
+//        if (isDataLoaded && alerts.isEmpty()) {
+//            delay(100) // 데이터 로딩 완료 후에도 데이터가 없으면 추가 시도
+//            Log.d("ProfileScreen", "데이터 로딩 완료 후에도 데이터가 없어 추가 시도")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 데이터가 로드되지 않았을 때 강제 새로고침
+//    LaunchedEffect(Unit) {
+//        delay(1000) // 1초 후에도 데이터가 없으면 강제 새로고침
+//        if (alerts.isEmpty()) {
+//            Log.d("ProfileScreen", "1초 후 데이터가 없어 강제 새로고침 실행")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 추가적인 데이터 로딩 보장
+//    LaunchedEffect(Unit) {
+//        delay(2000) // 2초 후에도 데이터가 없으면 다시 시도
+//        if (alerts.isEmpty() && !isAlertLoading) {
+//            Log.d("ProfileScreen", "2초 후에도 데이터가 없어 재시도")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 콜백 기반 데이터 로딩 보장
+//    LaunchedEffect(dataLoadAttempts) {
+//        if (dataLoadAttempts == 0 && alerts.isEmpty()) {
+//            delay(500) // 0.5초 후에도 콜백이 호출되지 않았으면 강제 새로고침
+//            Log.d("ProfileScreen", "콜백이 호출되지 않아 강제 새로고침 실행")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 최종 보장 로직
+//    LaunchedEffect(Unit) {
+//        delay(3000) // 3초 후에도 데이터가 없으면 최종 시도
+//        if (alerts.isEmpty()) {
+//            Log.d("ProfileScreen", "3초 후 최종 시도")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
 
     Column(
         modifier = Modifier
