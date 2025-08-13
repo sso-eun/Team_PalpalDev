@@ -1,0 +1,10 @@
+#Tue Apr 22 09:45:50 GMT+09:00 2025
+base.0=F\:\\2025\\lecture\\3-1-Android\\SOURCE\\Project(14.0)\\Project10_1\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=F\:\\2025\\lecture\\3-1-Android\\SOURCE\\Project(14.0)\\Project10_1\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.2=F\:\\2025\\lecture\\3-1-Android\\SOURCE\\Project(14.0)\\Project10_1\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\3\\classes.dex
+path.0=classes.dex
+path.1=0/classes.dex
+path.2=3/classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex
+renamed.2=classes3.dex

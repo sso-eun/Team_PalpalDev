@@ -1,0 +1,29 @@
+R_DEF: Internal format may change without notice
+local
+color black
+color white
+drawable ic_launcher
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+drawable mov11
+drawable mov12
+drawable mov13
+drawable mov14
+drawable mov15
+drawable mov16
+drawable mov17
+drawable mov18
+drawable mov19
+drawable mov20
+drawable movie
+drawable movie_icon
+id gallery1
+id ivPoster
+layout activity_main
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+style Base.Theme.Project11_2
+style Theme.Project11_2
+xml backup_rules
+xml data_extraction_rules

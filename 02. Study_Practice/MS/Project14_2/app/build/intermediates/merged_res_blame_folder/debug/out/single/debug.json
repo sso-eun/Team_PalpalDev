@@ -1,0 +1,102 @@
+[
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_battery_80.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/battery_80.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_battery_icon.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/battery_icon.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_bookmark.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/bookmark.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_ic_launcher.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/ic_launcher.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/layout_activity_main.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_battery_0.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/battery_0.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/xml_data_extraction_rules.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_battery_100.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/battery_100.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/xml_backup_rules.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_battery_60.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/battery_60.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/drawable_battery_20.png.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/drawable/battery_20.png"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.cookandroid.project14_2.app-merged_res-4:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.cookandroid.project14_2.app-main-6:/mipmap-hdpi/ic_launcher_round.webp"
+    }
+]
