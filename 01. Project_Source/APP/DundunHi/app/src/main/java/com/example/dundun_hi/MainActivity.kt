@@ -212,13 +212,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // MainActivity.kt에서 senior_final_signup 부분만 수정
+
                         composable("senior_final_signup") {
                             val state by signupVm.state.collectAsState()
                             SignupScreen(
                                 viewModel = signupVm,
                                 onSignupSuccess = {
-                                    val newUserId = signupVm.lastUserId
-                                    navController.navigate("loadingScreen/$newUserId") {
+                                    // 회원가입 성공 시 로그인 화면으로 이동
+                                    navController.navigate("login") {
                                         popUpTo("senior_final_signup") { inclusive = true }
                                     }
                                 }

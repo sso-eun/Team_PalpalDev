@@ -49,13 +49,23 @@ fun GuardianProfileScreen(
 
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
-    val today = remember {
-        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
-    }
-    val alerts by remember { derivedStateOf { alertRepository.alertList } }
-    val todayAlerts = remember(alerts) {
-        alerts.filter { it.date == today }.sortedBy { it.time }
-    }
+
+//    val today = remember {
+//        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
+//    }
+//    val alerts by remember { derivedStateOf { alertRepository.alertList } }
+//    val todayAlerts = remember(alerts) {
+//        alerts.filter { it.date == today }.sortedBy { it.time }
+//    }
+
+    //소은 수정. remember 제거
+    val alerts = alertRepository.alertList          // SnapshotStateList 그대로 읽기
+    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.KOREA).format(Date()) }
+
+    val todayAlerts = alerts
+        .filter { it.date == today }
+        .sortedBy { it.time }
+
     // imageVersion 관찰 추가
     val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
 
@@ -85,6 +95,7 @@ fun GuardianProfileScreen(
     }
 
     LaunchedEffect(Unit) {
+        alertRepository.forceRefreshFromServer()
         viewModel.loadProfileData()
     }
 
