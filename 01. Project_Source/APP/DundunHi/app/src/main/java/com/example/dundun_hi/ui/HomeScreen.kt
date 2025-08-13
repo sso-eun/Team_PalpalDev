@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     onLoginClick: () -> Unit,
-    onSignupClick: () -> Unit
+    onSignupClick: () -> Unit,
+    onOCRClick: () -> Unit
     // onGuardianClick 파라미터 제거
     // 모든 사용자 (가디언 및 시니어) 통합하여 로그인 안내
 ) {
@@ -59,5 +60,18 @@ fun HomeScreen(
             Text("초면이세요?", fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
         }
         // 하단의 '보호자용 페이지' 관련 UI 전체 제거
+
+
+        //임시_소은_OCR버튼
+        Button(
+            onClick = onOCRClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+        ) {
+            Text("임시 OCR", fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
+        }
     }
 }

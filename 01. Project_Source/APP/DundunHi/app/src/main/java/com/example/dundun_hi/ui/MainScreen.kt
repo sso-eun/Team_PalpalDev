@@ -30,6 +30,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.dundun_hi.R
 import com.example.dundun_hi.data.LocationViewModel
+import com.example.dundun_hi.ui.HomeAddressPopup
 import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.theme.BorderGray
 import com.example.dundun_hi.ui.theme.ButtonCamBlue
@@ -66,8 +67,8 @@ enum class PrecipitationType(val code: Int, val iconRes: Int) {
 @Composable
 fun MainScreen(
     userName: String,
-    userProfileImg: String = "",
-    userNum: Int,
+    userProfileImg: String = "",   // 사용 안 해도 시그니처 유지
+    userNum: Int,                  // 사용 안 해도 시그니처 유지
     temperature: Int,
     highTemp: Int,
     lowTemp: Int,
@@ -93,8 +94,6 @@ fun MainScreen(
         Log.d("MainScreen_DEBUG", "=== userType: ${profileViewModel.userType}, isGuardian: $isGuardian ===")
     }
 
-    // (삭제) 문화센터 관련 ViewModel 상태 및 로직 제거
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { perms ->
@@ -103,11 +102,11 @@ fun MainScreen(
         }
     }
 
-    // (삭제) 문화센터 찾기 버튼 클릭 관련 함수 제거
-
+    // ✅ 메인은 ViewModel이 관리하는 URL(= 캐시버스트 포함)을 그대로 사용
     val profileImageUrl by remember { derivedStateOf { profileViewModel.userProfileImg } }
     val imageVersion by remember { derivedStateOf { profileViewModel.imageVersion } }
 
+    // ── 이미지 강제 새로고침 1회 옵션: URL이 바뀌면 한 번만 캐시 무시
     var forceNoCache by remember { mutableStateOf(false) }
     LaunchedEffect(profileImageUrl) {
         if (profileImageUrl.isNotBlank()) {
@@ -129,6 +128,7 @@ fun MainScreen(
         }
     }
 
+    // 오늘 날짜를 기준으로 억제 상태 관리
     val today = remember {
         java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
             .format(java.util.Date())
@@ -137,9 +137,11 @@ fun MainScreen(
         mutableStateOf(profileViewModel.getSuppressedDate() == today)
     }
 
+    // 데이터 로딩 상태 관리
     var isDataLoaded by remember { mutableStateOf(false) }
     var shouldShowPopup by remember { mutableStateOf(false) }
 
+    // ProfileViewModel의 데이터 로딩 상태를 관찰
     LaunchedEffect(profileViewModel) {
         delay(500)
         isDataLoaded = true
@@ -149,6 +151,7 @@ fun MainScreen(
         Log.d("MainScreen_DEBUG", "suppressedToday: ${suppressedToday.value}")
         Log.d("MainScreen_DEBUG", "isHomeEmpty: ${profileViewModel.isHomeLocationEmpty()}")
 
+        // ✅ 보호자가 아니고, 오늘 억제되지 않았고, 홈 위치가 비어있을 때만 팝업 표시
         if (!isGuardian && !suppressedToday.value && profileViewModel.isHomeLocationEmpty()) {
             shouldShowPopup = true
             Log.d("MainScreen_DEBUG", "=== 팝업 표시 결정됨 ===")
@@ -157,12 +160,15 @@ fun MainScreen(
         }
     }
 
+    // 홈 위치가 설정되면 팝업 숨김
     LaunchedEffect(profileViewModel.isHomeLocationEmpty()) {
+        // ✅ 보호자가 아닐 때만 팝업 로직 실행
         if (!isGuardian && isDataLoaded && !profileViewModel.isHomeLocationEmpty()) {
             shouldShowPopup = false
         }
     }
 
+    // ✅ 보호자가 아닐 때만 팝업 표시
     if (!isGuardian && shouldShowPopup && !suppressedToday.value) {
         Log.d("MainScreen_DEBUG", "=== 실제 팝업 렌더링 중 ===")
         HomeAddressPopup(
@@ -191,6 +197,7 @@ fun MainScreen(
             .background(Color.White)
             .padding(16.dp)
     ) {
+        // 타이틀
         Text(
             text = "든든하이",
             style = MaterialTheme.typography.titleLarge,
@@ -198,6 +205,7 @@ fun MainScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 인사 + 날씨 카드
         Surface(
             tonalElevation = 4.dp,
             shape = RoundedCornerShape(12.dp),
@@ -211,6 +219,7 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // ✅ ViewModel이 주는 URL 사용(업데이트 직후 1회 캐시 무시)
                 if (imageModel != null) {
                     key(profileImageUrl, forceNoCache) {
                         AsyncImage(
@@ -242,6 +251,7 @@ fun MainScreen(
                         )
                     }
                 } else {
+                    // 기본 프로필
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -308,6 +318,7 @@ fun MainScreen(
         }
         Spacer(modifier = Modifier.height(24.dp))
 
+        // 중앙 버튼
         val buttons = listOf(
             Triple("전화", R.drawable.ic_phone, ButtonPhoneGreen) to onPhonePageClick,
             Triple("내 정보", R.drawable.ic_profile, ButtonMsgTeal) to onProfileClick,
@@ -357,8 +368,7 @@ fun MainScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        // (수정) ListItem 구조 단순화 및 클릭 이벤트 변경
+// (수정) ListItem 구조 단순화 및 클릭 이벤트 변경
         ListItem(
             colors = ListItemDefaults.colors(containerColor = LightGray),
             headlineContent = {

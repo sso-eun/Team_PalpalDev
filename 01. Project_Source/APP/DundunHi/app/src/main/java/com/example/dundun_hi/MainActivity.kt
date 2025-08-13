@@ -1,5 +1,3 @@
-// app/src/main/java/com/example/dundun_hi/MainActivity.kt
-
 package com.example.dundun_hi
 
 import android.Manifest
@@ -169,7 +167,8 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 onLoginClick = { navController.navigate("login") },
-                                onSignupClick = { navController.navigate("signup_entry") }
+                                onSignupClick = { navController.navigate("signup_entry") },
+                                onOCRClick = { navController.navigate("ocr") }
                             )
                         }
 
@@ -185,7 +184,138 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ... (이하 다른 모든 회원가입, 로그인 라우트는 동일하므로 생략) ...
+                        composable("signup_entry") {
+                            CombinedAuthScreen(
+                                viewModel = signupVm,
+                                userType = 0,
+                                onNext = { navController.navigate("senior_final_signup") },
+                                bottomContent = {
+                                    Spacer(Modifier.height(24.dp))
+                                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = "보호자이신가요? 보호자용 회원가입",
+                                            modifier = Modifier.clickable { navController.navigate("guardian_auth") },
+                                            color = Color.Gray,
+                                            textDecoration = TextDecoration.Underline,
+                                            fontSize = 18.sp
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        composable("guardian_auth") {
+                            CombinedAuthScreen(
+                                viewModel = signupVm,
+                                userType = 1,
+                                onNext = { navController.navigate("family_certification") }
+                            )
+                        }
+
+                        composable("senior_final_signup") {
+                            val state by signupVm.state.collectAsState()
+                            SignupScreen(
+                                viewModel = signupVm,
+                                onSignupSuccess = {
+                                    val newUserId = signupVm.lastUserId
+                                    navController.navigate("loadingScreen/$newUserId") {
+                                        popUpTo("senior_final_signup") { inclusive = true }
+                                    }
+                                }
+                            )
+                            if (state is SignupResult.Error) {
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    (state as SignupResult.Error).reason,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        composable("family_certification") {
+                            val familyCertVm: FamilyCertViewModel = viewModel(
+                                factory = FamilyCertViewModelFactory(RetrofitClient.memberService)
+                            )
+                            FamilyCertificationScreen(
+                                signupViewModel = signupVm,
+                                familyCertViewModel = familyCertVm,
+                                onConfirm = {
+                                    val userNum = signupVm.createdUserNum ?: 0
+                                    val userId = signupVm.createdUserId ?: ""
+                                    val currentSearchState = familyCertVm.searchState.value
+                                    val seniorNum = if (currentSearchState is SearchState.Success) {
+                                        currentSearchState.senior.userNum
+                                    } else {
+                                        0
+                                    }
+                                    navController.navigate("auth_loading/$userNum/${Uri.encode(userId)}/$seniorNum")
+                                },
+                                onTestConfirm = {
+                                    val testUserNum = 47
+                                    val testUserId = "박지성"
+                                    val testSeniorNum = 50
+                                    navController.navigate("auth_loading/$testUserNum/${Uri.encode(testUserId)}/$testSeniorNum")
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "auth_loading/{userNum}/{userId}/{seniorNum}",
+                            arguments = listOf(
+                                navArgument("userNum") { type = NavType.IntType },
+                                navArgument("userId") { type = NavType.StringType },
+                                navArgument("seniorNum") { type = NavType.IntType }
+                            )
+                        ) { backStackEntry ->
+                            val userNum = backStackEntry.arguments?.getInt("userNum") ?: 0
+                            val userId = backStackEntry.arguments?.getString("userId")?.let { Uri.decode(it) } ?: ""
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0
+                            AuthLoadingScreen(
+                                navController = navController,
+                                userNum = userNum,
+                                userId = userId,
+                                seniorNum = seniorNum
+                            )
+                        }
+
+                        composable(
+                            route = "senior_profile/{guardianNum}/{guardianId}/{seniorNum}",
+                            arguments = listOf(
+                                navArgument("seniorNum") { type = NavType.IntType },
+                                navArgument("guardianNum") { type = NavType.IntType },
+                                navArgument("guardianId") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val guardianNum = backStackEntry.arguments?.getInt("guardianNum") ?: 0
+                            val guardianId = backStackEntry.arguments?.getString("guardianId")?.let { Uri.decode(it) } ?: ""
+                            val seniorNum = backStackEntry.arguments?.getInt("seniorNum") ?: 0
+                            val seniorViewModel: SeniorProfileViewModel = viewModel(
+                                factory = SeniorProfileViewModelFactory(RetrofitClient.memberService)
+                            )
+                            LaunchedEffect(key1 = seniorNum) {
+                                if (seniorNum > 0) {
+                                    seniorViewModel.fetchSeniorProfile(seniorNum)
+                                }
+                            }
+                            SeniorInfoScreen(
+                                viewModel = seniorViewModel,
+                                onConfirm = {
+                                    navController.navigate("main/$guardianNum/${Uri.encode(guardianId)}") {
+                                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "loadingScreen/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                        ) { backEntry ->
+                            SignupLoadingScreen(
+                                navController = navController,
+                                userId = backEntry.arguments?.getString("userId") ?: ""
+                            )
+                        }
 
                         composable(
                             route = "main/{userNum}/{userId}",
@@ -210,7 +340,7 @@ class MainActivity : ComponentActivity() {
                                 factory = ProfileViewModelFactory(repository, userNum, this@MainActivity)
                             )
 
-                            // (추가) LocationViewModel 인스턴스 생성
+                            // ▼▼▼ [수정 1] LocationViewModel 생성 ▼▼▼
                             val locationViewModel: LocationViewModel = viewModel()
 
                             LaunchedEffect(Unit) {
@@ -228,9 +358,10 @@ class MainActivity : ComponentActivity() {
                                 else -> 1
                             }
 
+                            // ▼▼▼ [수정 2] MainScreen에 ViewModel 전달 및 콜백 수정 ▼▼▼
                             MainScreen(
                                 profileViewModel = profileViewModel,
-                                locationViewModel = locationViewModel, // (추가) ViewModel 전달
+                                locationViewModel = locationViewModel,
                                 userName = "${userId}님",
                                 userProfileImg = userProfileImg,
                                 userNum = currentUserNum,
@@ -243,7 +374,6 @@ class MainActivity : ComponentActivity() {
                                 onMessagePageClick = { /* TODO */ },
                                 onCameraPageClick = { navController.navigate("camera/$currentUserNum") },
                                 onMapPageClick = { navController.navigate("map") },
-                                // (수정) 새로운 콜백 함수에 내비게이션 연결
                                 onNavigateToCultureCenter = {
                                     navController.navigate("culture_center")
                                 },
@@ -257,28 +387,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-
-                        // (추가) 새로운 문화센터 화면 라우트
+                        // ▼▼▼ [추가] culture_center 화면을 위한 새로운 경로 ▼▼▼
                         composable("culture_center") {
                             CultureCenterScreen()
                         }
 
-
-// ─── Guardian (기존 기능 유지)
                         composable("guardian") {
                             GuardianScreen(
                                 onSubmit = { userNumStr, userId ->
-                                    // 가디언 로그인 시에도 SharedPreferences 저장
                                     val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
                                     val editor = sharedPreferences.edit()
                                     editor.putString("user_num", userNumStr)
                                     editor.putString("user_id", userId)
-                                    editor.putString("user_type", "1") // 가디언은 1
-                                    val saveSuccess = editor.commit()
-
-                                    android.util.Log.d("MainActivity", "가디언 로그인 - SharedPreferences 저장 결과: $saveSuccess")
-                                    android.util.Log.d("MainActivity", "저장된 값 - userNum: $userNumStr, userId: $userId, userType: 1")
-
+                                    editor.putString("user_type", "1")
+                                    editor.commit()
                                     navController.navigate("guardian_profile/$userNumStr") {
                                         popUpTo("guardian") { inclusive = true }
                                     }
@@ -288,24 +410,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── ProfileScreen (userNum, userId 인자 전달)
                         composable(
                             route = "profile/{userNum}/{userId}",
                             arguments = listOf(
                                 navArgument("userNum") { type = NavType.StringType },
-                                navArgument("userId")  { type = NavType.StringType }
+                                navArgument("userId") { type = NavType.StringType }
                             )
                         ) { backEntry ->
                             val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
                             val userId = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
                             val userNumInt = userNumStr.toIntOrNull() ?: 0
-
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
                                 key = "ProfileViewModel_$userNumInt",
                                 factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
                             )
-
                             ProfileScreen(
                                 viewModel = profileVm,
                                 userId = userId,
@@ -319,19 +438,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── GuardianProfileScreen
                         composable(
                             route = "guardian_profile/{userNum}",
                             arguments = listOf(navArgument("userNum") { type = NavType.StringType })
                         ) { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull() ?: 0
                             val context = LocalContext.current
-
                             val repository = RealUserRepository()
                             val guardianViewModel: GuardianProfileViewModel = viewModel(
                                 factory = GuardianProfileViewModelFactory(repository, userNum, context)
                             )
-
                             GuardianProfileScreen(
                                 viewModel = guardianViewModel,
                                 onEditSeniorClick = {
@@ -341,7 +457,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── Guardian 프로필 수정(명시적 파라미터)
                         composable(
                             route = "edit_guardian_profile/{guardianUserNum}",
                             arguments = listOf(navArgument("guardianUserNum") {
@@ -350,20 +465,17 @@ class MainActivity : ComponentActivity() {
                             })
                         ) { backStackEntry ->
                             val guardianUserNum = backStackEntry.arguments?.getInt("guardianUserNum") ?: -1
-
                             if (guardianUserNum == -1) {
                                 LaunchedEffect(Unit) {
                                     navController.popBackStack()
                                 }
                                 return@composable
                             }
-
                             val context = LocalContext.current
                             val repository = RealUserRepository()
                             val guardianViewModel = remember {
                                 GuardianProfileViewModel(repository, guardianUserNum, context)
                             }
-
                             GuardianUpdateProfileScreen(
                                 viewModel = guardianViewModel,
                                 userId = guardianViewModel.guardianId,
@@ -374,7 +486,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── SeniorEditScreen
                         composable("SeniorEditScreen/{userNum}") { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getString("userNum")?.toIntOrNull()
                             val context = LocalContext.current
@@ -385,7 +496,6 @@ class MainActivity : ComponentActivity() {
                                     context = context
                                 )
                             }
-
                             SeniorEditScreen(
                                 viewModel = guardianViewModel,
                                 onSaveSuccess = { navController.popBackStack() },
@@ -393,24 +503,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── UpdateProfileScreen
                         composable(
                             route = "update_profile/{userNum}/{userId}",
                             arguments = listOf(
                                 navArgument("userNum") { type = NavType.StringType },
-                                navArgument("userId")  { type = NavType.StringType }
+                                navArgument("userId") { type = NavType.StringType }
                             )
                         ) { backEntry ->
                             val userNumStr = backEntry.arguments?.getString("userNum") ?: "0"
                             val userId = Uri.decode(backEntry.arguments?.getString("userId") ?: "")
                             val userNumInt = userNumStr.toIntOrNull() ?: 0
-
                             val repository: UserRepository = RealUserRepository()
                             val profileVm: ProfileViewModel = viewModel(
                                 key = "ProfileViewModel_$userNumInt",
                                 factory = ProfileViewModelFactory(repository, userNumInt, this@MainActivity)
                             )
-
                             UpdateProfileScreen(
                                 viewModel = profileVm,
                                 userId = userId,
@@ -418,14 +525,12 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── GuardianUpdateProfileScreen (다른 경로)
                         composable(
                             route = "guardian_update_profile/{userNum}",
                             arguments = listOf(navArgument("userNum") { type = NavType.IntType })
                         ) { backStackEntry ->
                             val userNum = backStackEntry.arguments?.getInt("userNum") ?: -1
                             if (userNum == -1) return@composable
-
                             val context = LocalContext.current
                             val guardianViewModel: GuardianProfileViewModel = viewModel(
                                 factory = GuardianProfileViewModelFactory(
@@ -434,7 +539,6 @@ class MainActivity : ComponentActivity() {
                                     context
                                 )
                             )
-
                             GuardianUpdateProfileScreen(
                                 viewModel = guardianViewModel,
                                 userId = guardianViewModel.guardianId,
@@ -443,7 +547,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── UpdatePasswordScreen
                         composable(
                             route = "update_password/{userNum}",
                             arguments = listOf(navArgument("userNum") { type = NavType.StringType })
@@ -457,69 +560,33 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ─── MapScreen
                         composable("map") { MapScreen() }
-
-                        // ─── AlarmRecordScreen
                         composable("alarm") { AlarmRecordScreen(navController) }
-
-                        // ─── AddAlarmScreen
                         composable("add_alarm") { AddAlarmScreen(navController) }
-
-                        // ─── EditAlertScreen
                         composable("edit_alarm/{alertId}") { backStackEntry ->
                             val alertId = backStackEntry.arguments?.getString("alertId") ?: ""
                             EditAlertScreen(navController, alertId)
                         }
-
-                        // ─── ActivityHistoryScreen
                         composable("activity_history") { ActivityHistoryScreen() }
-
                         composable(
                             route = "camera/{userId}",
                             arguments = listOf(navArgument("userId") { type = NavType.IntType })
                         ) { backStackEntry ->
-                            val userId = backStackEntry.arguments?.getInt("userId")
-                                ?: 0 // ← 아마 이렇게 되어있을 것입니다.
+                            val userId = backStackEntry.arguments?.getInt("userId") ?: 0
                             CameraScreen(userId = userId, navController = navController)
                         }
-//
-//                        // ─── LastPhotoScreen
-//                        composable(
-//                            route = "lastphoto/{userId}",
-//                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
-//                        ) { back ->
-//                            val myId = back.arguments!!.getInt("userId")
-//                            LastPhotoScreen(
-//                                senderId = myId,
-//                                receiverId = 3,
-//                                viewerId = myId
-//                            )
-//                        }
-
                         composable(
-                            // 1. 경로(Route) 정의
                             route = "lastphoto/{userId}",
-
-                            // 2. 전달인자(Argument) 타입 정의
                             arguments = listOf(navArgument("userId") { type = NavType.IntType })
-                        ) { back -> // 3. Composable 컨텐츠 람다
-
-                            // 4. 전달인자 값 가져오기
+                        ) { back ->
                             val myId = back.arguments!!.getInt("userId")
-
-                            // 5. 화면(Screen) 호출
                             LastPhotoScreen(
                                 senderId = myId,
                                 receiverId = 3,
                                 viewerId = myId
                             )
                         }
-
-                        // ─── KioskScreen
                         composable("kiosk") { KioskScreen() }
-
-                        // ─── CallScreen
                         composable("call") {
                             val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
@@ -529,8 +596,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
-                        // ─── SetupShortcutScreen
                         composable("call_setup/{index}") { back ->
                             val idx = back.arguments?.getString("index")?.toIntOrNull() ?: 0
                             SetupShortcutScreen(
@@ -539,8 +604,6 @@ class MainActivity : ComponentActivity() {
                                 onDone = { navController.popBackStack() }
                             )
                         }
-
-                        // ─── FindIdScreen
                         composable("find_id") {
                             val findIdVm: FindIdViewModel = viewModel()
                             FindIdScreen(
@@ -549,16 +612,15 @@ class MainActivity : ComponentActivity() {
                                 onLoginClick = { navController.navigate("login") }
                             )
                         }
-
-                        // ─── Guardian_FindIdScreen
                         composable("guardian_find_id") {
                             val findIdVm: FindIdViewModel = viewModel()
                             Guardian_FindIdScreen(
                                 viewModel = findIdVm,
                                 onIdFound = { navController.popBackStack() },
-                                onLoginClick = { navController.navigate("login") } // 통합 로그인으로 변경
+                                onLoginClick = { navController.navigate("login") }
                             )
                         }
+                        composable("ocr") { OCRScreen() }
                     }
                 }
             }

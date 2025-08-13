@@ -151,6 +151,23 @@ fun CombinedAuthScreen(
             )
         }
         Spacer(Modifier.height(32.dp))
+        // 인증번호 받기 버튼
+        Button(
+            onClick = { viewModel.sendVerificationCode(phone.trim()) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+        ) {
+            Text(
+                text = "인증번호 받기",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(Modifier.height(12.dp))
         // 인증번호 확인하기 버튼
         Button(
             onClick = {
@@ -166,7 +183,7 @@ fun CombinedAuthScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF039BE5))
         ) {
             Text(
                 text = "인증번호 확인하기",
@@ -176,20 +193,18 @@ fun CombinedAuthScreen(
             )
         }
         Spacer(Modifier.height(12.dp))
-        // 다시 인증번호 받기 버튼 (Outlined)
+        // 인증번호 다시 받기 버튼
         Button(
             onClick = { viewModel.sendVerificationCode(phone.trim()) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-            border = BorderStroke(2.dp, Color(0xFF1AB277)),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF265080))
         ) {
             Text(
-                text = "다시 인증번호 받기",
-                color = Color(0xFF1AB277),
+                text = "인증번호 다시 받기",
+                color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -197,23 +212,7 @@ fun CombinedAuthScreen(
 
         // 인증번호 그거 안돼서 우선 임시버튼으로 이렇게 해놨음
         Spacer(Modifier.height(12.dp))
-        Button(
-            onClick = { onNext() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-            border = BorderStroke(2.dp, Color(0xFF1AB277)),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-        ) {
-            Text(
-                text = "인증번호 안돼서 임시버튼",
-                color = Color(0xFF1AB277),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+
         // --- 2. '슬롯'에 전달된 UI를 실제로 화면에 표시하는 부분 ---
         // MainActivity에서 보호자 링크를 넘겨주면 그 링크가 여기에 표시됩니다.
         bottomContent()
