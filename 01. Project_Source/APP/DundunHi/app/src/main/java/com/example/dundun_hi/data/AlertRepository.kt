@@ -59,6 +59,9 @@ class AlertRepository private constructor(private val context: Context) {
     private fun initializeData() {
         CoroutineScope(Dispatchers.IO).launch {
             val userNum = getUserNum()
+            Log.d("AlertRepository", "=== 초기 데이터 로딩 시작 ===")
+            Log.d("AlertRepository", "가져온 userNum: $userNum")
+            
             if (userNum > 0) {
                 Log.d("AlertRepository", "앱 시작 시 자동 데이터 로딩 - userNum: $userNum")
                 val success = loadAlertsFromServer(userNum)
@@ -76,7 +79,8 @@ class AlertRepository private constructor(private val context: Context) {
                     }
                 }
             } else {
-                Log.w("AlertRepository", "유효하지 않은 userNum으로 데이터 로딩 건너뜀: $userNum")
+                Log.e("AlertRepository", "❌ 유효하지 않은 userNum으로 데이터 로딩 건너뜀: $userNum")
+                Log.e("AlertRepository", "SharedPreferences에 user_num이 저장되지 않았거나 0입니다.")
             }
         }
     }
@@ -116,6 +120,9 @@ class AlertRepository private constructor(private val context: Context) {
     fun forceRefreshFromServer() {
         CoroutineScope(Dispatchers.IO).launch {
             val userNum = getUserNum()
+            Log.d("AlertRepository", "=== 강제 새로고침 시작 ===")
+            Log.d("AlertRepository", "userNum: $userNum")
+            
             if (userNum > 0) {
                 Log.d("AlertRepository", "강제 새로고침 - userNum: $userNum")
                 val success = loadAlertsFromServer(userNum)
@@ -133,7 +140,20 @@ class AlertRepository private constructor(private val context: Context) {
                     }
                 }
             } else {
-                Log.w("AlertRepository", "유효하지 않은 userNum으로 강제 새로고침 건너뜀: $userNum")
+                Log.e("AlertRepository", "❌ 유효하지 않은 userNum으로 강제 새로고침 건너뜀: $userNum")
+                Log.e("AlertRepository", "SharedPreferences에 user_num이 저장되지 않았거나 0입니다.")
+                
+                // userNum이 없어도 콜백은 호출하여 UI가 업데이트되도록 함
+                withContext(Dispatchers.Main) {
+                    Log.d("AlertRepository", "userNum 없음으로 인한 콜백 호출 (${_onDataLoadedCallbacks.size}개)")
+                    _onDataLoadedCallbacks.forEach { callback ->
+                        try {
+                            callback()
+                        } catch (e: Exception) {
+                            Log.e("AlertRepository", "userNum 없음 콜백 실행 중 오류", e)
+                        }
+                    }
+                }
             }
         }
     }

@@ -77,8 +77,26 @@ fun ProfileScreen(
     // ✅ 수정: AlertRepository의 상태를 관찰하고 화면 갱신시 새로고침
     val alerts = alertRepository.alertList
     val isAlertLoading = alertRepository.isLoading
+    
+    // ✅ 디버깅을 위한 로그 추가
+    LaunchedEffect(alerts) {
+        Log.d("ProfileScreen", "=== 알림 데이터 상태 ===")
+        Log.d("ProfileScreen", "전체 알림 개수: ${alerts.size}")
+        Log.d("ProfileScreen", "오늘 날짜: $today")
+        Log.d("ProfileScreen", "로딩 상태: $isAlertLoading")
+        
+        alerts.forEachIndexed { index, alert ->
+            Log.d("ProfileScreen", "[$index] ${alert.date} ${alert.time} - ${alert.content}")
+        }
+    }
+    
     val todayAlerts = remember(alerts, today) {
-        alerts.filter { it.date == today }.sortedBy { it.time }
+        val filtered = alerts.filter { it.date == today }.sortedBy { it.time }
+        Log.d("ProfileScreen", "오늘 알림 필터링 결과: ${filtered.size}개")
+        filtered.forEachIndexed { index, alert ->
+            Log.d("ProfileScreen", "오늘 알림 [$index]: ${alert.date} ${alert.time} - ${alert.content}")
+        }
+        filtered
     }
 
     // ✅ 강화된 데이터 로딩 로직
@@ -103,7 +121,19 @@ fun ProfileScreen(
     
     // ✅ 화면 진입시마다 데이터 새로고침
     LaunchedEffect(Unit) {
-        Log.d("ProfileScreen", "화면 진입 - 데이터 로딩 시작")
+        Log.d("ProfileScreen", "=== 화면 진입 - 데이터 로딩 시작 ===")
+        
+        // SharedPreferences에서 userNum 확인
+        val sharedPrefs = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+        val userNum = sharedPrefs.getString("user_num", "null")
+        val userType = sharedPrefs.getString("user_type", "null")
+        val userId = sharedPrefs.getString("user_id", "null")
+        
+        Log.d("ProfileScreen", "SharedPreferences 확인:")
+        Log.d("ProfileScreen", "user_num: $userNum")
+        Log.d("ProfileScreen", "user_type: $userType")
+        Log.d("ProfileScreen", "user_id: $userId")
+        
         viewModel.fetchUserFromServer()
         alertRepository.forceRefreshFromServer() // 강제 새로고침 사용
     }
@@ -335,33 +365,60 @@ fun ProfileScreen(
                 val scrollState = rememberScrollState()
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(scrollState)
-                ) {
-                    if (isAlertLoading || !isDataLoaded) {
-                        // 로딩 중 표시
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color(0xFF2196F3)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isAlertLoading) "일정을 불러오는 중..." else "일정을 준비하는 중...",
-                                fontSize = 18.sp,
-                                color = Color.Gray
-                            )
-                        }
-                    } else if (todayAlerts.isEmpty()) {
-                        Text(
-                            text = "오늘의 알림이 없습니다.",
-                            fontSize = 22.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    } else {
+                                 ) {
+                     if (isAlertLoading || !isDataLoaded) {
+                         // 로딩 중 표시
+                         Row(
+                             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                             horizontalArrangement = Arrangement.Center,
+                             verticalAlignment = Alignment.CenterVertically
+                         ) {
+                             CircularProgressIndicator(
+                                 modifier = Modifier.size(24.dp),
+                                 color = Color(0xFF2196F3)
+                             )
+                             Spacer(modifier = Modifier.width(8.dp))
+                             Text(
+                                 text = if (isAlertLoading) "일정을 불러오는 중..." else "일정을 준비하는 중...",
+                                 fontSize = 18.sp,
+                                 color = Color.Gray
+                             )
+                         }
+                     } else if (todayAlerts.isEmpty()) {
+                         // ✅ 디버깅 정보 표시
+                         Column(
+                             modifier = Modifier.padding(vertical = 8.dp),
+                             horizontalAlignment = Alignment.CenterHorizontally
+                         ) {
+                             Text(
+                                 text = "오늘의 알림이 없습니다.",
+                                 fontSize = 22.sp,
+                                 color = Color.Gray
+                             )
+                             
+                             // 디버깅용 정보 (개발 중에만 표시)
+                             Text(
+                                 text = "전체 알림: ${alerts.size}개",
+                                 fontSize = 14.sp,
+                                 color = Color.LightGray
+                             )
+                             Text(
+                                 text = "오늘 날짜: $today",
+                                 fontSize = 14.sp,
+                                 color = Color.LightGray
+                             )
+                             
+                             // 수동 새로고침 버튼
+                             TextButton(
+                                 onClick = {
+                                     Log.d("ProfileScreen", "수동 새로고침 버튼 클릭")
+                                     alertRepository.forceRefreshFromServer()
+                                 }
+                             ) {
+                                 Text("다시 시도", fontSize = 14.sp, color = Color(0xFF2196F3))
+                             }
+                         }
+                     } else {
                         todayAlerts.forEachIndexed { index, alert ->
                             Column(modifier = Modifier.padding(vertical = 4.dp)) {
                                 Text(text = "${alert.date} ${alert.time}", fontSize = 26.sp, color = Color.Gray)
