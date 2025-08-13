@@ -1,9 +1,6 @@
 package com.example.dundun_hi.ui
 
-import android.Manifest
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,7 +26,6 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.dundun_hi.R
-import com.example.dundun_hi.data.LocationViewModel
 import com.example.dundun_hi.ui.HomeAddressPopup
 import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.theme.BorderGray
@@ -78,11 +74,10 @@ fun MainScreen(
     onMessagePageClick: () -> Unit,
     onCameraPageClick: () -> Unit,
     onMapPageClick: () -> Unit,
-    onNavigateToCultureCenter: () -> Unit, // (수정) 문화센터 페이지 이동 콜백
+    onFindCultureCenter: () -> Unit,
     onKioskPageClick: () -> Unit,
     onProfileClick: () -> Unit,
-    profileViewModel: ProfileViewModel,
-    locationViewModel: LocationViewModel // (유지) 위치 정보는 다른 곳에서 필요할 수 있으므로 유지
+    profileViewModel: ProfileViewModel
 ) {
     val context = LocalContext.current
 
@@ -92,14 +87,6 @@ fun MainScreen(
     // 디버깅용 로그
     LaunchedEffect(profileViewModel.userType) {
         Log.d("MainScreen_DEBUG", "=== userType: ${profileViewModel.userType}, isGuardian: $isGuardian ===")
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { perms ->
-        if (perms[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-            locationViewModel.fetchLocation()
-        }
     }
 
     // ✅ 메인은 ViewModel이 관리하는 URL(= 캐시버스트 포함)을 그대로 사용
@@ -368,37 +355,34 @@ fun MainScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-// (수정) ListItem 구조 단순화 및 클릭 이벤트 변경
-        ListItem(
-            colors = ListItemDefaults.colors(containerColor = LightGray),
-            headlineContent = {
-                Text("문화센터 찾기", fontSize = 25.sp, fontWeight = FontWeight.Bold)
-            },
-            supportingContent = {
-                Text("주변 문화센터 활동을 찾아보세요", fontSize = 23.sp)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(LightGray, RoundedCornerShape(8.dp))
-                .clickable { onNavigateToCultureCenter() } // (수정) 내비게이션 콜백 호출
-                .padding(vertical = 12.dp, horizontal = 16.dp)
-        )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ListItem(
-            colors = ListItemDefaults.colors(containerColor = LightGray),
-            headlineContent = {
-                Text("키오스크", fontSize = 25.sp, fontWeight = FontWeight.Bold)
-            },
-            supportingContent = {
-                Text("키오스크 사용법을 같이 배워봐요", fontSize = 23.sp)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(LightGray, RoundedCornerShape(8.dp))
-                .clickable { onKioskPageClick() }
-                .padding(vertical = 12.dp, horizontal = 16.dp)
+        // 키오스크, 문화센터
+        val items = listOf(
+            "문화센터 찾기" to onFindCultureCenter,
+            "키오스크" to onKioskPageClick
         )
+        items.forEachIndexed { index, (label, action) ->
+            ListItem(
+                colors = ListItemDefaults.colors(containerColor = LightGray),
+                headlineContent = {
+                    Text(label, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                },
+                supportingContent = {
+                    Text(
+                        text = when (label) {
+                            "문화센터 찾기" -> "주변 문화센터 활동을 찾아보세요"
+                            else -> "키오스크 사용법을 같이 배워봐요"
+                        },
+                        fontSize = 23.sp
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(LightGray, RoundedCornerShape(8.dp))
+                    .clickable { action() }
+                    .padding(vertical = 12.dp, horizontal = 16.dp)
+            )
+            if (index == 0) Spacer(modifier = Modifier.height(12.dp))
+        }
     }
 }

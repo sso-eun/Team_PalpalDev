@@ -8,6 +8,5 @@ data class SharedPhoto(
     val fromMe: Boolean,
     val localUri: Uri? = null,
     val remoteUrl: String? = null,
-    val resId: Int? = null,
-    val authorName: String = ""
+    val resId: Int? = null
 )
