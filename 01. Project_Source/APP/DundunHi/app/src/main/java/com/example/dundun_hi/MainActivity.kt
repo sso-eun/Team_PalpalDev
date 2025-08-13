@@ -95,7 +95,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.handwrite.OCRScreen
 
 class MainActivity : ComponentActivity() {
 
