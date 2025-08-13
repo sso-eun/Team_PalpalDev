@@ -203,7 +203,11 @@ class MainActivity : ComponentActivity() {
                                 // "구면이세요?" -> 통합 로그인 화면으로 연결
                                 onLoginClick = { navController.navigate("login") },
                                 // "초면이세요?" -> 새로운 회원가입 화면으로 연결
-                                onSignupClick = { navController.navigate("signup_entry") }
+                                onSignupClick = { navController.navigate("signup_entry") },
+
+                                onOCRClick = { navController.navigate("ocr") }
+
+
                             )
                         }
 
@@ -721,6 +725,14 @@ class MainActivity : ComponentActivity() {
                                 onLoginClick = { navController.navigate("login") } // 통합 로그인으로 변경
                             )
                         }
+
+                        // 임시 OCR 연결
+                        composable("ocr") { OCRScreen() }
+                        
+
+
+
+
                     }
                 }
             }
