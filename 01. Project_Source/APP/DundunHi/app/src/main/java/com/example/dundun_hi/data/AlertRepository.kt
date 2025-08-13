@@ -447,9 +447,18 @@ class AlertRepository private constructor(private val context: Context) {
                 val date = isoFormat.parse(userDateTime)
                 
                 if (date != null) {
+                    // ✅ 한국 시간대로 변환
+                    val koreaTimeZone = java.util.TimeZone.getTimeZone("Asia/Seoul")
                     val dateFormat = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
                     val timeFormat = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-                    Pair(dateFormat.format(date), timeFormat.format(date))
+                    dateFormat.timeZone = koreaTimeZone
+                    timeFormat.timeZone = koreaTimeZone
+                    
+                    val koreaDate = dateFormat.format(date)
+                    val koreaTime = timeFormat.format(date)
+                    
+                    Log.d("AlertRepository", "UTC -> KST 변환: $userDateTime -> $koreaDate $koreaTime")
+                    Pair(koreaDate, koreaTime)
                 } else {
                     throw IllegalArgumentException("날짜 파싱 실패: $userDateTime")
                 }
