@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/subRotate" android:title="회전" />
+    <item android:id="@+id/subSize" android:title="확대" />
+</menu>

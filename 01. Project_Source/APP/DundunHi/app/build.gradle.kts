@@ -97,4 +97,10 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
+    //손글씨 인식
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    // 기본(라틴)
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
+    implementation("com.google.mlkit:digital-ink-recognition:18.1.0")
+
 }

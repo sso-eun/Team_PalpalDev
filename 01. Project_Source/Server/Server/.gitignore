@@ -1,1 +1,12 @@
 ./idea
+.gitignore
+.env
+/node_modules
+.idea/workspace.xml
+Weather_API
+.idea
+firebaseKey.json
+config
+.idea/workspace.xml
+./utils/FCM_ServiceAccountKey.json
+

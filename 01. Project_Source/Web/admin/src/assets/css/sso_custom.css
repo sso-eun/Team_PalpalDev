@@ -1,0 +1,82 @@
+/* author : ssoeun 25.08.01 */
+
+/* SIDE BAR */
+.collapse-menu {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    overflow: hidden;
+    transition: max-height 1s ease, opacity 1s ease, transform 1s ease;
+}
+
+.collapse-menu.show {
+    max-height: 500px; /* 실제 내용 높이에 맞게 적절히 설정 */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* MODAL */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/*pagenaition*/
+/* 예: App.css 또는 component 내 style 태그 */
+.pagination-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 30px;
+}
+
+.page-button {
+    background-color: white;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+.page-button:hover {
+    background-color: #f0f0f0;
+    border-color: #999;
+}
+
+.page-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+/* List */
+/* 테이블 전체 폰트 크기 줄이기 */
+.table {
+    font-size: 0.85rem; /* 기본보다 작게 */
+}
+
+/* 헤더와 푸터 글자 약간 강조 */
+.table thead th,
+.table tfoot th {
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+/* 셀 내부 여백 줄이기 */
+.table td,
+.table th {
+    padding: 0.4rem 0.6rem;
+    vertical-align: middle;
+}
+
+/* 관리 버튼 간격 조정 */
+.table .btn {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+}
