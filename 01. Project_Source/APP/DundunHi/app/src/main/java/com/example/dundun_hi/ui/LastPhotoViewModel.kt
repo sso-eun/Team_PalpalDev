@@ -42,10 +42,17 @@ class LastPhotoViewModel(
         _photos.update { it + temp }
 
         runCatching {
-            repo.uploadAndSend(context, senderId, receiverId, uri)
+            // 기존 uploadAndSend는 이미 2단계로 구현되어 있음
+            repo.uploadAndSend(
+                context = context,
+                userNum = senderId,      // senderId를 userNum으로 전달
+                guardianId = receiverId, // receiverId를 guardianId로 전달
+                localUri = uri
+            )
             refresh()
         }.onFailure {
             _photos.update { it - temp }
+            Log.e("LastPhotoVM", "사진 업로드/전송 실패", it)
         }
     }
 }

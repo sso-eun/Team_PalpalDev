@@ -50,17 +50,17 @@ class TalkRepository(
         /* 4) 최종 URL 반환 */
         uploadRes.filePath
     }
-
-    // TalkRepository.kt
     suspend fun fetchTalkList(userNum: Int): List<SharedPhoto> =
         api.getTalkList(mapOf("user_num" to userNum)).let { res ->
             require(res.rsCode == 200) { res.message }
             res.data.map { dto ->
                 SharedPhoto(
-                    resId     = 0, // TODO: 실제 리소스 ID로 매핑 필요시 수정
-                    fromMe    = (dto.senderId == userNum)
+                    fromMe = (dto.senderId == userNum),
+                    remoteUrl = "https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/down/talk/${dto.talkId}",  // talk_id로 실제 이미지 URL 구성
+                    localUri = null,
+                    resId = null,
+                    authorName = if (dto.senderType == 0) "우리딸" else "보호자"
                 )
             }
         }
-
 }
