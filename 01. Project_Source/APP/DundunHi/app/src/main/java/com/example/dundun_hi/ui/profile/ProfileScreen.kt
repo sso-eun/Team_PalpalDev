@@ -88,7 +88,9 @@ fun ProfileScreen(
 
     //소은 수정. remember 제거
     val alerts = alertRepository.alertList          // SnapshotStateList 그대로 읽기
-    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.KOREA).format(Date()) }
+
+    // 은재 수정: today 두 번 선언 - 76줄
+    // val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.KOREA).format(Date()) }
 
     val todayAlerts = alerts
         .filter { it.date == today }
