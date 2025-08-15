@@ -181,11 +181,47 @@ class AlertRepository private constructor(private val context: Context) {
     fun getAlertById(id: String): AlertItem? {
         return _alertList.find { it.id == id }
     }
+    
+    // 08-15 일정 수정 - update_date 관련 수정
+    // suspend 함수로 변경하여 비동기 네트워크 통신을 지원
+    suspend fun updateAlert(updatedAlert: AlertItem): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                // API 명세서에 맞는 데이터 형식으로 변환
+                val dateTime = "${updatedAlert.date} ${updatedAlert.time}"
+                val isoDateTime = try {
+                    val dateParts = updatedAlert.date.split("/")
+                    val timeParts = updatedAlert.time.split(":")
+                    "${dateParts[0]}-${dateParts[1]}-${dateParts[2]}T${timeParts[0]}:${timeParts[1]}:00"
+                } catch (e: Exception) {
+                    "${updatedAlert.date}T${updatedAlert.time}:00"
+                }
 
-    fun updateAlert(updatedAlert: AlertItem) {
-        val index = _alertList.indexOfFirst { it.id == updatedAlert.id }
-        if (index != -1) {
-            _alertList[index] = updatedAlert
+                // 2단계에서 만든 Data Class를 사용하여 요청 본문 생성
+                val request = UpdateAlertRequest(
+                    title = updatedAlert.content,
+                    dateTime = dateTime,
+                    dateInfo = isoDateTime
+                )
+
+                Log.d("AlertRepository", "일정 수정 요청: ID=${updatedAlert.id}, Body=$request")
+
+                // 1단계에서 만든 Retrofit 함수 호출
+                val response = RetrofitClient.memberService.updateAlert(updatedAlert.id, request)
+
+                if (response.isSuccessful) {
+                    Log.d("AlertRepository", "일정 수정 성공. 서버 데이터 새로고침")
+                    // 수정 성공 후, 서버로부터 최신 데이터를 다시 불러와 로컬 목록을 동기화
+                    refreshFromServer()
+                    true
+                } else {
+                    Log.e("AlertRepository", "일정 수정 실패: ${response.errorBody()?.string()}")
+                    false
+                }
+            } catch (e: Exception) {
+                Log.e("AlertRepository", "일정 수정 중 예외 발생", e)
+                false
+            }
         }
     }
 

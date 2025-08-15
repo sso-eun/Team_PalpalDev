@@ -259,20 +259,35 @@ fun EditAlertScreen(navController: NavController, alertId: String) {
         // --- Bottom Spacer: weight(1f) 대신 고정 값으로 변경 ---
         Spacer(modifier = Modifier.height(32.dp))
 
+        // "수정 완료" 버튼
         Button(
             onClick = {
-                val updatedAlert = AlertItem(id = alertId, date = date.value, time = time.value, content = content.value)
-                alertRepository.updateAlert(updatedAlert)
-                navController.navigateUp()
+                coroutineScope.launch {
+                    val updatedAlert = AlertItem(id = alertId, date = date.value, time = time.value, content = content.value)
+                    val success = alertRepository.updateAlert(updatedAlert)
+
+                    if (success) {
+                        Toast.makeText(context, "일정이 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                        navController.navigateUp()
+                    } else {
+                        Toast.makeText(context, "일정 수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
-            enabled = date.value.isNotEmpty() && time.value.isNotEmpty() && content.value.isNotEmpty() && !isTranscribing.value,
+
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("수정 완료", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
+
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedButton(onClick = { navController.navigateUp() }, modifier = Modifier.fillMaxWidth()) {
+
+        // "취소" 버튼
+        OutlinedButton(
+            onClick = { navController.navigateUp() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("취소", fontSize = 18.sp)
         }
     }
