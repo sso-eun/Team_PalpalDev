@@ -66,13 +66,13 @@ class AlertRepository private constructor(private val context: Context) {
     // ✅ 초기 데이터 로딩
     private fun initializeData() {
         CoroutineScope(Dispatchers.IO).launch {
-            val userNum = getUserNum()
+            val targetUserNum = getTargetUserNum()
             Log.d("AlertRepository", "=== 초기 데이터 로딩 시작 ===")
-            Log.d("AlertRepository", "가져온 userNum: $userNum")
+            Log.d("AlertRepository", "가져온 targetUserNum: $targetUserNum")
             
-            if (userNum > 0) {
-                Log.d("AlertRepository", "앱 시작 시 자동 데이터 로딩 - userNum: $userNum")
-                val success = loadAlertsFromServer(userNum)
+            if (targetUserNum > 0) {
+                Log.d("AlertRepository", "앱 시작 시 자동 데이터 로딩 - targetUserNum: $targetUserNum")
+                val success = loadAlertsFromServer(targetUserNum)
                 Log.d("AlertRepository", "초기 데이터 로딩 완료 - 성공: $success, 알림 개수: ${_alertList.size}")
                 
                 // 초기 로딩 후에도 콜백 호출
@@ -87,39 +87,70 @@ class AlertRepository private constructor(private val context: Context) {
                     }
                 }
             } else {
-                Log.e("AlertRepository", "❌ 유효하지 않은 userNum으로 데이터 로딩 건너뜀: $userNum")
+                Log.e("AlertRepository", "❌ 유효하지 않은 targetUserNum으로 데이터 로딩 건너뜀: $targetUserNum")
                 Log.e("AlertRepository", "SharedPreferences에 user_num이 저장되지 않았거나 0입니다.")
             }
         }
     }
 
-    // ✅ userNum 가져오기 함수
-    private fun getUserNum(): Int {
-        val fromPrefs = sharedPreferences.getString("user_num", null)?.toIntOrNull()
+    // --- 08-16 은재 getTargetUserNum() 함수 신설---
+    private suspend fun getTargetUserNum(): Int {
+        val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val currentUserNum = sharedPreferences.getString("user_num", "0")?.toIntOrNull() ?: 0
 
-        // 디버깅을 위한 로그
-        val prefsUserNum = sharedPreferences.getString("user_num", "null")
-        val prefsUserType = sharedPreferences.getString("user_type", "null")
-        val prefsUserId = sharedPreferences.getString("user_id", "null")
+        if (currentUserNum <= 0) {
+            Log.e("AlertRepository", "현재 userNum을 찾을 수 없음, 0 반환")
+            return 0
+        }
 
-        Log.d("AlertRepository", "=== SharedPreferences 확인 ===")
-        Log.d("AlertRepository", "user_num: $prefsUserNum")
-        Log.d("AlertRepository", "user_type: $prefsUserType")
-        Log.d("AlertRepository", "user_id: $prefsUserId")
+        Log.d("AlertRepository", "역할 확인 시작 - 현재 사용자: $currentUserNum")
+        try {
+            // 현재 사용자가 가디언이라는 가정 하에, 연동된 시니어 정보 조회를 시도
+            val response = RetrofitClient.memberService.getAuthStatusByGuardianNo(currentUserNum)
 
-        return fromPrefs ?: 0
+            // API 호출이 성공하고, 유효한 seniorNum을 받았다면? -> 이 사용자는 '가디언'
+            if (response.isSuccessful && response.body() != null && response.body()!!.seniorNum > 0) {
+                val seniorNum = response.body()!!.seniorNum
+                Log.d("AlertRepository", "✅ API 응답 성공: 현재 사용자는 '가디언'. 조회할 시니어 번호는 $seniorNum 입니다.")
+                return seniorNum
+            }
+            // API 호출이 실패했거나, seniorNum이 없다면? -> 이 사용자는 '시니어'
+            else {
+                Log.d("AlertRepository", "API 응답 실패 또는 시니어 정보 없음: 현재 사용자를 '시니어'로 간주. 본인 번호($currentUserNum)를 사용합니다.")
+                return currentUserNum
+            }
+        } catch (e: Exception) {
+            Log.e("AlertRepository", "역할 확인 중 예외 발생. 현재 사용자를 '시니어'로 간주.", e)
+            return currentUserNum // 예외 발생 시 안전하게 본인 번호 사용
+        }
     }
+    // ✅ userNum 가져오기 함수
+//    private fun getUserNum(): Int {
+//        val fromPrefs = sharedPreferences.getString("user_num", null)?.toIntOrNull()
+//
+//        // 디버깅을 위한 로그
+//        val prefsUserNum = sharedPreferences.getString("user_num", "null")
+//        val prefsUserType = sharedPreferences.getString("user_type", "null")
+//        val prefsUserId = sharedPreferences.getString("user_id", "null")
+//
+//        Log.d("AlertRepository", "=== SharedPreferences 확인 ===")
+//        Log.d("AlertRepository", "user_num: $prefsUserNum")
+//        Log.d("AlertRepository", "user_type: $prefsUserType")
+//        Log.d("AlertRepository", "user_id: $prefsUserId")
+//
+//        return fromPrefs ?: 0
+//    }
 
     // ✅ 공개 메서드로 수동 새로고침 지원
     fun refreshFromServer() {
         CoroutineScope(Dispatchers.IO).launch {
-            val userNum = getUserNum()
-            if (userNum > 0) {
-                Log.d("AlertRepository", "수동 새로고침 - userNum: $userNum")
-                val success = loadAlertsFromServer(userNum)
+            val targetUserNum = getTargetUserNum()
+            if (targetUserNum > 0) {
+                Log.d("AlertRepository", "수동 새로고침 - targetUserNum: $targetUserNum")
+                val success = loadAlertsFromServer(targetUserNum)
                 Log.d("AlertRepository", "새로고침 완료 - 성공: $success, 알림 개수: ${_alertList.size}")
             } else {
-                Log.w("AlertRepository", "유효하지 않은 userNum으로 새로고침 건너뜀: $userNum")
+                Log.w("AlertRepository", "유효하지 않은 targetUserNum으로 새로고침 건너뜀: $targetUserNum")
             }
         }
     }
@@ -127,13 +158,13 @@ class AlertRepository private constructor(private val context: Context) {
     // ✅ 강제 데이터 로딩 (콜백 보장)
     fun forceRefreshFromServer() {
         CoroutineScope(Dispatchers.IO).launch {
-            val userNum = getUserNum()
+            val targetUserNum = getTargetUserNum()
             Log.d("AlertRepository", "=== 강제 새로고침 시작 ===")
-            Log.d("AlertRepository", "userNum: $userNum")
+            Log.d("AlertRepository", "targetUserNum: $targetUserNum")
             
-            if (userNum > 0) {
-                Log.d("AlertRepository", "강제 새로고침 - userNum: $userNum")
-                val success = loadAlertsFromServer(userNum)
+            if (targetUserNum > 0) {
+                Log.d("AlertRepository", "강제 새로고침 - userNum: $targetUserNum")
+                val success = loadAlertsFromServer(targetUserNum)
                 Log.d("AlertRepository", "강제 새로고침 완료 - 성공: $success, 알림 개수: ${_alertList.size}")
                 
                 // 강제 새로고침 후에도 콜백 호출
@@ -148,7 +179,7 @@ class AlertRepository private constructor(private val context: Context) {
                     }
                 }
             } else {
-                Log.e("AlertRepository", "❌ 유효하지 않은 userNum으로 강제 새로고침 건너뜀: $userNum")
+                Log.e("AlertRepository", "❌ 유효하지 않은 userNum으로 강제 새로고침 건너뜀: $targetUserNum")
                 Log.e("AlertRepository", "SharedPreferences에 user_num이 저장되지 않았거나 0입니다.")
                 
                 // userNum이 없어도 콜백은 호출하여 UI가 업데이트되도록 함
@@ -234,85 +265,38 @@ class AlertRepository private constructor(private val context: Context) {
      * Map 방식으로 API 호출 (서버 호환성을 위해)
      */
     suspend fun addAlertToServerAndLocal(
-        userNum: Int,
         title: String,
         dateTime: String,
-        dateInfo: String  // DATETIME 형식 (ISO 8601)
+        dateInfo: String
     ): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d("AlertRepository", "서버 저장 시작 - userNum: $userNum, title: $title, dateTime: $dateTime, dateInfo: $dateInfo")
+                // 1. 함수 내부에서 직접 올바른 userNum을 조회합니다.
+                val targetUserNum = getTargetUserNum()
+                if (targetUserNum <= 0) {
+                    Log.e("AlertRepository", "유효하지 않은 targetUserNum ($targetUserNum), 일정 추가 중단.")
+                    return@withContext false
+                }
 
-                // Map 방식으로 데이터 준비 (서버 호환성을 위해)
-                val requestData = mapOf(
-                    "user_num" to userNum,           // int (필수)
-                    "user_date_title" to title,      // String (필수) - 일정 제목
-                    "user_date_time" to dateTime,    // String (필수) - 시간 정보 "2025/08/11 17:52"
-                    "user_date_info" to dateInfo     // DATETIME (필수) - ISO 8601 형식 "2025-08-11T17:52:00"
+                Log.d("AlertRepository", "서버 저장 시작 - targetUserNum: $targetUserNum, title: $title, dateTime: $dateTime, dateInfo: $dateInfo")
+
+                val setDateRequest = com.example.dundun_hi.data.SetDateRequest(
+                    user_num = targetUserNum,
+                    user_date_title = title,
+                    user_date_time = dateTime,
+                    user_date_info = dateInfo
                 )
 
-                Log.d("AlertRepository", "요청 데이터 (Map): $requestData")
+                val response = RetrofitClient.memberService.setDate(setDateRequest)
 
-                // 직접 Retrofit 호출 (Map 방식)
-                val response = RetrofitClient.memberService.updateProfilePartial(userNum, requestData)
-
-                // 만약 위 방법이 안 되면 SetDateRequest 방식으로 시도
-                if (!response.isSuccessful) {
-                    Log.w("AlertRepository", "Map 방식 실패, SetDateRequest 방식으로 재시도")
-
-                    val setDateRequest = com.example.dundun_hi.data.SetDateRequest(
-                        user_num = userNum,
-                        user_date_title = title,
-                        user_date_time = dateTime,
-                        user_date_info = dateInfo
-                    )
-
-                    Log.d("AlertRepository", "요청 데이터 (SetDateRequest): $setDateRequest")
-                    val response2 = RetrofitClient.memberService.setDate(setDateRequest)
-
-                    if (response2.isSuccessful) {
-                        val responseBody = response2.body()
-                        Log.d("AlertRepository", "서버 저장 성공 (SetDateRequest): $responseBody")
-
-                        // 서버 저장 성공 시 로컬에도 추가
-                        val alertItem = AlertItem(
-                            date = dateTime.split(" ")[0],  // 날짜 부분만 (2025/08/11)
-                            time = dateTime.split(" ")[1],  // 시간 부분만 (17:52)
-                            content = title
-                        )
-
-                        withContext(Dispatchers.Main) {
-                            addAlert(alertItem)
-                        }
-
-                        // ✅ 서버에서 최신 데이터 다시 로드하여 동기화
-                        loadAlertsFromServer(userNum)
-
-                        return@withContext true
-                    } else {
-                        val errorBody = response2.errorBody()?.string()
-                        Log.e("AlertRepository", "서버 저장 실패 (SetDateRequest): ${response2.code()} - ${response2.message()}")
-                        Log.e("AlertRepository", "에러 응답: $errorBody")
-                        return@withContext false
-                    }
-                } else {
-                    Log.d("AlertRepository", "서버 저장 성공 (Map): ${response.body()}")
-
-                    // 서버 저장 성공 시 로컬에도 추가
-                    val alertItem = AlertItem(
-                        date = dateTime.split(" ")[0],
-                        time = dateTime.split(" ")[1],
-                        content = title
-                    )
-
-                    withContext(Dispatchers.Main) {
-                        addAlert(alertItem)
-                    }
-
-                    // ✅ 서버에서 최신 데이터 다시 로드하여 동기화
-                    loadAlertsFromServer(userNum)
-
+                if (response.isSuccessful) {
+                    Log.d("AlertRepository", "서버 저장 성공 (SetDateRequest): ${response.body()}")
+                    // 서버 저장 성공 후, 최신 데이터로 전체 목록을 새로고침합니다.
+                    loadAlertsFromServer(targetUserNum)
                     return@withContext true
+                } else {
+                    Log.e("AlertRepository", "서버 저장 실패 (SetDateRequest): ${response.errorBody()?.string()}")
+                    return@withContext false
                 }
             } catch (e: Exception) {
                 Log.e("AlertRepository", "서버 저장 중 오류: ${e.message}", e)
@@ -370,11 +354,17 @@ class AlertRepository private constructor(private val context: Context) {
                                         // ✅ 날짜/시간 파싱 개선
                                         val (date, time) = parseDateTimeFromServer(dateItem)
 
+//                                        val alertItem = AlertItem(
+//                                            id = getFieldValue(dateItem, "user_date_no")?.toString() ?: java.util.UUID.randomUUID().toString(),
+//                                            date = date,
+//                                            time = time,
+//                                            content = getFieldValue(dateItem, "user_date_title")?.toString() ?: ""
+//                                        )
                                         val alertItem = AlertItem(
-                                            id = getFieldValue(dateItem, "user_date_no")?.toString() ?: java.util.UUID.randomUUID().toString(),
+                                            id = dateItem.user_date_no.toString(), // 직접 접근
                                             date = date,
                                             time = time,
-                                            content = getFieldValue(dateItem, "user_date_title")?.toString() ?: ""
+                                            content = dateItem.user_date_title // 직접 접근
                                         )
                                         addAlert(alertItem)
                                         Log.d("AlertRepository", "✅ 알림 추가됨: ${alertItem.content} - ${alertItem.date} ${alertItem.time}")
