@@ -28,9 +28,11 @@ import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.DELETE
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+
 
 interface MemberService {
 
@@ -110,12 +112,17 @@ interface MemberService {
     @GET("/date/getdate/{user_num}")
     suspend fun getDateListOld(@Path("user_num") userNum: Int): retrofit2.Response<DateListResponse>
 
-    // 24-08-25 update date 추가
+    // 24-08-17 추가
     @PUT("date/update/{user_date_no}")
     suspend fun updateAlert(
         @Path("user_date_no") alertId: String,
         @Body request: com.example.dundun_hi.data.UpdateAlertRequest
     ): retrofit2.Response<Unit> // 응답 본문이 없을 경우 Unit 사용
+
+    @DELETE("date/delete/{user_data_no}")
+    suspend fun deleteAlert(
+        @Path("user_data_no") alertId: String
+    ): Response<Unit> // 성공 여부만 확인하므로 응답 본문은 Unit
 
     // ═══════════════════════════════════════════════════════════════════
     // 인증서/가디언 관리 API
