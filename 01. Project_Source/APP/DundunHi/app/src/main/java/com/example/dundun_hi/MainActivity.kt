@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     val weatherVM: WeatherViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -185,6 +186,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("signup_entry") {
+
+                            //ocr_sso
+                            val ocrName by navController.currentBackStackEntry!!
+                                .savedStateHandle
+                                .getStateFlow("ocr_name_result", "")
+                                .collectAsState()
+
                             CombinedAuthScreen(
                                 viewModel = signupVm,
                                 userType = 0,
@@ -200,14 +208,29 @@ class MainActivity : ComponentActivity() {
                                             fontSize = 18.sp
                                         )
                                     }
-                                }
+                                },
+//                                onRequestOcr = { navController.navigate("ocr") },
+                                onRequestOcr = { navController.navigate("ocr") },
+                                ocrPrefill = ocrName
                             )
+
+                            //ocr_중복제거
+                            LaunchedEffect(ocrName) {
+                                if (ocrName.isNotBlank()) {
+                                    navController.currentBackStackEntry!!
+                                        .savedStateHandle
+                                        .remove<String>("ocr_name_result")
+                                }
+                            }
+
                         }
 
                         composable("guardian_auth") {
                             CombinedAuthScreen(
                                 viewModel = signupVm,
                                 userType = 1,
+                                onRequestOcr = {},
+                                ocrPrefill = "",
                                 onNext = { navController.navigate("family_certification") }
                             )
                         }
@@ -216,6 +239,7 @@ class MainActivity : ComponentActivity() {
 
                         composable("senior_final_signup") {
                             val state by signupVm.state.collectAsState()
+
                             SignupScreen(
                                 viewModel = signupVm,
                                 onSignupSuccess = {
@@ -622,7 +646,18 @@ class MainActivity : ComponentActivity() {
                                 onLoginClick = { navController.navigate("login") }
                             )
                         }
-                        composable("ocr") { OCRScreen() }
+//                        composable("ocr") { OCRScreen() }
+
+                        composable("ocr") {
+                            OCRScreen { scannedName ->
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("ocr_name_result", scannedName)
+                                navController.popBackStack()
+                            }
+                        }
+
+
                     }
                 }
             }

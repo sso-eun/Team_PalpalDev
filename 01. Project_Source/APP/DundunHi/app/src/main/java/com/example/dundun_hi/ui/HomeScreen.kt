@@ -2,6 +2,7 @@
 
 package com.example.dundun_hi.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -62,16 +63,16 @@ fun HomeScreen(
         // 하단의 '보호자용 페이지' 관련 UI 전체 제거
 
 
-        //임시_소은_OCR버튼
-        Button(
-            onClick = onOCRClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(130.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
-        ) {
-            Text("임시 OCR", fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
-        }
+//        //임시_소은_OCR버튼
+//        Button(
+//            onClick = onOCRClick,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(130.dp),
+//            shape = RoundedCornerShape(16.dp),
+//            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+//        ) {
+//            Text("임시 OCR", fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
+//        }
     }
 }
