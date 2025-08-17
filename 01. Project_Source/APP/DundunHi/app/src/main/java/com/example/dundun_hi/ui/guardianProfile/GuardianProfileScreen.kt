@@ -282,7 +282,7 @@ fun SeniorProfileCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("연결된 계정", fontSize = 18.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
+                Text("연결된 계정", fontSize = 20.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
                 Icon(
                     painter = painterResource(id = R.drawable.ic_edit), // 연필 아이콘 리소스
                     contentDescription = "수정",
@@ -343,7 +343,7 @@ fun SeniorProfileCard(
             // 위치 섹션
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("위치", fontSize = 18.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
+                Text("위치", fontSize = 20.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.width(6.dp))
                 Icon(
                     painter = painterResource(id = R.drawable.ic_location), // 핀 아이콘 리소스
@@ -355,7 +355,7 @@ fun SeniorProfileCard(
 
             Spacer(Modifier.height(10.dp))
             Text(
-                text = if (seniorCondition) "외출 중 입니다." else "집에 있습니다.",
+                text = if (seniorCondition) "외출 중 입니다." else "자택에 있습니다.",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -402,7 +402,8 @@ fun ScheduleCard(todayAlerts: List<AlertItem>, navController: NavController) {
                     contentDescription = "알림 추가",
                     tint = Color(0xFF2196F3),
                     modifier = Modifier
-                        .size(24.dp)
+                        // .size(24.dp)
+                        .size(26.dp)
                         .clickable {
                             navController.navigate("alarm")
                         }
@@ -431,13 +432,15 @@ fun ScheduleCard(todayAlerts: List<AlertItem>, navController: NavController) {
                         ) {
                             Text(
                                 text = "${alert.date} ${alert.time}",
-                                fontSize = 26.sp,
+                                // fontSize = 26.sp,
+                                fontSize = 24.sp,
                                 color = Color.Gray
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = alert.content,
-                                fontSize = 28.sp,
+                                // fontSize = 28.sp,
+                                fontSize = 26.sp,
                                 fontWeight = FontWeight.Normal
                             )
                             if (index < todayAlerts.size - 1) {
