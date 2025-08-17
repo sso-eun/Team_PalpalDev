@@ -108,8 +108,21 @@ fun SeniorEditScreen(
 
 
                 if (response.isSuccessful && response.body() != null) {
-                    editAddress = response.body()!!.text // <-- 핵심 수정: 음성인식 결과를 주소(editAddress)에 반영
+//                    editAddress = response.body()!!.text // <-- 핵심 수정: 음성인식 결과를 주소(editAddress)에 반영
+//                    Toast.makeText(context, "음성 인식이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    val newText = response.body()!!.text
+
+                    // --- 이 부분이 핵심 수정 ---
+                    // 기존 주소(editAddress)가 비어있지 않으면 뒤에 이어서 붙이고, 비어있으면 새로 채운다.
+                    editAddress = if (editAddress.isBlank()) {
+                        newText
+                    } else {
+                        "$editAddress $newText" // 기존 텍스트 + 한 칸 띄우고 + 새 텍스트
+                    }
+                    // --------------------------
+
                     Toast.makeText(context, "음성 인식이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+
                 } else {
                     Log.e("ClovaAPI", "API 호출 실패: ${response.errorBody()?.string()}")
                     Toast.makeText(context, "음성 인식에 실패했습니다.", Toast.LENGTH_SHORT).show()
