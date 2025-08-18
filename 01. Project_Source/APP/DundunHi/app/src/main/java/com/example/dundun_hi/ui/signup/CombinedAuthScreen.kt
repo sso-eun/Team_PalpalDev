@@ -55,8 +55,6 @@ fun CombinedAuthScreen(
     // 기본값은 비어있으므로, 아무것도 넘겨주지 않으면 아무것도 표시되지 않음
     bottomContent: @Composable () -> Unit = {},
 
-
-
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
