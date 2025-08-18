@@ -621,14 +621,15 @@ class MainActivity : ComponentActivity() {
                                 viewerId = myId
                             )
                         }
-                        composable("kiosk") { KioskScreen() }
+                        composable("kiosk") { KioskScreen(navController = navController) }
                         composable("call") {
                             val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
                                 contacts = shortcuts,
                                 onAddShortcut = { idx ->
                                     navController.navigate("call_setup/$idx")
-                                }
+                                },
+                                navController = navController
                             )
                         }
                         composable("call_setup/{index}") { back ->
