@@ -74,7 +74,7 @@ fun OCRScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "손으로 쓰세유",
+            text = "손으로 쓰세요",
             fontSize = 36.sp,
             fontWeight = FontWeight.ExtraBold,
             textAlign = TextAlign.Center,

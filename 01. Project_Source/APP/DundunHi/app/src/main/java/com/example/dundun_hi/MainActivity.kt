@@ -174,6 +174,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("login") {
+
+                            val ocrName by navController.currentBackStackEntry!!
+                                .savedStateHandle
+                                .getStateFlow("ocr_name_result", "")
+                                .collectAsState()
+
                             val loginVm: LoginViewModel = viewModel(
                                 factory = LoginViewModelFactory(application = this@MainActivity.application)
                             )
@@ -181,7 +187,10 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 vm = loginVm,
                                 onFindIdClick = { navController.navigate("find_id") },
-                                onSignupClick = { navController.navigate("signup_entry") }
+                                onSignupClick = { navController.navigate("signup_entry") },
+                                onRequestOcr = { navController.navigate("ocr") },
+                                ocrPrefill = ocrName
+
                             )
                         }
 
