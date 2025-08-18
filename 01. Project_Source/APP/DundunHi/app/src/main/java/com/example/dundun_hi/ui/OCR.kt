@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import com.example.dundun_hi.ui.util.josa
 import com.example.dundun_hi.ui.util.makeOcrReadyBitmap
 import com.example.dundun_hi.ui.util.recognizeInkKorean
 import com.google.mlkit.vision.common.InputImage
@@ -44,7 +45,9 @@ fun recognizeTextFromBitmap(
 }
 
 @Composable
-fun OCRScreen() {
+fun OCRScreen(
+    onDone: (String) -> Unit = {}
+) {
     val density = LocalDensity.current
 
     val paths = remember { mutableStateListOf<List<Offset>>() }
@@ -55,6 +58,14 @@ fun OCRScreen() {
     var recognized by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
     var inkLoading by remember { mutableStateOf(false) }
+
+    //입력 후 팝업
+    var confirmName by remember { mutableStateOf<String?>(null) }
+    var showConfirm by remember { mutableStateOf(false) }
+
+    val nm = confirmName.orEmpty()
+    val particle = remember(nm) { josa(nm, "이/가") }
+
 
     Column(
         modifier = Modifier
@@ -133,33 +144,78 @@ fun OCRScreen() {
 
             Button(
                 enabled = !inkLoading,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(64.dp),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = 20.dp),
                 onClick = {
                     inkLoading = true
                     val all = paths + listOf(current).filter { it.isNotEmpty() }
                     recognizeInkKorean(
                         paths = all,
                         onSuccess = { text ->
-                            val t = text.ifBlank { "(필기 인식 결과 없음)" }
-                            // recognized는 기존 결과 표시 Text에 바인딩되어 있음
-                            // 필요 시 별도 상태로 구분해도 됨
-                            // ex) recognizedInk 라는 상태 따로
+                            // 원하는 전처리(첫 줄만, 트림 등)
+                            val t = text.trim().lines().firstOrNull().orEmpty()
+
                             recognized = t
                             inkLoading = false
+
+
+                            if (t.isNotBlank()) {
+                                confirmName = t
+                                showConfirm = true
+                            }
                         },
                         onError = { e ->
-                            recognized = "필기 인식 실패: ${e.message}"
+                            recognized = "인식 실패: ${e.message}"
                             inkLoading = false
+                            showConfirm = false
                         }
                     )
                 }
-            ) { Text(if (inkLoading) "필기 인식 중..." else "필기 인식(스트로크)") }
+
+            ) { Text(if (inkLoading) "필기 인식 중..." else "확인",  fontSize = 18.sp) }
 
 
 
-
-            OutlinedButton(onClick = {
+            OutlinedButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(64.dp),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = 20.dp),
+                onClick = {
                 paths.clear(); current = emptyList(); preview = null; recognized = null
-            }) { Text("지우기") }
+            }) { Text("지우기",  fontSize = 18.sp) }
+        }
+
+
+        if (showConfirm && !confirmName.isNullOrBlank()) {
+            AlertDialog(
+                onDismissRequest = { showConfirm = false },
+                title = {
+                    Text("이름 확인",
+                    fontSize = 32.sp,) },
+
+                text = {
+                    Text("작성하신 이름이 \"$nm\" $particle 맞나요?",
+                    fontSize = 26.sp,
+                    lineHeight = 28.sp) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onDone(confirmName!!.trim())  // 결과 전달
+                            showConfirm = false
+                        }
+                    ) { Text("그래", fontSize = 24.sp) }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showConfirm = false }  // 그대로 수정/다시 쓰게 닫기
+                    ) { Text("다시", fontSize = 24.sp) }
+                }
+            )
         }
 
         // 변환 결과 미리보기
@@ -237,3 +293,5 @@ fun DrawingBoard(
         }
     }
 }
+
+

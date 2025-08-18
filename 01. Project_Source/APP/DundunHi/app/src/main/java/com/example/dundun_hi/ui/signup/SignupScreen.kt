@@ -70,7 +70,7 @@ fun SignupScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
 
-            )
+        )
 
         Spacer(Modifier.height(30.dp))
 
