@@ -604,21 +604,76 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("activity_history") { ActivityHistoryScreen() }
                         composable(
-                            route = "camera/{userId}",
-                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                            route = "camera/{currentUserNum}",
+                            arguments = listOf(navArgument("currentUserNum") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val currentUserNum = backStackEntry.arguments?.getInt("currentUserNum") ?: 0
+
+                            CameraScreen(
+                                userId = currentUserNum,
+                                navController = navController
+                                // profileViewModel 전달하지 않음 (CameraScreen 내부에서 생성)
+                            )
+                        }
+
+
+                        composable(
+                            route = "lastphoto/{userId}/{receiverId}",
+                            arguments = listOf(
+                                navArgument("userId") { type = NavType.IntType },
+                                navArgument("receiverId") { type = NavType.IntType }
+                            )
                         ) { backStackEntry ->
                             val userId = backStackEntry.arguments?.getInt("userId") ?: 0
-                            CameraScreen(userId = userId, navController = navController)
-                        }
-                        composable(
-                            route = "lastphoto/{userId}",
-                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
-                        ) { back ->
-                            val myId = back.arguments!!.getInt("userId")
+                            val receiverId = backStackEntry.arguments?.getInt("receiverId") ?: 0
+
                             LastPhotoScreen(
-                                senderId = myId,
-                                receiverId = 3,
-                                viewerId = myId
+                                senderId = userId,
+                                receiverId = receiverId,
+                                viewerId = userId,
+                                onPhotoClick = { photoId, sortOrder, filter ->
+                                    // 사진 ID와 필터/정렬 상태를 함께 상세 화면으로 이동
+                                    // URL 인코딩으로 특수문자 처리
+                                    val encodedPhotoId = java.net.URLEncoder.encode(photoId, "UTF-8")
+                                    navController.navigate("photo_detail/$userId/$receiverId/$encodedPhotoId/${sortOrder.name}/${filter.name}")
+                                }
+                            )
+                        }
+// MainActivity.kt - photo_detail route 부분 오타 수정
+
+                        composable(
+                            route = "photo_detail/{senderId}/{receiverId}/{photoId}/{sortOrder}/{filter}",
+                            arguments = listOf(
+                                navArgument("senderId") { type = NavType.IntType },
+                                navArgument("receiverId") { type = NavType.IntType },
+                                navArgument("photoId") { type = NavType.StringType },
+                                navArgument("sortOrder") { type = NavType.StringType },
+                                navArgument("filter") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val senderId = backStackEntry.arguments?.getInt("senderId") ?: 0
+                            val receiverId = backStackEntry.arguments?.getInt("receiverId") ?: 0
+                            val encodedPhotoId = backStackEntry.arguments?.getString("photoId") ?: ""
+                            val sortOrder = backStackEntry.arguments?.getString("sortOrder") ?: "NEWEST"
+                            val filter = backStackEntry.arguments?.getString("filter") ?: "ALL"
+
+                            // URL 디코딩으로 원본 photoId 복원
+                            val photoId = try {
+                                java.net.URLDecoder.decode(encodedPhotoId, "UTF-8")
+                            } catch (e: Exception) {
+                                encodedPhotoId
+                            }
+
+                            PhotoDetailScreen(
+                                targetPhotoId = photoId,
+                                sortOrder = sortOrder,
+                                filter = filter,
+                                senderId = senderId,
+                                receiverId = receiverId,
+                                viewerId = senderId, // senderId를 viewerId로 사용하고 있음
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
                             )
                         }
                         composable("kiosk") { KioskScreen() }
