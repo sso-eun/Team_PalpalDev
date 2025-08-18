@@ -40,6 +40,9 @@ import com.example.dundun_hi.ui.theme.ButtonPhoneGreen
 import com.example.dundun_hi.ui.theme.LightGray
 import com.example.dundun_hi.ui.theme.Sky
 import kotlinx.coroutines.delay
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 // 날씨 상태를 나타내는 enum class
 enum class WeatherState(val code: Int, val iconRes: Int) {
@@ -85,6 +88,35 @@ fun MainScreen(
     locationViewModel: LocationViewModel // (유지) 위치 정보는 다른 곳에서 필요할 수 있으므로 유지
 ) {
     val context = LocalContext.current
+
+    // 08-18: fcm 알림 권한 추가------------------------------------------------------------
+    // 알림 권한 요청 결과를 처리할 런처
+    val postNotificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                Log.d("Permission", "알림 권한이 허용되었습니다.")
+            } else {
+                Log.d("Permission", "알림 권한이 거부되었습니다.")
+            }
+        }
+    )
+
+    // MainScreen이 처음 화면에 표시될 때 권한 상태를 확인하고 요청
+    LaunchedEffect(key1 = true) {
+        // 안드로이드 13 (API 33) 이상에서만 권한 요청이 필요
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permissionStatus = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+            // 권한이 아직 없다면 요청 팝업을 띄웁니다.
+            if (permissionStatus == PackageManager.PERMISSION_DENIED) {
+                postNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+    //------------------------------------------------------------
 
     // 예: 0=시니어, 1=보호자 라고 가정
     val isGuardian by remember { derivedStateOf { profileViewModel.userType == 1 } }
