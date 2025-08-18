@@ -1,4 +1,5 @@
 package com.example.dundun_hi.ui
+// Add_Alert.kt
 
 import android.Manifest
 import android.app.DatePickerDialog
@@ -78,50 +79,6 @@ fun AddAlarmScreen(navController: NavController) {
             Toast.makeText(context, "녹음 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
         }
     }
-
-    // userNum을 SharedPreferences에서 안정적으로 불러오기
-    val sharedPreferences = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
-
-    // 여러 방법으로 userNum 가져오기 시도
-    val userNum = remember {
-        val fromPrefs = sharedPreferences.getString("user_num", null)?.toIntOrNull()
-
-        // NavController에서도 시도
-        val fromNav = try {
-            navController.previousBackStackEntry?.arguments?.getString("userNum")?.toIntOrNull()
-        } catch (e: Exception) {
-            null
-        }
-
-        // 가장 확실한 값 선택
-        fromPrefs ?: fromNav ?: 0
-    }
-
-    val userType = sharedPreferences.getString("user_type", "0")?.toIntOrNull() ?: 0
-
-    // 디버깅을 위한 로그 추가
-    LaunchedEffect(Unit) {
-        val prefsUserNum = sharedPreferences.getString("user_num", "null")
-        val prefsUserType = sharedPreferences.getString("user_type", "null")
-        val prefsUserId = sharedPreferences.getString("user_id", "null")
-
-        Log.d("AddAlarmScreen", "=== SharedPreferences 상태 ===")
-        Log.d("AddAlarmScreen", "user_num: $prefsUserNum")
-        Log.d("AddAlarmScreen", "user_type: $prefsUserType")
-        Log.d("AddAlarmScreen", "user_id: $prefsUserId")
-        Log.d("AddAlarmScreen", "최종 사용할 userNum: $userNum")
-        Log.d("AddAlarmScreen", "최종 사용할 userType: $userType")
-
-        // SharedPreferences의 모든 값 확인
-        val allPrefs = sharedPreferences.all
-        Log.d("AddAlarmScreen", "모든 SharedPreferences 값: $allPrefs")
-
-        // SharedPreferences 파일 경로도 확인
-        Log.d("AddAlarmScreen", "SharedPreferences 파일 경로 확인")
-    }
-
-    // 가디언인 경우 시니어 번호를 찾기 위한 상태
-    var seniorUserNum by remember { mutableStateOf<Int?>(null) }
 
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
@@ -286,26 +243,26 @@ fun AddAlarmScreen(navController: NavController) {
         }
     }
 
-    // 가디언인 경우 시니어 번호 찾기
-    LaunchedEffect(userNum, userType) {
-        if (userType == 1) { // 가디언인 경우
-            try {
-                val certResponse = com.example.dundun_hi.network.RetrofitClient.memberService.getCertList(
-                    page = 1,
-                    limit = 10
-                )
-                if (certResponse.isSuccessful && certResponse.body() != null) {
-                    val certList = certResponse.body()!!.results
-                    val seniorCert = certList.find { it.guardian_no == userNum }
-                    if (seniorCert != null) {
-                        seniorUserNum = seniorCert.senior_num
-                    }
-                }
-            } catch (e: Exception) {
-                // 에러 처리
-            }
-        }
-    }
+//    // 가디언인 경우 시니어 번호 찾기
+//    LaunchedEffect(userNum, userType) {
+//        if (userType == 1) { // 가디언인 경우
+//            try {
+//                val certResponse = com.example.dundun_hi.network.RetrofitClient.memberService.getCertList(
+//                    page = 1,
+//                    limit = 10
+//                )
+//                if (certResponse.isSuccessful && certResponse.body() != null) {
+//                    val certList = certResponse.body()!!.results
+//                    val seniorCert = certList.find { it.guardian_no == userNum }
+//                    if (seniorCert != null) {
+//                        seniorUserNum = seniorCert.senior_num
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                // 에러 처리
+//            }
+//        }
+//    }
 
     Column(
         modifier = Modifier
@@ -336,13 +293,13 @@ fun AddAlarmScreen(navController: NavController) {
                 text = "일정 추가",
                 modifier = Modifier.padding(12.dp),
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp
+                fontSize = 26.sp
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("날짜", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Text("날짜", fontWeight = FontWeight.Bold, fontSize = 26.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Box(modifier = Modifier
             .fillMaxWidth()
@@ -366,7 +323,7 @@ fun AddAlarmScreen(navController: NavController) {
                 leadingIcon = {
                     Icon(painter = painterResource(id = R.drawable.ic_calendar), contentDescription = null)
                 },
-                placeholder = { Text("날짜 선택하기...", fontSize = 20.sp) },
+                placeholder = { Text("날짜 선택하기...", fontSize = 22.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = false
@@ -375,7 +332,7 @@ fun AddAlarmScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("시간", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Text("시간", fontWeight = FontWeight.Bold, fontSize = 26.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Box(modifier = Modifier
             .fillMaxWidth()
@@ -398,7 +355,7 @@ fun AddAlarmScreen(navController: NavController) {
                 leadingIcon = {
                     Icon(painter = painterResource(id = R.drawable.ic_clock), contentDescription = null)
                 },
-                placeholder = { Text("시간 선택하기...", fontSize = 20.sp) },
+                placeholder = { Text("시간 선택하기...", fontSize = 22.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 enabled = false
@@ -407,16 +364,18 @@ fun AddAlarmScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // 25-08-13 은재 UI/UX 개선
         // 내용작성 섹션에 녹음 기능 추가
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("내용작성", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Column {
+            // <-- 1. Row를 Column으로 변경하여 세로로 배치
+            Text("제목작성", fontWeight = FontWeight.Bold, fontSize = 26.sp)
+            Spacer(modifier = Modifier.height(8.dp)) // <-- 제목과 버튼 사이 간격
 
-            // 녹음 버튼들
-            Row {
+            // 녹음 버튼들을 담을 새로운 Row, 왼쪽 정렬
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start // <-- 버튼들을 오른쪽으로 정렬
+            ) {
                 Button(
                     onClick = {
                         if (!hasRecordPermission) {
@@ -425,118 +384,150 @@ fun AddAlarmScreen(navController: NavController) {
                             startRecording()
                         }
                     },
-                    // enabled = !isRecording,
                     enabled = !isRecording && !isTranscribing,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isRecording) Color.Gray else Color(0xFFFF6B6B)
-                    ),
-                    modifier = Modifier.size(width = 80.dp, height = 40.dp)
+                        containerColor = if (isRecording || isTranscribing) Color.Gray else Color(0xFFFF6B6B)
+                    )
                 ) {
-                    Text("녹음 시작", color = Color.White, fontSize = 14.sp)
+                    Text("녹음 시작", color = Color.White, fontSize = 16.sp)
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // 정지 버튼
+                // 녹음 완료 버튼
                 Button(
                     onClick = { stopRecording() },
                     enabled = isRecording,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isRecording) Color(0xFF4CAF50) else Color.Gray
-                    ),
-                    modifier = Modifier.size(width = 80.dp, height = 40.dp)
+                    )
                 ) {
-                    Text("녹음 완료", color = Color.White, fontSize = 14.sp)
+                    Text("녹음 완료", color = Color.White, fontSize = 16.sp)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 녹음 상태 표시
-        if (isRecording) {
+        // 녹음 상태 표시 - 수정 --------------------------------
+        if (isRecording || isTranscribing) { // <-- 음성 인식 중일 때도 표시되도록 통합
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE6F4FB)), // <-- 부드러운 파란색 배경
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 녹음 중 표시 (빨간 원)
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(Color.Red, shape = androidx.compose.foundation.shape.CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    // 음성 인식 중일 때는 로딩 아이콘 표시
+                    if (isTranscribing) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    } else {
+                        // 녹음 중일 때는 귀여운 아이콘 또는 색상 원 표시
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_mic_wave), // <-- 마이크 아이콘 (예시)
+                            contentDescription = "녹음 중",
+                            tint = Color(0xFF4A90E2),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "녹음 중...",
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold
+                        // 상태에 따라 다른 문구 표시
+                        text = if(isTranscribing) "글자로 바꾸고 있어요..." else "목소리를 듣고 있는 중에요!",
+                        color = Color(0xFF4A90E2), // <-- 부드러운 파란색 글씨
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
                     )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
-        // 녹음 파일 정보 표시 UI 수정 // <-- 수정
-        finalizedRecordingPath?.let { path ->
+
+        // 녹음 파일 정보 표시 UI
+        if (finalizedRecordingPath != null && !isRecording && !isTranscribing) { // <-- 표시 조건 명확화
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)), // <-- 부드러운 녹색 배경
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(
-                        "저장된 녹음 파일:",
+                        "원하시는 문자가 입력되었나요?", // <-- 제안해주신 문구
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 18.sp,
+                        color = Color(0xFF333333)
                     )
                     Text(
-                        File(path).name,
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                    // 녹음 길이 표시 추가
-                    Text(
-                        "녹음 길이: ${recordingDuration}초", // <-- 추가
-                        fontSize = 12.sp,
+                        "내용이 다르다면 '녹음 시작' 버튼으로 다시 말해주세요.", // <-- 수정된 안내 문구
+                        fontSize = 15.sp,
                         color = Color.Gray
                     )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
-//        // 녹음 파일 정보 표시
-//        currentRecordingPath?.let { path ->
+
+//        // 녹음 상태 표시
+//        if (isRecording) {
+//            Card(
+//                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                Row(
+//                    modifier = Modifier.padding(12.dp),
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    // 녹음 중 표시 (빨간 원)
+//                    Box(
+//                        modifier = Modifier
+//                            .size(12.dp)
+//                            .background(Color.Red, shape = androidx.compose.foundation.shape.CircleShape)
+//                    )
+//                    Spacer(modifier = Modifier.width(8.dp))
+//                    Text(
+//                        "녹음 중...",
+//                        color = Color.Red,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                }
+//            }
+//            Spacer(modifier = Modifier.height(8.dp))
+//        }
+//        // 녹음 파일 정보 표시 UI 수정
+//        finalizedRecordingPath?.let { path ->
 //            Card(
 //                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)),
 //                modifier = Modifier.fillMaxWidth()
 //            ) {
-//                Column(modifier = Modifier.padding(12.dp)) {
+//                // 2. Card 안의 내용을 새로운 안내 문구로 교체
+//                Column(
+//                    modifier = Modifier.padding(16.dp), // 패딩을 좀 더 줘서 보기 좋게
+//                    verticalArrangement = Arrangement.spacedBy(4.dp) // 텍스트 사이 간격
+//                ) {
 //                    Text(
-//                        "저장된 녹음 파일:",
+//                        "음성 녹음이 잘 되었어요!", // <-- 시니어 친화적인 멘트
 //                        fontWeight = FontWeight.Bold,
-//                        fontSize = 14.sp
+//                        fontSize = 16.sp,
+//                        color = Color(0xFF333333)
 //                    )
 //                    Text(
-//                        File(path).name,
-//                        fontSize = 12.sp,
-//                        color = Color.Gray
-//                    )
-//                    Text(
-//                        "위치: 앱 전용 저장소",
-//                        fontSize = 12.sp,
+//                        "녹음을 다시 하고 싶으면 '녹음 시작' 버튼을 눌러주세요.", // <-- 안내 메시지
+//                        fontSize = 14.sp,
 //                        color = Color.Gray
 //                    )
 //                }
 //            }
 //            Spacer(modifier = Modifier.height(8.dp))
 //        }
+
         // OutlinedTextField를 추가하여 컴포저블을 올바르게 호출합니다.
         OutlinedTextField(
             value = contentText,
             onValueChange = { contentText = it },
-            placeholder = { Text("내용을 작성해주세요...", fontSize = 20.sp) },
+            placeholder = { Text("일정 제목을 작성해주세요...", fontSize = 20.sp) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp),
@@ -549,20 +540,7 @@ fun AddAlarmScreen(navController: NavController) {
             onClick = {
                 if (selectedDate.isNotBlank() && selectedTime.isNotBlank() && contentText.isNotBlank()) {
                     coroutineScope.launch {
-                        // 가디언인 경우 시니어 번호 사용, 일반 사용자인 경우 본인 번호 사용
-                        val targetUserNum = if (userType == 1 && seniorUserNum != null) seniorUserNum!! else userNum
-
-                        // userNum 검증 및 로그
-                        if (targetUserNum <= 0) {
-                            Log.e("AddAlarmScreen", "유효하지 않은 userNum: $targetUserNum")
-                            Toast.makeText(context, "사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.", Toast.LENGTH_LONG).show()
-                            return@launch
-                        }
-
-                        // API 명세서에 맞는 올바른 형식으로 데이터 준비
                         val dateTime = "$selectedDate $selectedTime"
-
-                        // ISO 8601 DATETIME 형식으로 변환 (API 명세서의 user_date_info 요구사항)
                         val isoDateTime = try {
                             val dateParts = selectedDate.split("/")
                             val timeParts = selectedTime.split(":")
@@ -571,29 +549,18 @@ fun AddAlarmScreen(navController: NavController) {
                             "${selectedDate}T${selectedTime}:00"
                         }
 
-                        try {
-                            // API 명세서에 따른 올바른 파라미터 순서
-                            // addAlertToServerAndLocal(user_num, user_date_title, user_date_time, user_date_info)
-                            val success = alertRepository.addAlertToServerAndLocal(
-                                userNum = targetUserNum,         // 실제 userNum 사용
-                                title = contentText,              // user_date_title
-                                dateTime = dateTime,              // user_date_time
-                                dateInfo = isoDateTime            // user_date_info (DATETIME 형식)
-                            )
+                        // userNum 파라미터 없이 단순하게 호출
+                        val success = alertRepository.addAlertToServerAndLocal(
+                            title = contentText,
+                            dateTime = dateTime,
+                            dateInfo = isoDateTime
+                        )
 
-                            // 로그 추가 (디버깅용)
-                            Log.d("AddAlarmScreen", "실제 사용할 targetUserNum: $targetUserNum")
-                            Log.d("AddAlarmScreen", "dateTime: $dateTime")
-                            Log.d("AddAlarmScreen", "isoDateTime: $isoDateTime")
-                            Log.d("AddAlarmScreen", "contentText: $contentText")
-                            if (success) {
-                                Toast.makeText(context, "일정이 성공적으로 추가되었습니다.", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
-                            } else {
-                                Toast.makeText(context, "서버 저장 실패", Toast.LENGTH_SHORT).show()
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "서버 저장 중 오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+                        if (success) {
+                            Toast.makeText(context, "일정이 성공적으로 추가되었습니다.", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        } else {
+                            Toast.makeText(context, "일정 추가에 실패했습니다.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
@@ -601,10 +568,10 @@ fun AddAlarmScreen(navController: NavController) {
                 }
             },
             enabled = !isTranscribing,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF26C4B5)),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("추가하기", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text("추가하기", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

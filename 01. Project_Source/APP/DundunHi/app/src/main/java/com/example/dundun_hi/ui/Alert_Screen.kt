@@ -28,6 +28,8 @@ import java.util.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.launch
+import android.widget.Toast
 
 @Composable
 fun AlarmRecordScreen(navController: NavController) {
@@ -39,15 +41,17 @@ fun AlarmRecordScreen(navController: NavController) {
     val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
 
     // AlertRepository의 상태를 관찰
-    val alerts by remember { derivedStateOf { alertRepository.alertList } }
+    // val alerts by remember { derivedStateOf { alertRepository.alertList } }
+
+    // AlertRepository의 상태를 직접 관찰하여 변경이 즉시 반영되도록 수정
+    val alerts = alertRepository.alertList
 
     // 화면 갱신을 위한 키
-    var updateKey by remember { mutableStateOf(0) }
+    // var updateKey by remember { mutableStateOf(0) }
 
     // 현재 날짜로 초기화된 캘린더
     var calendar by remember {
         mutableStateOf(Calendar.getInstance().apply {
-            // 시간, 분, 초는 0으로 설정하여 날짜만 비교할 수 있게 함
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -58,11 +62,10 @@ fun AlarmRecordScreen(navController: NavController) {
     // 현재 날짜를 선택된 날짜로 설정
     var selectedDate by remember { mutableStateOf(fullFormat.format(calendar.time)) }
 
-    // 주간 날짜 계산 시 현재 요일을 기준으로 주의 시작일 계산
+    // 주간 날짜 계산
     val weekDates = remember(calendar) {
         val firstDayOfWeek = Calendar.getInstance().apply {
             time = calendar.time
-            // 현재 요일만큼 뺀 날짜가 그 주의 시작일
             add(Calendar.DAY_OF_MONTH, -get(Calendar.DAY_OF_WEEK) + 1)
         }
 
@@ -74,8 +77,12 @@ fun AlarmRecordScreen(navController: NavController) {
         }
     }
 
-    // 선택된 날짜의 알림 목록을 가져오는 부분을 updateKey에 따라 갱신되도록 수정
-    val alertsForDay = remember(alerts, selectedDate, updateKey) {
+//    // 선택된 날짜의 알림 목록
+//    val alertsForDay = remember(alerts, selectedDate, updateKey) {
+//        alerts.filter { it.date == selectedDate }
+//            .sortedBy { it.time }
+//    }
+        val alertsForDay = remember(alerts, selectedDate) {
         alerts.filter { it.date == selectedDate }
             .sortedBy { it.time }
     }
@@ -87,15 +94,30 @@ fun AlarmRecordScreen(navController: NavController) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var alertToDelete by remember { mutableStateOf<AlertItem?>(null) }
 
-    // 화면이 다시 포커스를 받을 때 갱신
+    // ✅ 화면 진입시 새로고침
+    LaunchedEffect(Unit) {
+        android.util.Log.d("AlarmRecordScreen", "🖥 AlarmRecordScreen 최초 진입")
+        alertRepository.refreshFromServer()
+    }
+
+    // ✅ 화면이 다시 포커스를 받을 때 갱신
     LaunchedEffect(Unit) {
         navController.currentBackStackEntry?.lifecycle?.addObserver(object : LifecycleEventObserver {
             override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
                 if (event == Lifecycle.Event.ON_RESUME) {
-                    updateKey += 1
+                    alertRepository.refreshFromServer()
+                    // updateKey += 1
                 }
             }
         })
+    }
+
+    // ✅ 디버깅용: 알림 목록이 변경될 때마다 로그 출력
+    LaunchedEffect(alerts.size) {
+        android.util.Log.d("AlarmRecordScreen", "현재 알림 개수: ${alerts.size}")
+        alerts.forEach { alert ->
+            android.util.Log.d("AlarmRecordScreen", "알림: ${alert.date} ${alert.time} - ${alert.content}")
+        }
     }
 
     Box(
@@ -228,6 +250,21 @@ fun AlarmRecordScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ✅ 새로고침 버튼 (디버깅/테스트용)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = {
+                        alertRepository.refreshFromServer()
+                        //updateKey += 1
+                    }
+                ) {
+                    Text("새로고침", fontSize = 16.sp)
+                }
+            }
+
             // 알림 리스트
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(alertsForDay) { alert ->
@@ -254,7 +291,7 @@ fun AlarmRecordScreen(navController: NavController) {
                             }
 
                             Row {
-                                // 수정 버튼 - MainActivity.kt의 경로와 일치하도록 수정
+                                // 수정 버튼
                                 IconButton(
                                     onClick = {
                                         editingAlert = alert
@@ -301,7 +338,9 @@ fun AlarmRecordScreen(navController: NavController) {
         }
     }
 
-    // 삭제 확인 다이얼로그
+    // coroutineScope를 AlertDialog보다 먼저 선언해야 됨.
+    val coroutineScope = rememberCoroutineScope()
+
     if (showDeleteDialog && alertToDelete != null) {
         AlertDialog(
             onDismissRequest = {
@@ -314,26 +353,65 @@ fun AlarmRecordScreen(navController: NavController) {
                 TextButton(
                     onClick = {
                         alertToDelete?.let { alert ->
-                            alertRepository.deleteAlert(alert)
-                            updateKey += 1
+                            // 코루틴 스코프 내에서 suspend 함수 호출
+                            coroutineScope.launch {
+                                val success = alertRepository.deleteAlert(alert)
+                                if (success) {
+                                    Toast.makeText(context, "일정이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "삭제에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                                // API 호출이 끝난 후 다이얼로그를 닫습니다.
+                                showDeleteDialog = false
+                                alertToDelete = null
+                            }
                         }
-                        showDeleteDialog = false
-                        alertToDelete = null
                     }
-                ) {
-                    Text("삭제")
-                }
+                ) { Text("삭제") }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        alertToDelete = null
-                    }
-                ) {
-                    Text("취소")
-                }
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    alertToDelete = null
+                }) { Text("취소") }
             }
         )
     }
+
+    
+//    // 삭제 확인 다이얼로그
+//    if (showDeleteDialog && alertToDelete != null) {
+//        AlertDialog(
+//            onDismissRequest = {
+//                showDeleteDialog = false
+//                alertToDelete = null
+//            },
+//            title = { Text("알림 삭제") },
+//            text = { Text("이 알림을 삭제하시겠습니까?") },
+//            confirmButton = {
+//                TextButton(
+//                    onClick = {
+//                        alertToDelete?.let { alert ->
+//                            alertRepository.deleteAlert(alert)
+//                            updateKey += 1
+//                        }
+//                        showDeleteDialog = false
+//                        alertToDelete = null
+//                    }
+//                ) {
+//                    Text("삭제")
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(
+//                    onClick = {
+//                        showDeleteDialog = false
+//                        alertToDelete = null
+//                    }
+//                ) {
+//                    Text("취소")
+//                }
+//            }
+//        )
+//    }
 }

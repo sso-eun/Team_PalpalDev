@@ -30,7 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.BorderStroke
-
+//소은. OCR 연결
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.navigation.NavController
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.remember
 /**
  * 한 화면에서 SMS 인증 전체 처리
  * 1) 전화번호 입력 → sendCode()
@@ -42,10 +47,16 @@ import androidx.compose.foundation.BorderStroke
 fun CombinedAuthScreen(
     viewModel: SignupViewModel = viewModel(),
     userType: Int,
+    //ocr 네비컨트롤, 콜백_소은
+    onRequestOcr: () -> Unit,
+    ocrPrefill: String,
     onNext: () -> Unit,
     // 수정1: 하단에 추가할 UI를 위한 '슬롯' 파라미터 추가
     // 기본값은 비어있으므로, 아무것도 넘겨주지 않으면 아무것도 표시되지 않음
-    bottomContent: @Composable () -> Unit = {}
+    bottomContent: @Composable () -> Unit = {},
+
+
+
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -103,14 +114,44 @@ fun CombinedAuthScreen(
             fontSize = 40.sp,
             fontWeight = FontWeight.SemiBold
         )
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            placeholder = { Text("이름을 입력해주세요") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
+//        OutlinedTextField(
+//            value = name,
+//            onValueChange = { name = it },
+//            placeholder = { Text("이름을 입력해주세요") },
+//            singleLine = true,
+////            modifier = Modifier.fillMaxWidth(),
+//            shape = RoundedCornerShape(12.dp),
+//
+//            //OCR 추가
+//            readOnly = true,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clickable { onRequestOcr() }
+//        )
+
+        //ocr 입력 box 레이어 추가
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },   // 직접 입력 허용하려면 유지
+                readOnly = true,                 // 탭하면 OCR로
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                placeholder = { Text("이름을 입력해주세요") }
+            )
+
+            // ← TextField 위를 덮는 투명 클릭 레이어
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onRequestOcr() }          // 여기서 이동
+            )
+        }
+
         Spacer(Modifier.height(30.dp))
         // 전화번호 입력
         Text(
@@ -217,6 +258,13 @@ fun CombinedAuthScreen(
         // MainActivity에서 보호자 링크를 넘겨주면 그 링크가 여기에 표시됩니다.
         bottomContent()
     }
+
+
+    //ocr 처리
+    LaunchedEffect(ocrPrefill) {
+        if (ocrPrefill.isNotBlank()) name = ocrPrefill
+    }
+
 
     // 인증 성공/실패 시 상태 변경
 //    LaunchedEffect(verifyResult) {

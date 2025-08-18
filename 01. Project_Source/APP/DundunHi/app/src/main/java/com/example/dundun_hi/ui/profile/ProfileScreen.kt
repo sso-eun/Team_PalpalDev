@@ -32,8 +32,10 @@ import com.example.dundun_hi.R
 import com.example.dundun_hi.data.AlertRepository
 import java.text.SimpleDateFormat
 import java.util.*
-
-// ProfileScreen.kt 수정 버전
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.delay
 
 @Composable
 fun ProfileScreen(
@@ -69,19 +71,159 @@ fun ProfileScreen(
         }
     }
 
-    // 오늘 날짜
-    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date()) }
 
-    // 알림 목록
-    val alerts = alertRepository.alertList
-    val todayAlerts = remember(alerts, today) {
-        alerts.filter { it.date == today }.sortedBy { it.time }
+    // 오늘 날짜 (한국 시간대 기준)
+    val today = remember { 
+        val koreaTimeZone = java.util.TimeZone.getTimeZone("Asia/Seoul")
+        val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+        dateFormat.timeZone = koreaTimeZone
+        dateFormat.format(Date())
     }
 
-    // ✅ 수정: 화면 진입 시마다 데이터 새로고침
+
+//    // ✅ 수정: AlertRepository의 상태를 관찰하고 화면 갱신시 새로고침
+//    val alerts = alertRepository.alertList
+    val isAlertLoading = alertRepository.isLoading
+//
+
+    //소은 수정. remember 제거
+    val alerts = alertRepository.alertList          // SnapshotStateList 그대로 읽기
+
+    // 은재 수정: today 두 번 선언 - 76줄
+    // val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.KOREA).format(Date()) }
+
+    val todayAlerts = alerts
+        .filter { it.date == today }
+        .sortedBy { it.time }
+
+
+
+    // ✅ 디버깅을 위한 로그 추가
+    LaunchedEffect(alerts) {
+        Log.d("ProfileScreen", "=== 알림 데이터 상태 ===")
+        Log.d("ProfileScreen", "전체 알림 개수: ${alerts.size}")
+        Log.d("ProfileScreen", "오늘 날짜: $today")
+//        Log.d("ProfileScreen", "로딩 상태: $isAlertLoading")
+
+        alerts.forEachIndexed { index, alert ->
+            Log.d("ProfileScreen", "[$index] ${alert.date} ${alert.time} - ${alert.content}")
+        }
+    }
+    
+//    val todayAlerts = remember(alerts, today) {
+//        val filtered = alerts.filter { it.date == today }.sortedBy { it.time }
+//        Log.d("ProfileScreen", "오늘 알림 필터링 결과: ${filtered.size}개")
+//        filtered.forEachIndexed { index, alert ->
+//            Log.d("ProfileScreen", "오늘 알림 [$index]: ${alert.date} ${alert.time} - ${alert.content}")
+//        }
+//        filtered
+//    }
+
+
+    // ✅ 강화된 데이터 로딩 로직
+    var isDataLoaded by remember { mutableStateOf(false) }
+    var dataLoadAttempts by remember { mutableStateOf(0) }
+    
+    // ✅ AlertRepository 콜백 등록
+    DisposableEffect(Unit) {
+        val callback = {
+            Log.d("ProfileScreen", "AlertRepository 데이터 로딩 완료 콜백 실행")
+            isDataLoaded = true
+            dataLoadAttempts += 1
+        }
+        
+        alertRepository.onDataLoaded(callback)
+        
+        // 화면이 사라질 때 콜백 제거
+        onDispose {
+            alertRepository.removeDataLoadedCallback(callback)
+        }
+    }
+    
+    // ✅ 화면 진입시마다 데이터 새로고침
     LaunchedEffect(Unit) {
+        Log.d("ProfileScreen", "=== 화면 진입 - 데이터 로딩 시작 ===")
+        
+        // SharedPreferences에서 userNum 확인
+        val sharedPrefs = context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE)
+        val userNum = sharedPrefs.getString("user_num", "null")
+        val userType = sharedPrefs.getString("user_type", "null")
+        val userId = sharedPrefs.getString("user_id", "null")
+        
+        Log.d("ProfileScreen", "SharedPreferences 확인:")
+        Log.d("ProfileScreen", "user_num: $userNum")
+        Log.d("ProfileScreen", "user_type: $userType")
+        Log.d("ProfileScreen", "user_id: $userId")
+        
         viewModel.fetchUserFromServer()
+        alertRepository.forceRefreshFromServer() // 강제 새로고침 사용
     }
+
+    // ✅ 화면이 다시 포커스를 받을 때 갱신
+    LaunchedEffect(Unit) {
+//        navController.currentBackStackEntry?.lifecycle?.addObserver(object : LifecycleEventObserver {
+//            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+//                if (event == Lifecycle.Event.ON_RESUME) {
+//                    Log.d("ProfileScreen", "화면 재진입 - 데이터 새로고침")
+//                    viewModel.fetchUserFromServer()
+//                    alertRepository.forceRefreshFromServer() // 강제 새로고침 사용
+//                }
+//            }
+//        })
+    }
+
+//    // ✅ 데이터 로딩 상태 모니터링
+//    LaunchedEffect(alerts.size, isDataLoaded) {
+//        Log.d("ProfileScreen", "알림 데이터 상태 변경 - 전체: ${alerts.size}, 오늘: ${todayAlerts.size}")
+//        todayAlerts.forEach { alert ->
+//            Log.d("ProfileScreen", "오늘 알림: ${alert.date} ${alert.time} - ${alert.content}")
+//        }
+//    }
+//
+//    // ✅ 데이터 로딩 완료 후 추가 보장
+//    LaunchedEffect(isDataLoaded) {
+//        if (isDataLoaded && alerts.isEmpty()) {
+//            delay(100) // 데이터 로딩 완료 후에도 데이터가 없으면 추가 시도
+//            Log.d("ProfileScreen", "데이터 로딩 완료 후에도 데이터가 없어 추가 시도")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 데이터가 로드되지 않았을 때 강제 새로고침
+//    LaunchedEffect(Unit) {
+//        delay(1000) // 1초 후에도 데이터가 없으면 강제 새로고침
+//        if (alerts.isEmpty()) {
+//            Log.d("ProfileScreen", "1초 후 데이터가 없어 강제 새로고침 실행")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 추가적인 데이터 로딩 보장
+//    LaunchedEffect(Unit) {
+//        delay(2000) // 2초 후에도 데이터가 없으면 다시 시도
+//        if (alerts.isEmpty() && !isAlertLoading) {
+//            Log.d("ProfileScreen", "2초 후에도 데이터가 없어 재시도")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 콜백 기반 데이터 로딩 보장
+//    LaunchedEffect(dataLoadAttempts) {
+//        if (dataLoadAttempts == 0 && alerts.isEmpty()) {
+//            delay(500) // 0.5초 후에도 콜백이 호출되지 않았으면 강제 새로고침
+//            Log.d("ProfileScreen", "콜백이 호출되지 않아 강제 새로고침 실행")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
+//
+//    // ✅ 최종 보장 로직
+//    LaunchedEffect(Unit) {
+//        delay(3000) // 3초 후에도 데이터가 없으면 최종 시도
+//        if (alerts.isEmpty()) {
+//            Log.d("ProfileScreen", "3초 후 최종 시도")
+//            alertRepository.forceRefreshFromServer()
+//        }
+//    }
 
     Column(
         modifier = Modifier
@@ -209,7 +351,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── 알림 카드 (기존 코드 그대로)
+        // ── 알림 카드
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -244,15 +386,60 @@ fun ProfileScreen(
                 val scrollState = rememberScrollState()
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(scrollState)
-                ) {
-                    if (todayAlerts.isEmpty()) {
-                        Text(
-                            text = "오늘의 알림이 없습니다.",
-                            fontSize = 22.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    } else {
+                                 ) {
+                     if (isAlertLoading || !isDataLoaded) {
+                         // 로딩 중 표시
+                         Row(
+                             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                             horizontalArrangement = Arrangement.Center,
+                             verticalAlignment = Alignment.CenterVertically
+                         ) {
+                             CircularProgressIndicator(
+                                 modifier = Modifier.size(24.dp),
+                                 color = Color(0xFF2196F3)
+                             )
+                             Spacer(modifier = Modifier.width(8.dp))
+                             Text(
+                                 text = if (isAlertLoading) "일정을 불러오는 중..." else "일정을 준비하는 중...",
+                                 fontSize = 18.sp,
+                                 color = Color.Gray
+                             )
+                         }
+                     } else if (todayAlerts.isEmpty()) {
+                         // ✅ 디버깅 정보 표시
+                         Column(
+                             modifier = Modifier.padding(vertical = 8.dp),
+                             horizontalAlignment = Alignment.CenterHorizontally
+                         ) {
+                             Text(
+                                 text = "오늘의 알림이 없습니다.",
+                                 fontSize = 22.sp,
+                                 color = Color.Gray
+                             )
+                             
+                             // 디버깅용 정보 (개발 중에만 표시)
+                             Text(
+                                 text = "전체 알림: ${alerts.size}개",
+                                 fontSize = 14.sp,
+                                 color = Color.LightGray
+                             )
+                             Text(
+                                 text = "오늘 날짜: $today",
+                                 fontSize = 14.sp,
+                                 color = Color.LightGray
+                             )
+                             
+                             // 수동 새로고침 버튼
+                             TextButton(
+                                 onClick = {
+                                     Log.d("ProfileScreen", "수동 새로고침 버튼 클릭")
+                                     alertRepository.forceRefreshFromServer()
+                                 }
+                             ) {
+                                 Text("다시 시도", fontSize = 14.sp, color = Color(0xFF2196F3))
+                             }
+                         }
+                     } else {
                         todayAlerts.forEachIndexed { index, alert ->
                             Column(modifier = Modifier.padding(vertical = 4.dp)) {
                                 Text(text = "${alert.date} ${alert.time}", fontSize = 26.sp, color = Color.Gray)
@@ -270,8 +457,23 @@ fun ProfileScreen(
             }
         }
 
-        // 기존 Row 전체를 삭제하고 위 코드로 교체
-        Spacer(modifier = Modifier.height(16.dp)) // 버튼 위 여백
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ✅ 새로고침 버튼 (테스트용)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(
+                onClick = {
+                    viewModel.fetchUserFromServer()
+                    alertRepository.forceRefreshFromServer()
+                }
+            ) {
+                Text("새로고침", fontSize = 16.sp)
+            }
+        }
+
         Button(
             onClick = onUpdateProfileClick,
             modifier = Modifier
@@ -284,7 +486,6 @@ fun ProfileScreen(
             Text("프로필 수정하기", fontSize = 22.sp, color = Color.White)
         }
 
-
         if (isLoading) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "로딩 중...", fontSize = 22.sp, color = Color.Gray)
@@ -295,24 +496,3 @@ fun ProfileScreen(
         }
     }
 }
-
-/*
-주요 변경사항:
-
-1. ✅ imageVersion 관찰 추가
-   - val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
-
-2. ✅ imageModel 생성 로직 추가
-   - remember(userProfileImg, imageVersion)로 둘 중 하나라도 변경되면 새로운 ImageRequest 생성
-   - 캐시 정책: DISABLED/WRITE_ONLY로 설정
-
-3. ✅ AsyncImage에서 imageModel 사용
-   - 기존의 복잡한 캐시 설정 대신 imageModel 사용
-   - onSuccess/onError 콜백으로 로그 추가
-
-4. ✅ Log import 추가 필요
-   - import android.util.Log 추가해야 함
-
-이제 UpdateProfileScreen에서 수정 완료 후 ProfileScreen으로 돌아가면
-즉시 새로운 프로필 이미지가 반영됩니다!
-*/

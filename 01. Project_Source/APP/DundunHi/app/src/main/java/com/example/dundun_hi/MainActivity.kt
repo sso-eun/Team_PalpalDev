@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     val weatherVM: WeatherViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -173,6 +174,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("login") {
+
+                            val ocrName by navController.currentBackStackEntry!!
+                                .savedStateHandle
+                                .getStateFlow("ocr_name_result", "")
+                                .collectAsState()
+
                             val loginVm: LoginViewModel = viewModel(
                                 factory = LoginViewModelFactory(application = this@MainActivity.application)
                             )
@@ -180,11 +187,21 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 vm = loginVm,
                                 onFindIdClick = { navController.navigate("find_id") },
-                                onSignupClick = { navController.navigate("signup_entry") }
+                                onSignupClick = { navController.navigate("signup_entry") },
+                                onRequestOcr = { navController.navigate("ocr") },
+                                ocrPrefill = ocrName
+
                             )
                         }
 
                         composable("signup_entry") {
+
+                            //ocr_sso
+                            val ocrName by navController.currentBackStackEntry!!
+                                .savedStateHandle
+                                .getStateFlow("ocr_name_result", "")
+                                .collectAsState()
+
                             CombinedAuthScreen(
                                 viewModel = signupVm,
                                 userType = 0,
@@ -200,25 +217,43 @@ class MainActivity : ComponentActivity() {
                                             fontSize = 18.sp
                                         )
                                     }
-                                }
+                                },
+//                                onRequestOcr = { navController.navigate("ocr") },
+                                onRequestOcr = { navController.navigate("ocr") },
+                                ocrPrefill = ocrName
                             )
+
+                            //ocr_중복제거
+                            LaunchedEffect(ocrName) {
+                                if (ocrName.isNotBlank()) {
+                                    navController.currentBackStackEntry!!
+                                        .savedStateHandle
+                                        .remove<String>("ocr_name_result")
+                                }
+                            }
+
                         }
 
                         composable("guardian_auth") {
                             CombinedAuthScreen(
                                 viewModel = signupVm,
                                 userType = 1,
+                                onRequestOcr = {},
+                                ocrPrefill = "",
                                 onNext = { navController.navigate("family_certification") }
                             )
                         }
 
+                        // MainActivity.kt에서 senior_final_signup 부분만 수정
+
                         composable("senior_final_signup") {
                             val state by signupVm.state.collectAsState()
+
                             SignupScreen(
                                 viewModel = signupVm,
                                 onSignupSuccess = {
-                                    val newUserId = signupVm.lastUserId
-                                    navController.navigate("loadingScreen/$newUserId") {
+                                    // 회원가입 성공 시 로그인 화면으로 이동
+                                    navController.navigate("login") {
                                         popUpTo("senior_final_signup") { inclusive = true }
                                     }
                                 }
@@ -358,6 +393,7 @@ class MainActivity : ComponentActivity() {
                                 else -> 1
                             }
 
+                            // ▼▼▼ [수정 2] MainScreen에 ViewModel 전달 및 콜백 수정 ▼▼▼
                             MainScreen(
                                 profileViewModel = profileViewModel,
                                 locationViewModel = locationViewModel,
@@ -371,9 +407,7 @@ class MainActivity : ComponentActivity() {
                                 precipitationType = 0,
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
-                                onCameraPageClick = {
-                                    navController.navigate("camera/$currentUserNum")
-                                },
+                                onCameraPageClick = { navController.navigate("camera/$currentUserNum") },
                                 onMapPageClick = { navController.navigate("map") },
                                 onNavigateToCultureCenter = {
                                     navController.navigate("culture_center")
@@ -569,78 +603,22 @@ class MainActivity : ComponentActivity() {
                             EditAlertScreen(navController, alertId)
                         }
                         composable("activity_history") { ActivityHistoryScreen() }
-                        // MainActivity.kt
                         composable(
-                            route = "camera/{currentUserNum}",
-                            arguments = listOf(navArgument("currentUserNum") { type = NavType.IntType })
-                        ) { backStackEntry ->
-                            val currentUserNum = backStackEntry.arguments?.getInt("currentUserNum") ?: 0
-
-                            CameraScreen(
-                                userId = currentUserNum,
-                                navController = navController
-                                // profileViewModel 전달하지 않음 (CameraScreen 내부에서 생성)
-                            )
-                        }
-
-
-                        composable(
-                            route = "lastphoto/{userId}/{receiverId}",
-                            arguments = listOf(
-                                navArgument("userId") { type = NavType.IntType },
-                                navArgument("receiverId") { type = NavType.IntType }
-                            )
+                            route = "camera/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
                         ) { backStackEntry ->
                             val userId = backStackEntry.arguments?.getInt("userId") ?: 0
-                            val receiverId = backStackEntry.arguments?.getInt("receiverId") ?: 0
-
-                            LastPhotoScreen(
-                                senderId = userId,
-                                receiverId = receiverId,
-                                viewerId = userId,
-                                onPhotoClick = { photoId, sortOrder, filter ->
-                                    // 사진 ID와 필터/정렬 상태를 함께 상세 화면으로 이동
-                                    // URL 인코딩으로 특수문자 처리
-                                    val encodedPhotoId = java.net.URLEncoder.encode(photoId, "UTF-8")
-                                    navController.navigate("photo_detail/$userId/$receiverId/$encodedPhotoId/${sortOrder.name}/${filter.name}")
-                                }
-                            )
+                            CameraScreen(userId = userId, navController = navController)
                         }
-// MainActivity.kt - photo_detail route 부분 오타 수정
-
                         composable(
-                            route = "photo_detail/{senderId}/{receiverId}/{photoId}/{sortOrder}/{filter}",
-                            arguments = listOf(
-                                navArgument("senderId") { type = NavType.IntType },
-                                navArgument("receiverId") { type = NavType.IntType },
-                                navArgument("photoId") { type = NavType.StringType },
-                                navArgument("sortOrder") { type = NavType.StringType },
-                                navArgument("filter") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            val senderId = backStackEntry.arguments?.getInt("senderId") ?: 0
-                            val receiverId = backStackEntry.arguments?.getInt("receiverId") ?: 0
-                            val encodedPhotoId = backStackEntry.arguments?.getString("photoId") ?: ""
-                            val sortOrder = backStackEntry.arguments?.getString("sortOrder") ?: "NEWEST"
-                            val filter = backStackEntry.arguments?.getString("filter") ?: "ALL"
-
-                            // URL 디코딩으로 원본 photoId 복원
-                            val photoId = try {
-                                java.net.URLDecoder.decode(encodedPhotoId, "UTF-8")
-                            } catch (e: Exception) {
-                                encodedPhotoId
-                            }
-
-                            PhotoDetailScreen(
-                                targetPhotoId = photoId,
-                                sortOrder = sortOrder,
-                                filter = filter,
-                                senderId = senderId,
-                                receiverId = receiverId,
-                                viewerId = senderId, // senderId를 viewerId로 사용하고 있음
-                                onBackClick = {
-                                    navController.popBackStack()
-                                }
+                            route = "lastphoto/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                        ) { back ->
+                            val myId = back.arguments!!.getInt("userId")
+                            LastPhotoScreen(
+                                senderId = myId,
+                                receiverId = 3,
+                                viewerId = myId
                             )
                         }
                         composable("kiosk") { KioskScreen() }
@@ -677,7 +655,18 @@ class MainActivity : ComponentActivity() {
                                 onLoginClick = { navController.navigate("login") }
                             )
                         }
-                        composable("ocr") { OCRScreen() }
+//                        composable("ocr") { OCRScreen() }
+
+                        composable("ocr") {
+                            OCRScreen { scannedName ->
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("ocr_name_result", scannedName)
+                                navController.popBackStack()
+                            }
+                        }
+
+
                     }
                 }
             }
