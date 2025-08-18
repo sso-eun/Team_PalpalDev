@@ -471,7 +471,13 @@ class MainActivity : ComponentActivity() {
                                 onUpdatePasswordClick = {
                                     navController.navigate("update_password/$userNumStr")
                                 },
-                                navController = navController
+                                navController = navController,
+                                navigateToMain = {  // ✅ 이 부분 추가
+                                    navController.navigate("main/$userNumStr/${Uri.encode(userId)}") {
+                                        popUpTo("main/$userNumStr/${Uri.encode(userId)}") { inclusive = true }
+                                    }
+                                }
+
                             )
                         }
 

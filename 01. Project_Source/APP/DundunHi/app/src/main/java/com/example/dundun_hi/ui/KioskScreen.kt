@@ -84,7 +84,7 @@ fun KioskScreen(
         ) {
             Text(
                 text = "든든하이",
-                style = MaterialTheme.typography.titleLarge,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -94,6 +94,7 @@ fun KioskScreen(
                 tint = Color(0xFF000000),
                 modifier = Modifier.size(24.dp)
             )
+
         }
         Spacer(modifier = Modifier.height(8.dp))
         items.forEach { (label, url, iconRes) ->

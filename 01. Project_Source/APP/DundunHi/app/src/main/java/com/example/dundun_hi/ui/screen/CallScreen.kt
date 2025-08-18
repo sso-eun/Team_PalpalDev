@@ -63,17 +63,17 @@ fun CallScreen(
         ) {
             Text(
                 text = "든든하이",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 painter = painterResource(id = R.drawable.ic_home),
                 contentDescription = "홈으로 이동",
                 tint = Color(0xFF000000),
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
+
         }
 
         // ── 연락처 슬롯 (항상 3개)

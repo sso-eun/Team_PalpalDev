@@ -194,7 +194,7 @@ fun GuardianProfileScreen(
                 guardianId = guardianId,
                 guardianTel = guardianTel,
                 guardianImageModel = guardianImageModel,
-                modifier = Modifier.fillMaxWidth() // 전체 폭
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))

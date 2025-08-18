@@ -43,7 +43,9 @@ fun ProfileScreen(
     userId: String,
     onUpdateProfileClick: () -> Unit,
     onUpdatePasswordClick: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    navigateToMain: () -> Unit
+
 ) {
     val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
@@ -231,7 +233,24 @@ fun ProfileScreen(
             .background(Color(0xFFE6F0FA))
             .padding(16.dp)
     ) {
-        Text(text = "든든하이", fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable { navigateToMain() }
+        ) {
+            Text(
+                text = "든든하이",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_home),
+                contentDescription = "홈으로 이동",
+                tint = Color(0xFF000000),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // ── 프로필 카드
