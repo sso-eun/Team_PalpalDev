@@ -1,11 +1,13 @@
 package com.example.dundun_hi.ui
 
 import android.content.Intent
+
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+
 import com.example.dundun_hi.R // R 클래스를 임포트합니다.
 import com.example.dundun_hi.data.RealUserRepository
 import com.example.dundun_hi.ui.profile.ProfileViewModel
@@ -54,6 +57,7 @@ fun CameraScreen(
     }
 
     CameraScreenContent(
+
         onLastPhotoClick = {
             val connectedReceiverId = profileViewModel.getConnectedReceiverId()
 
@@ -73,6 +77,7 @@ fun CameraScreen(
 /* ───────── 순수 UI만 담은 Content (최종 요청사항 반영) ───────── */
 @Composable
 private fun CameraScreenContent(
+    navController: NavController? = null,
     onLastPhotoClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -86,6 +91,7 @@ private fun CameraScreenContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+
         /* '든든하이' 타이틀 삭제됨 */
         // Text( ... )
 
@@ -97,6 +103,7 @@ private fun CameraScreenContent(
             fontSize = 35.sp,
             fontWeight = FontWeight.Bold // 변경된 부분: 굵게 처리
         )
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
