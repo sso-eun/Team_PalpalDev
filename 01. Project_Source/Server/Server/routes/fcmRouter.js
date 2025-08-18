@@ -4,6 +4,30 @@ const express = require('express');
 const router = express.Router();
 const fcmController = require('../controllers/fcmController');
 
+
+
+// 테스트용
+/**
+ * @route POST /fcm/send-event-test
+ * @description 개발/테스트 목적으로, 특정 사용자에게 이벤트 기반 알림을 수동으로 전송
+ */
+// router.post('/send-event-test', async (req, res) => {
+//     try {
+//         const { userNum, title, body } = req.body;
+//
+//         if (!userNum || !title || !body) {
+//             return res.status(400).send('userNum, title, body가 필요합니다.');
+//         }
+//
+//         await fcmController.sendEventNotification(userNum, title, body);
+//         res.status(200).send(`Event notification triggered for user ${userNum}.`);
+//
+//     } catch (error) {
+//         console.error(`Error triggering event notification manually:`, error);
+//         res.status(500).send('Failed to trigger event notification manually.');
+//     }
+// });
+
 /**
  * @route POST /fcm/send-test-notifications
  * @description 개발/테스트 목적으로, 스케줄링된 알림 전송 로직을 수동으로 트리거하는 API 엔드포인트.

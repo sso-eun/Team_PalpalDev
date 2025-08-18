@@ -3,31 +3,36 @@
 const admin = require('../firebaseInit');
 const scheduleService = require('../utils/scheduleService');
 const notificationController = require('./notificationController');
+const weatherService = require('../utils/weatherService');
 
-// 일정이 없을 때 사용될 메시지 풀 (오전/오후 분리)
 const dayMessagesPool = [
     "오늘도 좋은 하루 보내세요!",
-    "날씨가 좋네요, 잠시 산책은 어떠세요?",
     "점심 식사는 맛있게 하셨나요?",
     "가족들에게 전화 한 통 어떠세요?"
 ];
 
 const nightMessagesPool = [
     "저녁 식사는 맛있게 하셨나요?",
-    "날씨가 좋네요, 잠시 산책은 어떠세요?",
     "내일은 무슨 일이 있을까요?",
     "이번 주 일정을 확인해보세요!"
 ];
 
-/**
- * @function sendScheduledNotifications
- * @description 모든 사용자에게 일정을 확인하고 맞춤형 알림을 전송하는 스케줄링 함수
- */
+function createWeatherMessage(weatherData) {
+    if (!weatherData) return null;
+    const { sky, precipType, currentTemp } = weatherData;
+
+    if (precipType === "비") return `오늘 청주는 비가 내려요. 외출 시 우산을 꼭 챙기세요! ☔`;
+    if (precipType === "눈") return `오늘 청주는 눈이 와요. 길이 미끄러울 수 있으니 조심하세요! ⛄`;
+    if (precipType === "비/눈") return `오늘 청주는 비나 눈이 내려요. 빙판길을 조심하세요! 🌨️`;
+    if (sky === "맑음") return `오늘 청주는 맑고 화창해요. 가벼운 산책 어떠세요? ☀️`;
+    if (sky === "구름 많음" || sky === "흐림") return `오늘은 구름이 많은 날씨네요. 즐거운 하루 보내세요! ☁️`;
+    return `오늘의 청주 날씨는 ${sky}, 현재 기온은 ${currentTemp}°C입니다.`;
+}
+
 exports.sendScheduledNotifications = async () => {
     console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Scheduled notification check started...`);
 
     try {
-        // 1. 알림 발송에 필요한 사용자 정보 조회 (보호자-시니어 관계 포함)
         const users = await scheduleService.getUsersForNotification();
 
         if (!users || users.length === 0) {
@@ -35,16 +40,21 @@ exports.sendScheduledNotifications = async () => {
             return;
         }
 
-        // 2. 현재 시간에 따라 메시지 풀 선택
         const currentHour = new Date().getHours();
-        const selectedMessagePool = (currentHour >= 5 && currentHour < 12) ? dayMessagesPool : nightMessagesPool;
+        const isMorningNotification = (currentHour >= 5 && currentHour < 12);
 
-        // 3. 모든 사용자를 순회하며 알림 전송
+        // ✅ 수정: for문 밖에서 let으로 변수 선언 및 초기화
+        let weatherDataForMorning = null;
+        if (isMorningNotification) {
+            const defaultLat = 36.6424;
+            const defaultLon = 127.4890;
+            weatherDataForMorning = await weatherService.getWeatherForLocation(defaultLat, defaultLon);
+        }
+
         for (const user of users) {
             const { recipient_num, recipient_token, is_guardian, senior_name, schedule_owner_num } = user;
 
             if (!recipient_token) {
-                console.log(`User ${recipient_num} has no valid FCM token. Skipping notification.`);
                 continue;
             }
 
@@ -52,62 +62,48 @@ exports.sendScheduledNotifications = async () => {
             let notificationBody = "";
 
             try {
-                // 4. 일정 조회 (시니어 본인 또는 연결된 시니어의 일정)
                 const upcomingSchedule = await scheduleService.getUpcomingScheduleForUser(schedule_owner_num);
+                const scheduleDetails = upcomingSchedule ? { date: upcomingSchedule.date, title: upcomingSchedule.title } : null;
 
-                let scheduleDetails = upcomingSchedule ? { date: upcomingSchedule.date, title: upcomingSchedule.title } : null;
-
-                // 5. 일정 유무 및 사용자 유형에 따라 알림 본문 생성
                 if (scheduleDetails) {
                     const scheduleDateObj = new Date(scheduleDetails.date);
                     const formattedDate = `${scheduleDateObj.getMonth() + 1}월 ${scheduleDateObj.getDate()}일`;
-
-                    // 보호자일 경우, 시니어 이름 포함하여 메시지 생성
                     if (is_guardian && senior_name) {
                         notificationBody = `${senior_name}님에게 ${formattedDate} ${scheduleDetails.title} 일정이 예정되어있어요!`;
                     } else {
-                        // 시니어 본인일 경우, 기존 메시지 생성
                         notificationBody = `${formattedDate}에 ${scheduleDetails.title}이 예정되어있네요~`;
                     }
                 } else {
-                    // 일정이 없을 경우, 랜덤 메시지 전송
-                    const randomIndex = Math.floor(Math.random() * selectedMessagePool.length);
-                    notificationBody = selectedMessagePool[randomIndex];
-                }
-
-                // 6. FCM 메시지 페이로드 구성
-                const message = {
-                    notification: {
-                        title: notificationTitle,
-                        body: notificationBody
-                    },
-                    token: recipient_token,
-                    data: {
-                        type: scheduleDetails ? 'schedule' : 'general',
-                        scheduleDate: scheduleDetails ? new Date(scheduleDetails.date).toISOString() : '',
-                        scheduleTitle: scheduleDetails ? scheduleDetails.title : '',
-                        userNum: String(recipient_num)
+                    if (isMorningNotification) {
+                        notificationBody = createWeatherMessage(weatherDataForMorning);
+                        if (!notificationBody) {
+                            const randomIndex = Math.floor(Math.random() * dayMessagesPool.length);
+                            notificationBody = dayMessagesPool[randomIndex];
+                        }
+                    } else {
+                        const randomIndex = Math.floor(Math.random() * nightMessagesPool.length);
+                        notificationBody = nightMessagesPool[randomIndex];
                     }
-                };
-
-                // 7. FCM 메시지 전송
-                const response = await admin.messaging().send(message);
-                console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Successfully sent message to user ${recipient_num} (token: ${recipient_token.substring(0, 10)}...):`, response);
-
-                // 8. 알림 발송 기록 DB에 저장
-                try {
-                    await notificationController.createNotificationRecord(notificationTitle, notificationBody);
-                    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Notification successfully recorded in DB for user ${recipient_num}.`);
-                } catch (dbError) {
-                    console.error(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Failed to record notification in DB for user ${recipient_num}:`, dbError);
                 }
 
+                if (notificationBody) {
+                    const message = {
+                        notification: { title: notificationTitle, body: notificationBody },
+                        token: recipient_token,
+                        data: {
+                            type: scheduleDetails ? 'schedule' : 'general',
+                            scheduleDate: scheduleDetails ? new Date(scheduleDetails.date).toISOString() : '',
+                            scheduleTitle: scheduleDetails ? scheduleDetails.title : '',
+                            userNum: String(recipient_num)
+                        }
+                    };
+                    const response = await admin.messaging().send(message);
+                    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Successfully sent message to user ${recipient_num}:`, response);
+                    await notificationController.createNotificationRecord(notificationTitle, notificationBody);
+                }
             } catch (error) {
-                console.error(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Error sending message to user ${recipient_num} (token: ${recipient_token.substring(0, 10)}...):`, error);
-
-                // 유효하지 않은 토큰일 경우 DB에서 삭제
+                console.error(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Error sending message to user ${recipient_num}:`, error);
                 if (error.code === 'messaging/registration-token-not-registered' || error.code === 'messaging/invalid-argument') {
-                    console.log(`Invalid FCM token for user ${recipient_num}. Deleting from DB.`);
                     await scheduleService.deleteInvalidFcmToken(recipient_num, recipient_token);
                 }
             }
@@ -115,58 +111,40 @@ exports.sendScheduledNotifications = async () => {
     } catch (mainError) {
         console.error(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Critical error during notification process:`, mainError);
     }
-
     console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Scheduled notification check finished.`);
 };
 
-/**
- * @function sendEventNotification
- * @description 특정 사용자에게 이벤트 기반의 단일 알림을 전송하는 범용 함수
- * @param {number} userNum - 알림을 받을 사용자의 user_num
- * @param {string} title - 알림 제목
- * @param {string} body - 알림 본문
- * @param {object} data - 알림과 함께 보낼 추가 데이터 (선택 사항)
- */
-// [추가] 이 함수를 파일 하단에 추가해주세요.
+// ✅ 수정: 중복 선언된 함수를 제거하고 하나만 남겨둡니다.
 exports.sendEventNotification = async (userNum, title, body, data = {}) => {
     console.log(`[EVENT] Attempting to send notification to user ${userNum}`);
 
     try {
-        // 1. scheduleService를 이용해 특정 사용자의 FCM 토큰을 가져옵니다.
         const userToken = await scheduleService.getUserFcmToken(userNum);
 
         if (!userToken) {
             console.log(`[EVENT] User ${userNum} has no valid FCM token. Notification not sent.`);
-            return; // 토큰이 없으면 함수 종료
+            return;
         }
 
-        // 2. FCM 메시지 페이로드 구성
         const message = {
-            notification: {
-                title: title,
-                body: body,
-            },
+            notification: { title: title, body: body, },
             token: userToken,
             data: {
-                ...data, // 외부에서 전달받은 데이터를 모두 포함
-                type: data.type || 'event', // 데이터에 type이 없으면 'event'로 기본값 설정
+                ...data,
+                type: data.type || 'event',
                 userNum: String(userNum)
             }
         };
 
-        // 3. FCM 메시지 전송
         const response = await admin.messaging().send(message);
         console.log(`[EVENT] Successfully sent message to user ${userNum}:`, response);
 
-        // TODO: 필요 시, 이 알림도 notification DB에 기록할 수 있습니다.
         await notificationController.createNotificationRecord(title, body);
 
     } catch (error) {
         console.error(`[EVENT] Error sending event notification to user ${userNum}:`, error);
 
-        // 유효하지 않은 토큰일 경우 DB에서 삭제
         if (error.code === 'messaging/registration-token-not-registered' || error.code === 'messaging/invalid-argument') {
-            console.log(`[EVENT] Invalid FCM token for user ${userNum}. Deleting from DB.`);
             await scheduleService.deleteInvalidFcmToken(userNum, userToken);
         }
     }
@@ -185,7 +163,6 @@ exports.sendEventNotification = async (userNum, title, body, data = {}) => {
 // const notificationController = require('./notificationController');
 //
 // // 일정이 없을 때 사용될 메시지 풀 (오전/오후 분리) - 이 메시지 풀은 컨트롤러에 있습니다.
-// // TODO: 여건 되면 날씨에 따라 메세지 다르게 뜨도록 해보기
 // //
 // const dayMessagesPool = [
 //     "오늘도 좋은 하루 보내세요!",
