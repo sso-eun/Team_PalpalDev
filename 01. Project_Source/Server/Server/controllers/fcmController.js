@@ -41,9 +41,11 @@ exports.sendScheduledNotifications = async () => {
         }
 
         const currentHour = new Date().getHours();
+
+        // 오전 5시부터 정오(12시) 직전까지를 true (오전)로 인식하고, 그 외의 시간은 false (오후/저녁)로 인식합니다.
         const isMorningNotification = (currentHour >= 5 && currentHour < 12);
 
-        // ✅ 수정: for문 밖에서 let으로 변수 선언 및 초기화
+        // 수정: for문 밖에서 let으로 변수 선언 및 초기화
         let weatherDataForMorning = null;
         if (isMorningNotification) {
             const defaultLat = 36.6424;
