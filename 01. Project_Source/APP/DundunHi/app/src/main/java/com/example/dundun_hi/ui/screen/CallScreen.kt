@@ -1,7 +1,11 @@
 package com.example.dundun_hi.ui.screen
 
 import android.content.Intent
+<<<<<<< HEAD
 import androidx.annotation.DrawableRes
+=======
+import android.net.Uri
+>>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,13 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.navigation.NavController
 import com.example.dundun_hi.R
 import com.example.dundun_hi.model.CallShortcut
 
 @Composable
 fun CallScreen(
     contacts: List<CallShortcut>,
-    onAddShortcut: (Int) -> Unit
+    onAddShortcut: (Int) -> Unit,
+    navController: NavController? = null
 ) {
     val ctx = LocalContext.current
     val scrollState = rememberScrollState()
@@ -52,8 +58,43 @@ fun CallScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+<<<<<<< HEAD
         // --- 헤더 ---
         Header()
+=======
+        // ── 타이틀 (홈 아이콘과 함께)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .clickable {
+                    // SharedPreferences에서 저장된 사용자 정보를 가져와서 main 화면으로 이동
+                    val sharedPreferences = ctx.getSharedPreferences("user_prefs", 0)
+                    val userNum = sharedPreferences.getString("user_num", "0") ?: "0"
+                    val userId = sharedPreferences.getString("user_id", "") ?: ""
+
+                    if (userId.isNotEmpty() && userNum != "0") {
+                        navController?.navigate("main/$userNum/${android.net.Uri.encode(userId)}") {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+        ) {
+            Text(
+                text = "든든하이",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                fontSize = 32.sp
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_home),
+                contentDescription = "홈으로 이동",
+                tint = Color(0xFF000000),
+                modifier = Modifier.size(32.dp)
+            )
+        }
+>>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -245,6 +286,7 @@ private fun EmptyShortcutCard(
             )
         }
     }
+<<<<<<< HEAD
 }
 
 
@@ -308,4 +350,6 @@ private fun EmergencyButton(
             }
         }
     }
+=======
+>>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
 }

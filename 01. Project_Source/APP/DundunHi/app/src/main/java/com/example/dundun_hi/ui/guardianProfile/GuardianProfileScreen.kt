@@ -1,5 +1,6 @@
 package com.example.dundun_hi.ui.guardianProfile
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ fun GuardianProfileScreen(
     onEditSeniorClick: () -> Unit,
     navController: NavController
 ) {
+    val context = LocalContext.current
     val guardianId by remember { derivedStateOf { viewModel.guardianId } }
     val guardianTel by remember { derivedStateOf { viewModel.guardianTel } }
     val guardianProfileImg by remember { derivedStateOf { viewModel.guardianProfileImg } }
@@ -47,7 +49,6 @@ fun GuardianProfileScreen(
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
-    val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
 
 //    val today = remember {
@@ -99,6 +100,19 @@ fun GuardianProfileScreen(
         viewModel.loadProfileData()
     }
 
+    // MainScreen으로 이동하는 공통 함수
+    val navigateToMain = {
+        val sharedPreferences = context.getSharedPreferences("user_prefs", 0)
+        val userNum = sharedPreferences.getString("user_num", "0") ?: "0"
+        val userId = sharedPreferences.getString("user_id", "") ?: ""
+
+        if (userId.isNotEmpty() && userNum != "0") {
+            navController.navigate("main/$userNum/${Uri.encode(userId)}") {
+                launchSingleTop = true
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -111,7 +125,26 @@ fun GuardianProfileScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("든든하이 보호자", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            // "든든하이" 텍스트와 홈 아이콘을 묶은 Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { navigateToMain() }
+            ) {
+                Text(
+                    text = "든든하이",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_home),
+                    contentDescription = "홈으로 이동",
+                    tint = Color(0xFF000000),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Text("마이페이지", fontSize = 32.sp, fontWeight = FontWeight.Bold)
             TextButton(
                 onClick = {
                     // 로그아웃 처리 - home으로 돌아가기
@@ -198,6 +231,7 @@ fun GuardianProfileScreen(
         }
     }
 }
+
 @Composable
 fun GuardianProfileCard(
     guardianId: String,
