@@ -3,7 +3,9 @@ package com.example.dundun_hi.ui.login
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,7 +42,10 @@ fun LoginScreen(
     navController: NavController,
     vm: LoginViewModel = viewModel(),
     onFindIdClick: () -> Unit,
-    onSignupClick: () -> Unit
+    onSignupClick: () -> Unit,
+    //ocr
+    onRequestOcr: () -> Unit,
+    ocrPrefill: String,
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -79,14 +84,43 @@ fun LoginScreen(
         Spacer(Modifier.height(32.dp))
 
         Text("이름", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            placeholder = { Text("이름을 입력해주세요") },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
+
+
+//        OutlinedTextField(
+//            value = name,
+//            onValueChange = { name = it },
+//            placeholder = { Text("이름을 입력해주세요") },
+//            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+//            singleLine = true,
+//            shape = RoundedCornerShape(12.dp)
+//        )
+//
+        //ocr 입력 box 레이어 추가
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },   // 직접 입력 허용하려면 유지
+                readOnly = true,                 // 탭하면 OCR로
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                placeholder = { Text("이름을 입력해주세요") }
+            )
+
+            // ← TextField 위를 덮는 투명 클릭 레이어
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onRequestOcr() }          // 여기서 이동
+            )
+        }
+
+
+
+
         Spacer(Modifier.height(24.dp))
 
         Text("전화번호", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
@@ -146,5 +180,11 @@ fun LoginScreen(
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
+
+        //ocr 처리
+        LaunchedEffect(ocrPrefill) {
+            if (ocrPrefill.isNotBlank()) name = ocrPrefill
+        }
+
     }
 }

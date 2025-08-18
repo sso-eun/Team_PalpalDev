@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     val weatherVM: WeatherViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -173,6 +174,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("login") {
+
+                            val ocrName by navController.currentBackStackEntry!!
+                                .savedStateHandle
+                                .getStateFlow("ocr_name_result", "")
+                                .collectAsState()
+
                             val loginVm: LoginViewModel = viewModel(
                                 factory = LoginViewModelFactory(application = this@MainActivity.application)
                             )
@@ -180,11 +187,21 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 vm = loginVm,
                                 onFindIdClick = { navController.navigate("find_id") },
-                                onSignupClick = { navController.navigate("signup_entry") }
+                                onSignupClick = { navController.navigate("signup_entry") },
+                                onRequestOcr = { navController.navigate("ocr") },
+                                ocrPrefill = ocrName
+
                             )
                         }
 
                         composable("signup_entry") {
+
+                            //ocr_sso
+                            val ocrName by navController.currentBackStackEntry!!
+                                .savedStateHandle
+                                .getStateFlow("ocr_name_result", "")
+                                .collectAsState()
+
                             CombinedAuthScreen(
                                 viewModel = signupVm,
                                 userType = 0,
@@ -200,25 +217,43 @@ class MainActivity : ComponentActivity() {
                                             fontSize = 18.sp
                                         )
                                     }
-                                }
+                                },
+//                                onRequestOcr = { navController.navigate("ocr") },
+                                onRequestOcr = { navController.navigate("ocr") },
+                                ocrPrefill = ocrName
                             )
+
+                            //ocr_중복제거
+                            LaunchedEffect(ocrName) {
+                                if (ocrName.isNotBlank()) {
+                                    navController.currentBackStackEntry!!
+                                        .savedStateHandle
+                                        .remove<String>("ocr_name_result")
+                                }
+                            }
+
                         }
 
                         composable("guardian_auth") {
                             CombinedAuthScreen(
                                 viewModel = signupVm,
                                 userType = 1,
+                                onRequestOcr = {},
+                                ocrPrefill = "",
                                 onNext = { navController.navigate("family_certification") }
                             )
                         }
 
+                        // MainActivity.kt에서 senior_final_signup 부분만 수정
+
                         composable("senior_final_signup") {
                             val state by signupVm.state.collectAsState()
+
                             SignupScreen(
                                 viewModel = signupVm,
                                 onSignupSuccess = {
-                                    val newUserId = signupVm.lastUserId
-                                    navController.navigate("loadingScreen/$newUserId") {
+                                    // 회원가입 성공 시 로그인 화면으로 이동
+                                    navController.navigate("login") {
                                         popUpTo("senior_final_signup") { inclusive = true }
                                     }
                                 }
@@ -586,14 +621,17 @@ class MainActivity : ComponentActivity() {
                                 viewerId = myId
                             )
                         }
-                        composable("kiosk") { KioskScreen() }
+                        composable("kiosk") {
+                            KioskScreen(navController = navController)
+                        }
                         composable("call") {
                             val shortcuts by callVm.shortcuts.collectAsState()
                             CallScreen(
                                 contacts = shortcuts,
                                 onAddShortcut = { idx ->
                                     navController.navigate("call_setup/$idx")
-                                }
+                                },
+                                navController = navController
                             )
                         }
                         composable("call_setup/{index}") { back ->
@@ -620,7 +658,18 @@ class MainActivity : ComponentActivity() {
                                 onLoginClick = { navController.navigate("login") }
                             )
                         }
-                        composable("ocr") { OCRScreen() }
+//                        composable("ocr") { OCRScreen() }
+
+                        composable("ocr") {
+                            OCRScreen { scannedName ->
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("ocr_name_result", scannedName)
+                                navController.popBackStack()
+                            }
+                        }
+
+
                     }
                 }
             }

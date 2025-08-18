@@ -1,5 +1,6 @@
 package com.example.dundun_hi.ui.guardianProfile
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ fun GuardianProfileScreen(
     onEditSeniorClick: () -> Unit,
     navController: NavController
 ) {
+    val context = LocalContext.current
     val guardianId by remember { derivedStateOf { viewModel.guardianId } }
     val guardianTel by remember { derivedStateOf { viewModel.guardianTel } }
     val guardianProfileImg by remember { derivedStateOf { viewModel.guardianProfileImg } }
@@ -47,15 +49,24 @@ fun GuardianProfileScreen(
     val isLoading by remember { derivedStateOf { viewModel.isLoading } }
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
-    val context = LocalContext.current
     val alertRepository = remember { AlertRepository.getInstance(context) }
-    val today = remember {
-        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
-    }
-    val alerts by remember { derivedStateOf { alertRepository.alertList } }
-    val todayAlerts = remember(alerts) {
-        alerts.filter { it.date == today }.sortedBy { it.time }
-    }
+
+//    val today = remember {
+//        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
+//    }
+//    val alerts by remember { derivedStateOf { alertRepository.alertList } }
+//    val todayAlerts = remember(alerts) {
+//        alerts.filter { it.date == today }.sortedBy { it.time }
+//    }
+
+    //소은 수정. remember 제거
+    val alerts = alertRepository.alertList          // SnapshotStateList 그대로 읽기
+    val today = remember { SimpleDateFormat("yyyy/MM/dd", Locale.KOREA).format(Date()) }
+
+    val todayAlerts = alerts
+        .filter { it.date == today }
+        .sortedBy { it.time }
+
     // imageVersion 관찰 추가
     val imageVersion by remember { derivedStateOf { viewModel.imageVersion } }
 
@@ -85,7 +96,21 @@ fun GuardianProfileScreen(
     }
 
     LaunchedEffect(Unit) {
+        alertRepository.forceRefreshFromServer()
         viewModel.loadProfileData()
+    }
+
+    // MainScreen으로 이동하는 공통 함수
+    val navigateToMain = {
+        val sharedPreferences = context.getSharedPreferences("user_prefs", 0)
+        val userNum = sharedPreferences.getString("user_num", "0") ?: "0"
+        val userId = sharedPreferences.getString("user_id", "") ?: ""
+
+        if (userId.isNotEmpty() && userNum != "0") {
+            navController.navigate("main/$userNum/${Uri.encode(userId)}") {
+                launchSingleTop = true
+            }
+        }
     }
 
     Column(
@@ -100,7 +125,26 @@ fun GuardianProfileScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("든든하이 보호자", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            // "든든하이" 텍스트와 홈 아이콘을 묶은 Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { navigateToMain() }
+            ) {
+                Text(
+                    text = "든든하이",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_home),
+                    contentDescription = "홈으로 이동",
+                    tint = Color(0xFF000000),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Text("마이페이지", fontSize = 32.sp, fontWeight = FontWeight.Bold)
             TextButton(
                 onClick = {
                     // 로그아웃 처리 - home으로 돌아가기
@@ -187,6 +231,7 @@ fun GuardianProfileScreen(
         }
     }
 }
+
 @Composable
 fun GuardianProfileCard(
     guardianId: String,
@@ -271,7 +316,7 @@ fun SeniorProfileCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("연결된 계정", fontSize = 18.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
+                Text("연결된 계정", fontSize = 20.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
                 Icon(
                     painter = painterResource(id = R.drawable.ic_edit), // 연필 아이콘 리소스
                     contentDescription = "수정",
@@ -332,7 +377,7 @@ fun SeniorProfileCard(
             // 위치 섹션
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("위치", fontSize = 18.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
+                Text("위치", fontSize = 20.sp, color = Color(0xFF9E9E9E), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.width(6.dp))
                 Icon(
                     painter = painterResource(id = R.drawable.ic_location), // 핀 아이콘 리소스
@@ -344,7 +389,7 @@ fun SeniorProfileCard(
 
             Spacer(Modifier.height(10.dp))
             Text(
-                text = if (seniorCondition) "외출 중 입니다." else "집에 있습니다.",
+                text = if (seniorCondition) "외출 중 입니다." else "자택에 있습니다.",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -391,7 +436,8 @@ fun ScheduleCard(todayAlerts: List<AlertItem>, navController: NavController) {
                     contentDescription = "알림 추가",
                     tint = Color(0xFF2196F3),
                     modifier = Modifier
-                        .size(24.dp)
+                        // .size(24.dp)
+                        .size(26.dp)
                         .clickable {
                             navController.navigate("alarm")
                         }
@@ -420,13 +466,15 @@ fun ScheduleCard(todayAlerts: List<AlertItem>, navController: NavController) {
                         ) {
                             Text(
                                 text = "${alert.date} ${alert.time}",
-                                fontSize = 26.sp,
+                                // fontSize = 26.sp,
+                                fontSize = 24.sp,
                                 color = Color.Gray
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = alert.content,
-                                fontSize = 28.sp,
+                                // fontSize = 28.sp,
+                                fontSize = 26.sp,
                                 fontWeight = FontWeight.Normal
                             )
                             if (index < todayAlerts.size - 1) {
