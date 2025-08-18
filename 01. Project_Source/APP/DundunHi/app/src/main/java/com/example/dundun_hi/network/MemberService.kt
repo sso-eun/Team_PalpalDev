@@ -137,4 +137,7 @@ interface MemberService {
     // FCM 토큰 전송 (은재 수정 - 경로 변경)
     @POST("/member/updatetoken")
     suspend fun sendFcmToken(@Body req: FcmTokenRequest): retrofit2.Response<SimpleResponse>
+
+    @GET("cert/list")
+    suspend fun getCertList(): Response<CertListResponse>
 }

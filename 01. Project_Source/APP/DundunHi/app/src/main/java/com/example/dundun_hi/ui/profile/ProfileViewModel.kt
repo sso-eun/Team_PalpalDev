@@ -43,7 +43,6 @@ class ProfileViewModel(
         return cacheBustToken?.let { "$url?v=$it" } ?: url
     }
 
-
     val userNumber: Int get() = userNum
     val userConditionString: String get() = if (userCondition) "1" else "0"
 
@@ -66,7 +65,7 @@ class ProfileViewModel(
     var userType by mutableStateOf<Int?>(null)
         private set
 
-    // 이 두 줄을 ProfileViewModel에 추가
+    // 이미지 버전 관리
     var imageVersion by mutableStateOf(0L)
         private set
 
@@ -75,10 +74,67 @@ class ProfileViewModel(
         context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     private val imgVerKey = "profile_img_ver_$userNum"
 
-    // init에서 토큰 복원
+    // 연결된 사용자 ID 관리
+    private var _connectedUserId = mutableStateOf<Int?>(null)
+    val connectedUserId: Int? get() = _connectedUserId.value
+
+    // init에서 토큰 복원 및 연결된 사용자 조회
     init {
         cacheBustToken = appPrefs?.getString(imgVerKey, null)
-        fetchUserFromServer()
+        Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
+
+        viewModelScope.launch {
+            fetchUserFromServer()
+            fetchConnectedUser() // 초기화 시 연결된 사용자도 조회
+        }
+    }
+
+    // cert/list에서 연결된 계정 조회
+    fun fetchConnectedUser() {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "cert/list 조회 시작: userNum=$userNum")
+                val response = memberService.getCertList()
+
+                if (response.isSuccessful) {
+                    val certList = response.body()?.results
+                    Log.d(TAG, "cert/list 응답 성공, 결과 수: ${certList?.size}")
+
+                    // 내가 포함된 인증 정보 찾기
+                    val connectedCert = certList?.find { cert ->
+                        cert.guardian_no == userNum || cert.senior_num == userNum
+                    }
+
+                    _connectedUserId.value = when {
+                        connectedCert?.guardian_no == userNum -> {
+                            Log.d(TAG, "보호자로 연결됨, 시니어: ${connectedCert.senior_num}")
+                            connectedCert.senior_num
+                        }
+                        connectedCert?.senior_num == userNum -> {
+                            Log.d(TAG, "시니어로 연결됨, 보호자: ${connectedCert.guardian_no}")
+                            connectedCert.guardian_no
+                        }
+                        else -> {
+                            Log.d(TAG, "연결된 계정 없음")
+                            null
+                        }
+                    }
+
+                    Log.d(TAG, "최종 연결된 사용자 ID: ${_connectedUserId.value}")
+                } else {
+                    Log.e(TAG, "cert/list 조회 실패: ${response.code()} - ${response.message()}")
+                    _connectedUserId.value = null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "cert/list 조회 중 오류", e)
+                _connectedUserId.value = null
+            }
+        }
+    }
+
+    // 연결된 사용자 ID 반환 (외부에서 쉽게 사용할 수 있도록)
+    fun getConnectedReceiverId(): Int? {
+        return connectedUserId
     }
 
     // 토큰 갱신 시 저장
@@ -87,16 +143,11 @@ class ProfileViewModel(
         appPrefs?.edit()?.putString(imgVerKey, cacheBustToken)?.apply()
 
         userProfileImg = profileUrlStable()
-        imageVersion = System.currentTimeMillis() // 이 줄 추가!
+        imageVersion = System.currentTimeMillis()
 
         Log.d(TAG, "이미지 버전 업데이트: $imageVersion, URL: $userProfileImg")
     }
 
-
-    init {
-        Log.d(TAG, "ProfileViewModel 초기화: userNum=$userNum, context=${context != null}")
-        fetchUserFromServer()
-    }
     // 또는 더 구체적으로
     fun refreshImageData() {
         fetchUserFromServer() // 기존 함수 재사용

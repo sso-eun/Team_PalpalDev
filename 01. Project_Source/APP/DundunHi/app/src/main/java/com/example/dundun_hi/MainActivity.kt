@@ -358,7 +358,6 @@ class MainActivity : ComponentActivity() {
                                 else -> 1
                             }
 
-                            // ▼▼▼ [수정 2] MainScreen에 ViewModel 전달 및 콜백 수정 ▼▼▼
                             MainScreen(
                                 profileViewModel = profileViewModel,
                                 locationViewModel = locationViewModel,
@@ -372,7 +371,9 @@ class MainActivity : ComponentActivity() {
                                 precipitationType = 0,
                                 onPhonePageClick = { navController.navigate("call") },
                                 onMessagePageClick = { /* TODO */ },
-                                onCameraPageClick = { navController.navigate("camera/$currentUserNum") },
+                                onCameraPageClick = {
+                                    navController.navigate("camera/$currentUserNum")
+                                },
                                 onMapPageClick = { navController.navigate("map") },
                                 onNavigateToCultureCenter = {
                                     navController.navigate("culture_center")
@@ -568,22 +569,77 @@ class MainActivity : ComponentActivity() {
                             EditAlertScreen(navController, alertId)
                         }
                         composable("activity_history") { ActivityHistoryScreen() }
+                        // MainActivity.kt
                         composable(
-                            route = "camera/{userId}",
-                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                            route = "camera/{currentUserNum}",
+                            arguments = listOf(navArgument("currentUserNum") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val currentUserNum = backStackEntry.arguments?.getInt("currentUserNum") ?: 0
+
+                            CameraScreen(
+                                userId = currentUserNum,
+                                navController = navController
+                                // profileViewModel 전달하지 않음 (CameraScreen 내부에서 생성)
+                            )
+                        }
+
+
+                        composable(
+                            route = "lastphoto/{userId}/{receiverId}",
+                            arguments = listOf(
+                                navArgument("userId") { type = NavType.IntType },
+                                navArgument("receiverId") { type = NavType.IntType }
+                            )
                         ) { backStackEntry ->
                             val userId = backStackEntry.arguments?.getInt("userId") ?: 0
-                            CameraScreen(userId = userId, navController = navController)
-                        }
-                        composable(
-                            route = "lastphoto/{userId}",
-                            arguments = listOf(navArgument("userId") { type = NavType.IntType })
-                        ) { back ->
-                            val myId = back.arguments!!.getInt("userId")
+                            val receiverId = backStackEntry.arguments?.getInt("receiverId") ?: 0
+
                             LastPhotoScreen(
-                                senderId = myId,
-                                receiverId = 3,
-                                viewerId = myId
+                                senderId = userId,
+                                receiverId = receiverId,
+                                viewerId = userId,
+                                onPhotoClick = { photoId, sortOrder, filter ->
+                                    // 사진 ID와 필터/정렬 상태를 함께 상세 화면으로 이동
+                                    // URL 인코딩으로 특수문자 처리
+                                    val encodedPhotoId = java.net.URLEncoder.encode(photoId, "UTF-8")
+                                    navController.navigate("photo_detail/$userId/$receiverId/$encodedPhotoId/${sortOrder.name}/${filter.name}")
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "photo_detail/{senderId}/{receiverId}/{photoId}/{sortOrder}/{filter}",
+                            arguments = listOf(
+                                navArgument("senderId") { type = NavType.IntType },
+                                navArgument("receiverId") { type = NavType.IntType },
+                                navArgument("photoId") { type = NavType.StringType },
+                                navArgument("sortOrder") { type = NavType.StringType },
+                                navArgument("filter") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val senderId = backStackEntry.arguments?.getInt("senderId") ?: 0
+                            val receiverId = backStackEntry.arguments?.getInt("receiverId") ?: 0
+                            val encodedPhotoId = backStackEntry.arguments?.getString("photoId") ?: ""
+                            val sortOrder = backStackEntry.arguments?.getString("sortOrder") ?: "NEWEST"
+                            val filter = backStackEntry.arguments?.getString("filter") ?: "ALL"
+
+                            // URL 디코딩으로 원본 photoId 복원
+                            val photoId = try {
+                                java.net.URLDecoder.decode(encodedPhotoId, "UTF-8")
+                            } catch (e: Exception) {
+                                encodedPhotoId
+                            }
+
+                            PhotoDetailScreen(
+                                targetPhotoId = photoId, // 찾아갈 사진의 ID
+                                sortOrder = sortOrder, // 피드의 정렬 상태 유지
+                                filter = filter, // 피드의 필터 상태 유지
+                                senderId = senderId,
+                                receiverId = receiverId,
+                                viewerId = senderId,
+                                onBackClick = {
+                                    navController.popBackStack() // 뒤로가기로 피드로 돌아감 (필터/정렬 상태 그대로 유지됨)
+                                }
                             )
                         }
                         composable("kiosk") { KioskScreen() }

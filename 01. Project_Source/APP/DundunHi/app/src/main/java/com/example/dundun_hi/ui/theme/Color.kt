@@ -15,3 +15,4 @@ val ButtonMsgTeal    = Color(0xFF34CCAD)
 val ButtonCamBlue    = Color(0xFF21BDDE)
 val ButtonMapBlue    = Color(0xFF3993DF)
 val BorderGray       = Color(0xFF6A6868)
+
