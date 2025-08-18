@@ -115,7 +115,7 @@ fun SetupShortcutScreen(
                 .height(60.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50)
+                containerColor = Color(0xFF1AB277)
             )
         ) {
             Text(

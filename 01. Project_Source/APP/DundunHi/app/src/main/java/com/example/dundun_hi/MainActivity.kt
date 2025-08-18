@@ -206,6 +206,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel = signupVm,
                                 userType = 0,
                                 onNext = { navController.navigate("senior_final_signup") },
+//                                onNext = { navController.navigate("main") },
                                 bottomContent = {
                                     Spacer(Modifier.height(24.dp))
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -340,6 +341,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             )
+
+
                         }
 
                         composable(

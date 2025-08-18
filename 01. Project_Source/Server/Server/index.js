@@ -152,3 +152,15 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // console.log(`Server running on http://localhost:${PORT}`);
 
+//소은. 아래부터는 admin web 입니다.
+const adminDist = path.resolve(__dirname, '../../Web/admin/dist');
+const adminMount = '/admin';
+
+// 1) 정적 파일 제공 (/admin 하위)
+app.use(adminMount, express.static(adminDist, { index: false })); // index 자동서빙 끔
+
+// 2) SPA 라우팅 (리프레시 404 방지)
+//    정규식: ^/admin( /... )? 전부 매칭
+app.get(/^\/admin(?:\/.*)?$/, (req, res) => {
+    res.sendFile(path.join(adminDist, 'index.html'));
+});

@@ -418,26 +418,26 @@ fun ProfileScreen(
                              )
                              
                              // 디버깅용 정보 (개발 중에만 표시)
-                             Text(
-                                 text = "전체 알림: ${alerts.size}개",
-                                 fontSize = 14.sp,
-                                 color = Color.LightGray
-                             )
-                             Text(
-                                 text = "오늘 날짜: $today",
-                                 fontSize = 14.sp,
-                                 color = Color.LightGray
-                             )
-                             
-                             // 수동 새로고침 버튼
-                             TextButton(
-                                 onClick = {
-                                     Log.d("ProfileScreen", "수동 새로고침 버튼 클릭")
-                                     alertRepository.forceRefreshFromServer()
-                                 }
-                             ) {
-                                 Text("다시 시도", fontSize = 14.sp, color = Color(0xFF2196F3))
-                             }
+//                             Text(
+//                                 text = "전체 알림: ${alerts.size}개",
+//                                 fontSize = 14.sp,
+//                                 color = Color.LightGray
+//                             )
+//                             Text(
+//                                 text = "오늘 날짜: $today",
+//                                 fontSize = 14.sp,
+//                                 color = Color.LightGray
+//                             )
+//
+//                             // 수동 새로고침 버튼
+//                             TextButton(
+//                                 onClick = {
+//                                     Log.d("ProfileScreen", "수동 새로고침 버튼 클릭")
+//                                     alertRepository.forceRefreshFromServer()
+//                                 }
+//                             ) {
+//                                 Text("다시 시도", fontSize = 14.sp, color = Color(0xFF2196F3))
+//                             }
                          }
                      } else {
                         todayAlerts.forEachIndexed { index, alert ->

@@ -1,11 +1,8 @@
 package com.example.dundun_hi.ui.screen
 
 import android.content.Intent
-<<<<<<< HEAD
 import androidx.annotation.DrawableRes
-=======
 import android.net.Uri
->>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -58,10 +55,10 @@ fun CallScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-<<<<<<< HEAD
-        // --- 헤더 ---
-        Header()
-=======
+
+//        // --- 헤더 ---
+//        Header()
+
         // ── 타이틀 (홈 아이콘과 함께)
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -94,7 +91,6 @@ fun CallScreen(
                 modifier = Modifier.size(32.dp)
             )
         }
->>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -286,7 +282,7 @@ private fun EmptyShortcutCard(
             )
         }
     }
-<<<<<<< HEAD
+
 }
 
 
@@ -350,6 +346,5 @@ private fun EmergencyButton(
             }
         }
     }
-=======
->>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
+
 }
