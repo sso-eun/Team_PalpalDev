@@ -75,8 +75,32 @@ app.use('/fcm', fcmRouter); // '/fcm' 경로로 들어오는 요청을 fcmRouter
 const fcmController = require('./controllers/fcmController');
 
 // 테스트
-cron.schedule('0 16 00 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에 실행
-    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 9:20 AM test notification.`);
+cron.schedule('0 18 30 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에 실행
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+// 테스트
+cron.schedule('0 18 40 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에 실행
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+// 테스트
+cron.schedule('0 18 50 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에 실행
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
+    fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
+}, {
+    timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
+});
+
+// 테스트
+cron.schedule('0 17 00 * * *', () => { // 0초 20분 9시 (오전 9시 20분)에 실행
+    console.log(`[${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] Triggering 6 PM daily notification.`);
     fcmController.sendScheduledNotifications(); // FCM 알림 전송 함수 호출
 }, {
     timezone: "Asia/Seoul" // 한국 시간대(KST)로 설정
