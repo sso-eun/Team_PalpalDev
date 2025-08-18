@@ -68,6 +68,7 @@ fun LastPhotoScreen(
     var currentFilter by remember { mutableStateOf(PhotoFilter.ALL) }
     var currentSort by remember { mutableStateOf(SortOrder.NEWEST) }
 
+    // --- ▼▼▼▼▼ 변경된 부분 ▼▼▼▼▼ ---
     val filteredAndSortedPhotos = remember(photos, currentFilter, currentSort) {
         val filtered = when (currentFilter) {
             PhotoFilter.ALL -> photos
@@ -75,11 +76,26 @@ fun LastPhotoScreen(
             PhotoFilter.GUARDIAN_PHOTOS -> photos.filter { !it.fromMe }
         }
 
+        // 설명:
+        // 정렬 로직을 수정하여 아직 업로드되지 않은 로컬 사진(localUri가 있고 remoteUrl이 없는 사진)을
+        // '최신순'에서는 항상 맨 위로, '오래된순'에서는 항상 맨 아래로 보내도록 합니다.
+        // 이를 위해 `sortedWith`와 여러 정렬 기준을 조합하는 `compareBy`를 사용합니다.
         when (currentSort) {
-            SortOrder.NEWEST -> filtered.sortedByDescending { it.sendAt }
-            SortOrder.OLDEST -> filtered.sortedBy { it.sendAt }
+            SortOrder.NEWEST -> filtered.sortedWith(
+                // 1. 첫 번째 기준: 로컬 사진(아직 업로드 안 된)인지 여부로 내림차순 정렬 (true가 앞으로)
+                // 2. 두 번째 기준: 첫 번째 기준이 같을 경우, sendAt 시간으로 내림차순 정렬 (최신이 앞으로)
+                compareByDescending<SharedPhoto> { it.localUri != null && it.remoteUrl == null }
+                    .thenByDescending { it.sendAt }
+            )
+            SortOrder.OLDEST -> filtered.sortedWith(
+                // 1. 첫 번째 기준: 로컬 사진인지 여부로 오름차순 정렬 (false가 앞으로, 즉 로컬 사진이 뒤로)
+                // 2. 두 번째 기준: 첫 번째 기준이 같을 경우, sendAt 시간으로 오름차순 정렬 (오래된 것이 앞으로)
+                compareBy<SharedPhoto> { it.localUri != null && it.remoteUrl == null }
+                    .thenBy { it.sendAt }
+            )
         }
     }
+    // --- ▲▲▲▲▲ 변경된 부분 ▲▲▲▲▲ ---
 
     val picker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()

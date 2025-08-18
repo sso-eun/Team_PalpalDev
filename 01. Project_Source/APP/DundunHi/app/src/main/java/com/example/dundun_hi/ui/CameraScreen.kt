@@ -33,7 +33,6 @@ import com.example.dundun_hi.data.RealUserRepository
 import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.profile.ProfileViewModelFactory
 
-/* ───────── 실제 NavController 버전 ───────── */
 @Composable
 fun CameraScreen(
     userId: Int,
@@ -70,7 +69,6 @@ fun CameraScreen(
     )
 }
 
-/* ───────── 순수 UI만 담은 Content (최종 요청사항 반영) ───────── */
 @Composable
 private fun CameraScreenContent(
     onLastPhotoClick: () -> Unit
@@ -86,10 +84,8 @@ private fun CameraScreenContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
-        /* '든든하이' 타이틀 삭제됨 */
-        // Text( ... )
 
-        Spacer(modifier = Modifier.height(16.dp)) // 타이틀 삭제 후 여백 추가
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "오늘 어떤 순간을 공유할까요?",
@@ -118,16 +114,16 @@ private fun CameraScreenContent(
         SurfaceCard(
             iconResId = R.drawable.ic_gallery,
             title = "사진 보러가기",
-            subtitle = "갤러리에서 사진을 선택해요",
-            // 변경된 부분: 이미지와 유사한 청량한 파란색 단색
+            subtitle = "갤러리에서 사진을 구경해요",
             colors = listOf(Color(0xFF2DB6F4), Color(0xFF2DB6F4)),
             onClick = {
-                val intent = Intent(
-                    Intent.ACTION_PICK,
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                )
-                intent.type = "image/*"
-                context.startActivity(intent)
+                val intent = Intent(Intent.ACTION_MAIN)
+                intent.addCategory(Intent.CATEGORY_APP_GALLERY)
+
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                }
             }
         )
 
@@ -136,7 +132,6 @@ private fun CameraScreenContent(
             iconResId = R.drawable.ic_history,
             title = "지난 이야기",
             subtitle = "가족과 함께한 추억을 봐요",
-            // 이전 요청대로 푸른색 그라데이션 유지
             colors = listOf(Color(0xFF569AFF), Color(0xFF9EBAF3)),
             onClick = onLastPhotoClick
         )
@@ -159,7 +154,7 @@ private fun SurfaceCard(
             .fillMaxWidth()
             .height(220.dp)
             .clip(cardShape)
-            .background(Brush.verticalGradient(colors)) // 단색의 경우 색상값이 동일해 그라데이션 없이 표현됨
+            .background(Brush.verticalGradient(colors))
             .clickable(onClick = onClick)
     ) {
         Column(
