@@ -94,10 +94,10 @@ private fun CameraScreenContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
-<<<<<<< HEAD
 
-        Spacer(modifier = Modifier.height(16.dp))
-=======
+
+//        Spacer(modifier = Modifier.height(16.dp))
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
@@ -134,7 +134,7 @@ private fun CameraScreenContent(
                 modifier = Modifier.size(24.dp)
             )
         }
->>>>>>> a68b6675c8446ed1b49d63112626bc6c73dc34b5
+
 
         Text(
             text = "오늘 어떤 순간을 공유할까요?",

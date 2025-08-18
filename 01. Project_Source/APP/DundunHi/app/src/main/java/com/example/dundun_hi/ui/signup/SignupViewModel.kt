@@ -1,5 +1,7 @@
 package com.example.dundun_hi.ui.signup
 
+import android.app.Application
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dundun_hi.data.CodeAuthRepository
@@ -77,6 +79,7 @@ class SignupViewModel(
 
                         //fcm 토큰 전송------------------------------------
                         sendFcmTokenToServer(signupResponse.userNum)
+
                     }
                 } else {
                     _userCreationState.value = UserCreationState.Error(verifyResponse.message)

@@ -300,7 +300,8 @@ suspend fun getPlacesFromAPI(
     lon: Double
 ): List<PlaceInfo> {
     return withContext(Dispatchers.IO) {
-        val url = URL("https://dundunhi.onrender.com/places?category=$category&lat=$lat&lon=$lon&range=0.5")
+//        val url = URL("https://dundunhi.onrender.com/places?category=$category&lat=$lat&lon=$lon&range=0.5")
+        val url = URL("https://dundunhi.onrender.com/places?category=$category&lat=$lat&lon=$lon&range=2")
         val conn = url.openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
         conn.setRequestProperty("Content-Type", "application/json")
