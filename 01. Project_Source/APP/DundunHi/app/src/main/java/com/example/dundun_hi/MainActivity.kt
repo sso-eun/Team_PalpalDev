@@ -206,7 +206,6 @@ class MainActivity : ComponentActivity() {
                                 viewModel = signupVm,
                                 userType = 0,
                                 onNext = { navController.navigate("senior_final_signup") },
-//                                onNext = { navController.navigate("main") },
                                 bottomContent = {
                                     Spacer(Modifier.height(24.dp))
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -257,7 +256,13 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("login") {
                                         popUpTo("senior_final_signup") { inclusive = true }
                                     }
+                                },
+                                onTimeout = {
+                                    val userNum = signupVm.createdUserNum   // 혹은 lastUserNum (정확한 필드 확인)
+                                    val userId = signupVm.createdUserId
+                                    navController.navigate("main/$userNum/$userId")
                                 }
+
                             )
                             if (state is SignupResult.Error) {
                                 Toast.makeText(

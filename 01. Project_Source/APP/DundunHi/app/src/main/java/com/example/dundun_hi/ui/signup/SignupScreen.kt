@@ -2,6 +2,7 @@ package com.example.dundun_hi.ui.signup
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,124 +35,149 @@ import com.example.dundun_hi.data.SignupRequest
 @Composable
 fun SignupScreen(
     viewModel: SignupViewModel,
-    onSignupSuccess: () -> Unit
+    onSignupSuccess: () -> Unit,
+    onTimeout: () -> Unit
 ) {
     val ctx = LocalContext.current
 
-    var name by remember { mutableStateOf("") }
+//    var name by remember { mutableStateOf("") }
     // SMS 인증에서 ViewModel에 저장된 전화번호 사용
     val phone = viewModel.lastTelNum
+    val name = viewModel.createdUserId
 
     // 0 = 집, 1 = 외출
     var userCondition by remember { mutableStateOf(0) }
 
     val state by viewModel.state.collectAsState()
 
-    Column(
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(horizontal = 24.dp, vertical = 48.dp),
+//        horizontalAlignment = Alignment.Start
+//    ) {
+//
+//        Text(
+//            text = "회원가입",
+//            fontSize = 65.sp,
+//            fontWeight = FontWeight.ExtraBold
+//        )
+//        Spacer(Modifier.height(32.dp))
+//
+//        Text("이름", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+//        OutlinedTextField(
+//            value = name,
+//            onValueChange = { name = it },
+//            placeholder = { Text("이름을 입력해주세요") },
+//            singleLine = true,
+//            modifier = Modifier.fillMaxWidth(),
+//            shape = RoundedCornerShape(12.dp),
+//
+//        )
+//
+//        Spacer(Modifier.height(30.dp))
+//
+//        Text(
+//            text = "현재 집에 계신가요?",
+//            fontSize = 30.sp,
+//            fontWeight = FontWeight.SemiBold
+//        )
+//        Spacer(Modifier.height(8.dp))
+//
+//        Row(Modifier.fillMaxWidth()) {
+//            Button(
+//                onClick = { userCondition = 0 },
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = if (userCondition == 0)
+//                        Color(0xFF1AB277)
+//                    else
+//                        Color(0xFFDFDFE0)
+//                ),
+//                modifier = Modifier.weight(1f),
+//                shape = RoundedCornerShape(28.dp)
+//            ) {
+//                Text(
+//                    text = "예",
+//                    fontSize = 30.sp,
+//                    color = Color.White
+//
+//                )
+//            }
+//            Spacer(Modifier.width(16.dp))
+//            Button(
+//                onClick = { userCondition = 1 },
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = if (userCondition == 1)
+//                        Color(0xFF1AB277)
+//                    else
+//                        Color(0xFFDFDFE0)
+//                ),
+//                modifier = Modifier.weight(1f),
+//                shape = RoundedCornerShape(28.dp)
+//            ) {
+//                Text(
+//                    text = "아니요",
+//                    fontSize = 30.sp,
+//                    color = Color.White
+//                )
+//            }
+//        }
+//        Spacer(Modifier.height(100.dp))
+//
+//        Button(
+//            onClick = {
+//                if (name.isBlank()) {
+//                    Toast.makeText(ctx, "이름을 입력해주세요", Toast.LENGTH_SHORT).show()
+//                } else {
+//                    viewModel.signup(
+//                        SignupRequest(
+//                            user_type       = 0,
+//                            user_id         = name,
+//                            user_pw         = phone,
+//                            user_tel        = phone,
+//                            user_profile_img= "",
+//                            user_home_lat   = "",
+//                            user_home_lot   = "",
+//                            user_condition  = userCondition
+//                        )
+//                    )
+//                }
+//            },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(60.dp),
+//            shape = RoundedCornerShape(28.dp),
+//            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
+//        ) {
+//            Text(
+//                text = "회원가입 완료하기",
+//                color = Color.White,
+//                fontSize = 30.sp
+//            )
+//        }
+//    }
+
+    //신규
+
+    // 가운데 텍스트
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 48.dp),
-        horizontalAlignment = Alignment.Start
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
-
         Text(
-            text = "회원가입",
-            fontSize = 65.sp,
-            fontWeight = FontWeight.ExtraBold
+            text = "${name}님 회원가입을 축하합니다! \n 5초 뒤 이동합니다.",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+//            color = Color(0xFF1AB277)
         )
-        Spacer(Modifier.height(32.dp))
+    }
 
-        Text("이름", fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            placeholder = { Text("이름을 입력해주세요") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-
-        )
-
-        Spacer(Modifier.height(30.dp))
-
-        Text(
-            text = "현재 집에 계신가요?",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(Modifier.height(8.dp))
-
-        Row(Modifier.fillMaxWidth()) {
-            Button(
-                onClick = { userCondition = 0 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (userCondition == 0)
-                        Color(0xFF1AB277)
-                    else
-                        Color(0xFFDFDFE0)
-                ),
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                Text(
-                    text = "예",
-                    fontSize = 30.sp,
-                    color = Color.White
-
-                )
-            }
-            Spacer(Modifier.width(16.dp))
-            Button(
-                onClick = { userCondition = 1 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (userCondition == 1)
-                        Color(0xFF1AB277)
-                    else
-                        Color(0xFFDFDFE0)
-                ),
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                Text(
-                    text = "아니요",
-                    fontSize = 30.sp,
-                    color = Color.White
-                )
-            }
-        }
-        Spacer(Modifier.height(100.dp))
-
-        Button(
-            onClick = {
-                if (name.isBlank()) {
-                    Toast.makeText(ctx, "이름을 입력해주세요", Toast.LENGTH_SHORT).show()
-                } else {
-                    viewModel.signup(
-                        SignupRequest(
-                            user_type       = 0,
-                            user_id         = name,
-                            user_pw         = phone,
-                            user_tel        = phone,
-                            user_profile_img= "",
-                            user_home_lat   = "",
-                            user_home_lot   = "",
-                            user_condition  = userCondition
-                        )
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1AB277))
-        ) {
-            Text(
-                text = "회원가입 완료하기",
-                color = Color.White,
-                fontSize = 30.sp
-            )
-        }
+    LaunchedEffect(Unit) {
+        Toast.makeText(ctx, "어서오세요~", Toast.LENGTH_SHORT).show()
+        kotlinx.coroutines.delay(5000)
+        onTimeout()
     }
 
     LaunchedEffect(state) {
