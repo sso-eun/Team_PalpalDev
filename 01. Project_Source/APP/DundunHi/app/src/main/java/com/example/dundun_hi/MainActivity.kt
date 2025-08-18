@@ -606,6 +606,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+// MainActivity.kt - photo_detail route 부분 오타 수정
 
                         composable(
                             route = "photo_detail/{senderId}/{receiverId}/{photoId}/{sortOrder}/{filter}",
@@ -631,14 +632,14 @@ class MainActivity : ComponentActivity() {
                             }
 
                             PhotoDetailScreen(
-                                targetPhotoId = photoId, // 찾아갈 사진의 ID
-                                sortOrder = sortOrder, // 피드의 정렬 상태 유지
-                                filter = filter, // 피드의 필터 상태 유지
+                                targetPhotoId = photoId,
+                                sortOrder = sortOrder,
+                                filter = filter,
                                 senderId = senderId,
                                 receiverId = receiverId,
-                                viewerId = senderId,
+                                viewerId = senderId, // senderId를 viewerId로 사용하고 있음
                                 onBackClick = {
-                                    navController.popBackStack() // 뒤로가기로 피드로 돌아감 (필터/정렬 상태 그대로 유지됨)
+                                    navController.popBackStack()
                                 }
                             )
                         }
