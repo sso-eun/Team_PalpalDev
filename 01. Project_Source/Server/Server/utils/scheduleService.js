@@ -92,7 +92,8 @@ exports.getUpcomingScheduleForUser = async (userNum) => {
  * @param {number} userNum - 토큰을 조회할 사용자의 user_num
  * @returns {string|null} - 사용자의 FCM 토큰 또는 null
  */
-// ⬇️ [추가] 이 함수를 파일 하단에 추가해주세요.
+
+
 exports.getUserFcmToken = async (userNum) => {
     try {
         const sql = `
