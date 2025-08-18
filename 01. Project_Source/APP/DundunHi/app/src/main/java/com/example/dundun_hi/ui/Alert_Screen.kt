@@ -49,6 +49,17 @@ fun AlarmRecordScreen(navController: NavController) {
     // 화면 갱신을 위한 키
     // var updateKey by remember { mutableStateOf(0) }
 
+    // --- 재수정 ---
+    val todayCalendar = remember {
+        Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+    }
+    // -----------------------------
+
     // 현재 날짜로 초기화된 캘린더
     var calendar by remember {
         mutableStateOf(Calendar.getInstance().apply {
@@ -82,7 +93,12 @@ fun AlarmRecordScreen(navController: NavController) {
 //        alerts.filter { it.date == selectedDate }
 //            .sortedBy { it.time }
 //    }
-        val alertsForDay = remember(alerts, selectedDate) {
+//        val alertsForDay = remember(alerts, selectedDate) {
+//        alerts.filter { it.date == selectedDate }
+//            .sortedBy { it.time }
+//    }
+    // 08-18 재수정
+    val alertsForDay = remember(alerts.size, selectedDate) {
         alerts.filter { it.date == selectedDate }
             .sortedBy { it.time }
     }
@@ -131,7 +147,7 @@ fun AlarmRecordScreen(navController: NavController) {
 
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("든든하이", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("든든하이", fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(6.dp))
                 Icon(
                     painter = painterResource(id = R.drawable.ic_home),
@@ -198,12 +214,18 @@ fun AlarmRecordScreen(navController: NavController) {
                         weekDates.forEach { cal ->
                             val dateStr = fullFormat.format(cal.time)
                             val isSelected = dateStr == selectedDate
-                            val isToday = cal.time == Calendar.getInstance().apply {
-                                set(Calendar.HOUR_OF_DAY, 0)
-                                set(Calendar.MINUTE, 0)
-                                set(Calendar.SECOND, 0)
-                                set(Calendar.MILLISECOND, 0)
-                            }.time
+
+                            // --- 재수정 ---
+                            val isToday = cal.get(Calendar.DAY_OF_YEAR) == todayCalendar.get(Calendar.DAY_OF_YEAR) &&
+                                    cal.get(Calendar.YEAR) == todayCalendar.get(Calendar.YEAR)
+                            // ---------------------------------
+
+//                            val isToday = cal.time == Calendar.getInstance().apply {
+//                                set(Calendar.HOUR_OF_DAY, 0)
+//                                set(Calendar.MINUTE, 0)
+//                                set(Calendar.SECOND, 0)
+//                                set(Calendar.MILLISECOND, 0)
+//                            }.time
 
                             Box(
                                 modifier = Modifier

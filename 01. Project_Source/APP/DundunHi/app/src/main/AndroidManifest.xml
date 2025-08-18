@@ -29,7 +29,7 @@
         <!--네이버 맵 클라이언트 아이디 -->
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
-            android:value="n8i2ctxyl2" />
+            android:value="@string/map_key" />
 
         <activity
             android:name=".MainActivity"
