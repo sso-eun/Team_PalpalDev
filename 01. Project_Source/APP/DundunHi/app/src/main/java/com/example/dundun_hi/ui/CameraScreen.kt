@@ -1,6 +1,7 @@
 package com.example.dundun_hi.ui
 
 import android.content.Intent
+import android.net.Uri
 
 import android.provider.MediaStore
 import android.widget.Toast
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,6 +37,7 @@ import com.example.dundun_hi.R // R 클래스를 임포트합니다.
 import com.example.dundun_hi.data.RealUserRepository
 import com.example.dundun_hi.ui.profile.ProfileViewModel
 import com.example.dundun_hi.ui.profile.ProfileViewModelFactory
+import com.example.dundun_hi.ui.theme.DundunHiTheme
 
 /* ───────── 실제 NavController 버전 ───────── */
 @Composable
@@ -57,7 +60,8 @@ fun CameraScreen(
     }
 
     CameraScreenContent(
-
+        navController = navController, // navController 전달
+        userId = userId, // userId 전달
         onLastPhotoClick = {
             val connectedReceiverId = profileViewModel.getConnectedReceiverId()
 
@@ -78,6 +82,7 @@ fun CameraScreen(
 @Composable
 private fun CameraScreenContent(
     navController: NavController? = null,
+    userId: Int = 0, // userId 매개변수 추가
     onLastPhotoClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -91,11 +96,42 @@ private fun CameraScreenContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
+                // SharedPreferences에서 저장된 사용자 정보를 가져와서 main 화면으로 이동
+                val sharedPreferences = context.getSharedPreferences("user_prefs", 0)
+                val userNum = sharedPreferences.getString("user_num", "0") ?: "0"
+                val savedUserId = sharedPreferences.getString("user_id", "") ?: ""
 
-        /* '든든하이' 타이틀 삭제됨 */
-        // Text( ... )
-
-        Spacer(modifier = Modifier.height(16.dp)) // 타이틀 삭제 후 여백 추가
+                if (savedUserId.isNotEmpty() && userNum != "0") {
+                    navController?.navigate("main/$userNum/${Uri.encode(savedUserId)}") {
+                        // 현재 camera 화면을 스택에서 제거하지 않고 유지
+                        launchSingleTop = true
+                    }
+                } else {
+                    // SharedPreferences에 정보가 없다면 현재 userId를 사용
+                    if (userId != 0) {
+                        navController?.navigate("main/$userId/${Uri.encode("사용자")}") {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            }
+        ) {
+            Text(
+                text = "든든하이",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_home),
+                contentDescription = "홈으로 이동",
+                tint = Color(0xFF000000),
+                modifier = Modifier.size(24.dp)
+            )
+        }
 
         Text(
             text = "오늘 어떤 순간을 공유할까요?",
@@ -194,5 +230,15 @@ private fun SurfaceCard(
                 color = Color.White.copy(alpha = 0.8f)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CameraScreenPreview() {
+    DundunHiTheme {
+        CameraScreenContent(
+            onLastPhotoClick = { }
+        )
     }
 }
