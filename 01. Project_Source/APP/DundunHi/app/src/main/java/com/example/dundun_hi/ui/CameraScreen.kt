@@ -1,51 +1,76 @@
-// CameraScreen.kt
 package com.example.dundun_hi.ui
 
 import android.content.Intent
-import android.os.Bundle
 import android.provider.MediaStore
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.dundun_hi.ui.theme.DundunHiTheme
+import com.example.dundun_hi.R // R 클래스를 임포트합니다.
+import com.example.dundun_hi.data.RealUserRepository
+import com.example.dundun_hi.ui.profile.ProfileViewModel
+import com.example.dundun_hi.ui.profile.ProfileViewModelFactory
 
 /* ───────── 실제 NavController 버전 ───────── */
 @Composable
 fun CameraScreen(
-    userId: Int,                  // ★ NavArgument로 받은 값
+    userId: Int,
     navController: NavController
 ) {
+    val context = LocalContext.current
+
+    val repository = remember { RealUserRepository() }
+    val profileViewModel: ProfileViewModel = viewModel(
+        key = "CameraProfileViewModel_$userId",
+        factory = ProfileViewModelFactory(repository, userId, context)
+    )
+
+    LaunchedEffect(userId) {
+        if (profileViewModel.connectedUserId == null) {
+            profileViewModel.fetchConnectedUser()
+        }
+    }
+
     CameraScreenContent(
-        onLastPhotoClick = { navController.navigate("lastphoto/$userId") }
+        onLastPhotoClick = {
+            val connectedReceiverId = profileViewModel.getConnectedReceiverId()
+
+            if (connectedReceiverId != null) {
+                navController.navigate("lastphoto/$userId/$connectedReceiverId")
+            } else {
+                Toast.makeText(
+                    context,
+                    "연결된 가족이 없습니다. 가족 인증을 먼저 완료해주세요.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     )
 }
 
-/* ───────── 순수 UI만 담은 Content ───────── */
+/* ───────── 순수 UI만 담은 Content (최종 요청사항 반영) ───────── */
 @Composable
 private fun CameraScreenContent(
     onLastPhotoClick: () -> Unit
@@ -55,22 +80,33 @@ private fun CameraScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
             .verticalScroll(rememberScrollState())
-            .background(Color.White)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
-        /* 타이틀 */
+        /* '든든하이' 타이틀 삭제됨 */
+        // Text( ... )
+
+        Spacer(modifier = Modifier.height(16.dp)) // 타이틀 삭제 후 여백 추가
+
         Text(
-            text = "든든하이",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            text = "오늘 어떤 순간을 공유할까요?",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 35.sp,
+            fontWeight = FontWeight.Bold // 변경된 부분: 굵게 처리
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         /* 바로 사진찍기 */
         SurfaceCard(
-            label = "바로 사진찍기",
+            iconResId = R.drawable.ic_camera,
+            title = "바로 사진찍기",
+            subtitle = "카메라를 열어 순간을 기록해요",
+            // 변경된 부분: 이미지와 유사한 선명한 녹색 단색
+            colors = listOf(Color(0xFF50D38A), Color(0xFF50D38A)),
             onClick = {
                 context.startActivity(
                     Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
@@ -80,7 +116,11 @@ private fun CameraScreenContent(
 
         /* 사진 보러가기(갤러리) */
         SurfaceCard(
-            label = "사진 보러가기",
+            iconResId = R.drawable.ic_gallery,
+            title = "사진 보러가기",
+            subtitle = "갤러리에서 사진을 선택해요",
+            // 변경된 부분: 이미지와 유사한 청량한 파란색 단색
+            colors = listOf(Color(0xFF2DB6F4), Color(0xFF2DB6F4)),
             onClick = {
                 val intent = Intent(
                     Intent.ACTION_PICK,
@@ -93,39 +133,59 @@ private fun CameraScreenContent(
 
         /* 지난 사진 보기(앱 내부) */
         SurfaceCard(
-            label = "지난 이야기",
+            iconResId = R.drawable.ic_history,
+            title = "지난 이야기",
+            subtitle = "가족과 함께한 추억을 봐요",
+            // 이전 요청대로 푸른색 그라데이션 유지
+            colors = listOf(Color(0xFF569AFF), Color(0xFF9EBAF3)),
             onClick = onLastPhotoClick
         )
     }
 }
 
-/* ───────── 공용 카드 컴포저블 ───────── */
+/* ───────── 공용 카드 컴포저블 (drawable resource 버전) ───────── */
 @Composable
 private fun SurfaceCard(
-    label: String,
+    @DrawableRes iconResId: Int,
+    title: String,
+    subtitle: String,
+    colors: List<Color>,
     onClick: () -> Unit
 ) {
-    Surface(
+    val cardShape = RoundedCornerShape(20.dp)
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFDFF6FF)
+            .height(220.dp)
+            .clip(cardShape)
+            .background(Brush.verticalGradient(colors)) // 단색의 경우 색상값이 동일해 그라데이션 없이 표현됨
+            .clickable(onClick = onClick)
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
+                .padding(24.dp),
+            horizontalAlignment = Alignment.Start
         ) {
+            Icon(
+                painter = painterResource(id = iconResId),
+                contentDescription = title,
+                modifier = Modifier.size(48.dp),
+                tint = Color.White.copy(alpha = 0.9f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = label,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
+                text = title,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Text(
+                text = subtitle,
+                fontSize = 25.sp,
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
     }
 }
-
-

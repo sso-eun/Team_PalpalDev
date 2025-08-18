@@ -134,6 +134,8 @@ interface MemberService {
         @Query("page") page: Int,
         @Query("limit") limit: Int
     ): Response<CertListResponse>
+    @GET("cert/list")
+    suspend fun getCertList(): Response<CertListResponse>
 
     // 가족관계증명서 조회 (은재 추가)
     @GET("cert/getlistByNum/{guardian_no}")
