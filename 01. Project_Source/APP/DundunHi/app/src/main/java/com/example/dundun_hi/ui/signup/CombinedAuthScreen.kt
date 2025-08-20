@@ -112,21 +112,17 @@ fun CombinedAuthScreen(
             fontSize = 40.sp,
             fontWeight = FontWeight.SemiBold
         )
-//        OutlinedTextField(
-//            value = name,
-//            onValueChange = { name = it },
-//            placeholder = { Text("이름을 입력해주세요") },
-//            singleLine = true,
-////            modifier = Modifier.fillMaxWidth(),
-//            shape = RoundedCornerShape(12.dp),
-//
-//            //OCR 추가
-//            readOnly = true,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .clickable { onRequestOcr() }
-//        )
+    if (userType == 1) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            placeholder = { Text("이름을 입력해주세요") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
 
+        )
+    } else {
         //ocr 입력 box 레이어 추가
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
@@ -149,6 +145,7 @@ fun CombinedAuthScreen(
                     ) { onRequestOcr() }          // 여기서 이동
             )
         }
+    }
 
         Spacer(Modifier.height(30.dp))
         // 전화번호 입력
@@ -210,6 +207,8 @@ fun CombinedAuthScreen(
         // 인증번호 확인하기 버튼
         Button(
             onClick = {
+//                onNext()
+
                 // ViewModel 함수 호출 시, 받아온 userType을 함께 전달합니다.
                 viewModel.verifyCodeAndCreateUser(
                     name = name.trim(),

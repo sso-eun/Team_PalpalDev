@@ -5,6 +5,7 @@ import android.content.Intent
 import android.location.Location
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -76,13 +77,29 @@ fun MapScreen() {
         }
     }
 
-    LaunchedEffect(selectedCategory) {
-        if (selectedCategory != null && currentLocation != null) {
+//    LaunchedEffect(selectedCategory) {
+//        if (selectedCategory != null && currentLocation != null) {
+//            placeInfos = getPlacesFromAPI(
+//                context = context,
+//                category = selectedCategory!!,
+//                lat = currentLocation!!.latitude,
+//                lon = currentLocation!!.longitude
+//            )
+//        }
+//    }
+
+    //sso 마커 초기화.
+    LaunchedEffect(selectedCategory, currentLocation) {
+        val cat = selectedCategory
+        val loc = currentLocation
+        if (cat != null && loc != null) {
+            placeInfos = emptyList()
+            selectedPlace = null
+            routeInfo = null
+            showRouteDetails = false
+
             placeInfos = getPlacesFromAPI(
-                context = context,
-                category = selectedCategory!!,
-                lat = currentLocation!!.latitude,
-                lon = currentLocation!!.longitude
+                context, cat, loc.latitude, loc.longitude
             )
         }
     }
@@ -90,7 +107,12 @@ fun MapScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         NaverMap(
             modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
+            cameraPositionState = cameraPositionState,
+            onMapClick = { _, _ ->
+                selectedPlace = null
+                showRouteDetails = false
+                routeInfo = null
+            }
         ) {
             // 현재 위치 마커
             currentLocation?.let {
@@ -100,15 +122,29 @@ fun MapScreen() {
                 )
             }
 
-            // 장소 마커들
+//            // 장소 마커들
+//            placeInfos.forEach { place ->
+//                Marker(
+//                    state = rememberMarkerState(position = LatLng(place.lat, place.lon)),
+//                    onClick = {
+//                        selectedPlace = place
+//                        true
+//                    }
+//                )
+//            }
+
+            //sso 장소별 마커 그릴 수 있도록 보완
             placeInfos.forEach { place ->
-                Marker(
-                    state = rememberMarkerState(position = LatLng(place.lat, place.lon)),
-                    onClick = {
-                        selectedPlace = place
-                        true
-                    }
-                )
+                // 리스트 항목이 바뀌면 마커 state도 새로 생기도록 key 부여
+                key("${place.name}:${place.lat},${place.lon}") {
+                    Marker(
+                        state = MarkerState(LatLng(place.lat, place.lon)), // ← rememberMarkerState 제거
+                        onClick = {
+                            selectedPlace = place
+                            true
+                        }
+                    )
+                }
             }
 
             // 경로 표시
@@ -248,21 +284,36 @@ fun MapScreen() {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             LargeCategoryButton("🏨", "병원", Color(0xFF4CAF50), selectedCategory == "hospital") {
+                //sso_카테고리 누를 때 마다 마커장소 초기화
+                placeInfos = emptyList()
+                selectedPlace = null
                 selectedCategory = "hospital"
                 showRouteDetails = false
                 routeInfo = null
             }
             LargeCategoryButton("🏠", "경로당", Color(0xFF00796B), selectedCategory == "shelter") {
+                //sso_카테고리 누를 때 마다 마커장소 초기화
+                placeInfos = emptyList()
+                selectedPlace = null
                 selectedCategory = "shelter"
                 showRouteDetails = false
                 routeInfo = null
             }
             LargeCategoryButton("❄", "쉼터", Color(0xFF039BE5), selectedCategory == "care") {
+                //sso_카테고리 누를 때 마다 마커장소 초기화
+                placeInfos = emptyList()
+                selectedPlace = null
                 selectedCategory = "care"
                 showRouteDetails = false
                 routeInfo = null
             }
         }
+    }
+    //sso_안드로이드 물리백 키로 패널 닫기.
+    BackHandler(enabled = selectedPlace != null || showRouteDetails) {
+        selectedPlace = null
+        showRouteDetails = false
+        routeInfo = null
     }
 }
 
@@ -301,7 +352,7 @@ suspend fun getPlacesFromAPI(
 ): List<PlaceInfo> {
     return withContext(Dispatchers.IO) {
 //        val url = URL("https://dundunhi.onrender.com/places?category=$category&lat=$lat&lon=$lon&range=0.5")
-        val url = URL("https://dundunhi.onrender.com/places?category=$category&lat=$lat&lon=$lon&range=2")
+        val url = URL("https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app/places?category=$category&lat=$lat&lon=$lon&range=2.0")
         val conn = url.openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
         conn.setRequestProperty("Content-Type", "application/json")
@@ -352,3 +403,4 @@ fun getNaverDirections(
     }
     onResult(null)
 }
+

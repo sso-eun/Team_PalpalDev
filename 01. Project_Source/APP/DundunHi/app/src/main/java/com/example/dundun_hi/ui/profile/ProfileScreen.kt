@@ -1,7 +1,9 @@
 // app/src/main/java/com/example/dundun_hi/ui/profile/ProfileScreen.kt
 package com.example.dundun_hi.ui.profile
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,6 +37,7 @@ import java.util.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import kotlinx.coroutines.delay
 
 @Composable
@@ -48,6 +51,9 @@ fun ProfileScreen(
 
 ) {
     val context = LocalContext.current
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     val alertRepository = remember { AlertRepository.getInstance(context) }
 
     val userTel = viewModel.userTel
@@ -105,31 +111,137 @@ fun ProfileScreen(
     // << 수정됨 1: 화면 전체 스크롤을 위한 scrollState 추가
     val scrollState = rememberScrollState()
 
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color(0xFFE6F0FA))
+//            .padding(16.dp)
+//            .verticalScroll(scrollState) // << 수정됨 2: 최상위 Column에 verticalScroll 적용
+//    ) {
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//            modifier = Modifier.clickable { navigateToMain() }
+//        ) {
+//            Text(
+//                text = "든든하이",
+//                fontSize = 24.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//            Spacer(modifier = Modifier.width(8.dp))
+//            Icon(
+//                painter = painterResource(id = R.drawable.ic_home),
+//                contentDescription = "홈으로 이동",
+//                tint = Color(0xFF000000),
+//                modifier = Modifier.size(24.dp)
+//            )
+//        }
+//
+//
+//        Text("마이페이지", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+//        TextButton(
+//            onClick = {
+//                //sso_값 초기화 진행
+//                val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+//                prefs.edit()
+//                    .clear()
+//                    .apply()
+//                // 로그아웃 처리 - home으로 돌아가기
+//                navController.navigate("home") {
+//                    popUpTo("senior_profile/{userNum}") { inclusive = true }
+//                    launchSingleTop = true
+//                }
+//            }
+//        ) {
+//            Text("로그아웃", fontSize = 16.sp, color = Color.Gray)
+//        }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFE6F0FA))
             .padding(16.dp)
-            .verticalScroll(scrollState) // << 수정됨 2: 최상위 Column에 verticalScroll 적용
+            .verticalScroll(rememberScrollState())
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { navigateToMain() }
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "든든하이",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.ic_home),
-                contentDescription = "홈으로 이동",
-                tint = Color(0xFF000000),
-                modifier = Modifier.size(24.dp)
-            )
-        }
+            // "든든하이" 텍스트와 홈 아이콘을 묶은 Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { navigateToMain() }
+            ) {
+                Text(
+                    text = "든든하이",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_home),
+                    contentDescription = "홈으로 이동",
+                    tint = Color(0xFF000000),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
+            Text("마이페이지", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            TextButton(
+                onClick = {
+//                    //sso_값 초기화 진행
+//                    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+//                    prefs.edit().clear().commit()
+//
+//                    navController.navigate("home") {
+//                        popUpTo(navController.graph.findStartDestination().id) {
+//                            inclusive = true
+//                            saveState = false
+//                        }
+//                        restoreState = false
+//                        launchSingleTop = true
+//                    }
+                    showLogoutDialog = true
+
+                }
+            ) {
+                Text("해지", fontSize = 16.sp, color = Color.Gray)
+            }
+
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = { Text("해지", fontSize = 26.sp) },
+                    text  = { Text("정말로 해지할까요?" , fontSize = 26.sp) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showLogoutDialog = false
+
+                            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                            prefs.edit().clear().commit()
+
+                            Toast.makeText(context, "다음에 또 만나요~", Toast.LENGTH_SHORT).show()
+
+                            navController.navigate("home") {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    inclusive = true
+                                    saveState = false
+                                }
+                                restoreState = false
+                                launchSingleTop = true
+                            }
+                        }) {
+                            Text("응",  fontSize = 24.sp)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showLogoutDialog = false }) {
+                            Text("취소",  fontSize = 24.sp)
+                        }
+                    }
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         // ── 프로필 카드
@@ -160,7 +272,9 @@ fun ProfileScreen(
                         },
                         onError = { error ->
                             Log.w("ProfileScreen", "프로필 이미지 로드 실패: ${error.result.throwable}")
-                        }
+                        },
+                        placeholder = painterResource(R.drawable.ic_profile),
+                        error = painterResource(R.drawable.ic_profile),
                     )
                 } else {
                     Box(
@@ -172,7 +286,7 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_default_profile),
+                            painter = painterResource(id = R.drawable.ic_profile),
                             contentDescription = "기본 프로필",
                             tint = Color.White,
                             modifier = Modifier.size(48.dp)

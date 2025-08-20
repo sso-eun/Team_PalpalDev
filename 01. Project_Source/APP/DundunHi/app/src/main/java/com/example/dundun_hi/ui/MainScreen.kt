@@ -1,6 +1,7 @@
 package com.example.dundun_hi.ui
 
 import android.Manifest
+import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -88,6 +89,12 @@ fun MainScreen(
     locationViewModel: LocationViewModel // (유지) 위치 정보는 다른 곳에서 필요할 수 있으므로 유지
 ) {
     val context = LocalContext.current
+    //sso_로그인정보 갱신
+    val sharedPreferences = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.putString("user_num", userNum.toString())
+    editor.putString("user_id", userName)
+
 
     // 08-18: fcm 알림 권한 추가------------------------------------------------------------
     // 알림 권한 요청 결과를 처리할 런처
@@ -251,13 +258,15 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ✅ ViewModel이 주는 URL 사용(업데이트 직후 1회 캐시 무시)
-                if (imageModel != null) {
+                //sso 수정. 프로필 없을때 로직 미흡으로 추가처리함.
+                if (imageModel != null && !profileImageUrl.trim().isEmpty()) {
                     key(profileImageUrl, forceNoCache) {
                         AsyncImage(
                             model = imageModel,
                             contentDescription = "프로필 사진",
                             contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.ic_default_profile),
+                            error = painterResource(R.drawable.ic_default_profile),
                             modifier = Modifier
                                 .size(80.dp)
                                 .scale(1.1f)
