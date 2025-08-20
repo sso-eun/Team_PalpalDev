@@ -161,16 +161,16 @@ fun FamilyCertificationScreen(
 
         // 테스트 버튼
         Spacer(Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            Button(
-                onClick = { onTestConfirm() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1AB277),
-                    disabledContainerColor = Color.Gray
-                )
-            ) {
-                Text("임시버튼 (테스트용)", color = Color.White)
-            }
-        }
+//        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+//            Button(
+//                onClick = { onTestConfirm() },
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color(0xFF1AB277),
+//                    disabledContainerColor = Color.Gray
+//                )
+//            ) {
+//                Text("임시버튼 (테스트용)", color = Color.White)
+//            }
+//        }
     }
 }

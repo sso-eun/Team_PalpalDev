@@ -1,6 +1,7 @@
 package com.example.dundun_hi
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -166,10 +167,20 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("home") {
+                            val context = LocalContext.current
+                            val prefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
+                            val userNum = prefs.getString("user_num", null)
+                            val userId  = prefs.getString("user_id",  null)
+
                             HomeScreen(
                                 onLoginClick = { navController.navigate("login") },
                                 onSignupClick = { navController.navigate("signup_entry") },
-                                onOCRClick = { navController.navigate("ocr") }
+                                onAutoSignedIn = {
+                                    navController.navigate("main/$userNum/$userId") {
+                                        popUpTo("home") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
                             )
                         }
 

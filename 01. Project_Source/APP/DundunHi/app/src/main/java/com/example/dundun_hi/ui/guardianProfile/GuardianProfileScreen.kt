@@ -1,6 +1,8 @@
 package com.example.dundun_hi.ui.guardianProfile
 
+import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -50,6 +53,8 @@ fun GuardianProfileScreen(
     val errorMessage by remember { derivedStateOf { viewModel.errorMessage } }
 
     val alertRepository = remember { AlertRepository.getInstance(context) }
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
 //    val today = remember {
 //        SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(Date())
@@ -147,13 +152,45 @@ fun GuardianProfileScreen(
             Text("마이페이지", fontSize = 32.sp, fontWeight = FontWeight.Bold)
             TextButton(
                 onClick = {
-                    // 로그아웃 처리 - home으로 돌아가기
-                    navController.navigate("home") {
-                        popUpTo("guardian_profile/{userNum}") { inclusive = true }
-                    }
+                    //sso_값 초기화 진행
+                    showLogoutDialog = true
                 }
             ) {
                 Text("로그아웃", fontSize = 16.sp, color = Color.Gray)
+            }
+
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = { Text("로그아웃", fontSize = 26.sp) },
+                    text  = { Text("정말로 로그아웃 할까요?" , fontSize = 26.sp) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showLogoutDialog = false
+
+                            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                            prefs.edit().clear().commit()
+
+                            Toast.makeText(context, "다음에 또 만나요~", Toast.LENGTH_SHORT).show()
+
+                            navController.navigate("home") {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    inclusive = true
+                                    saveState = false
+                                }
+                                restoreState = false
+                                launchSingleTop = true
+                            }
+                        }) {
+                            Text("확인",  fontSize = 24.sp)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showLogoutDialog = false }) {
+                            Text("취소",  fontSize = 24.sp)
+                        }
+                    }
+                )
             }
         }
 
@@ -261,10 +298,10 @@ fun GuardianProfileCard(
                         .clip(CircleShape)
                         .background(Color(0xFFCCCCCC))
                         .border(1.dp, Color.Gray, CircleShape),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_default_profile),
+                        painter = painterResource(id = R.drawable.ic_profile),
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(48.dp)
@@ -278,7 +315,9 @@ fun GuardianProfileCard(
                         .size(100.dp)
                         .clip(CircleShape)
                         .border(1.dp, Color.Gray, CircleShape),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.ic_profile),
+                    error = painterResource(R.drawable.ic_profile),
                 )
             }
 
@@ -342,7 +381,7 @@ fun SeniorProfileCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_default_profile),
+                            painter = painterResource(id = R.drawable.ic_profile),
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(36.dp)
@@ -356,7 +395,9 @@ fun SeniorProfileCard(
                             .size(72.dp)
                             .clip(CircleShape)
                             .border(1.dp, Color.Gray, CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.ic_profile),
+                        error = painterResource(R.drawable.ic_profile),
                     )
                 }
 
