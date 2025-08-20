@@ -10,6 +10,7 @@
 우리는 시니어들도 더욱 적극적이고 즐겁게 생활할 수 있도록, 새로운 기술과 아이디어로 변화를 만들어갑니다.<br>
 팔팔한 인생, 팔팔한 개발! 함께 더 나은 내일을 만들어가요.
 
+[ DOWNLOAD ](https://drive.google.com/file/d/1mXfbsTxRwoEGrVf1TNMbqNweMmf_d3Ak/view?usp=sharing)
 
 ## 제안 배경 
 
