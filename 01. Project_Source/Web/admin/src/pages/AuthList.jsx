@@ -83,15 +83,25 @@ const TablesPage = () => {
         <Layout>
             <div className="container-fluid">
                 {/* Page Heading */}
-                <h1 className="h3 mb-2 text-gray-800">Tables</h1>
+                <h1 className="h3 mb-2 text-gray-800">신청목록</h1>
                 <p className="mb-4">
-                    DataTables is a third party plugin that is used to generate the demo table below. For more information about DataTables,
-                    please visit the{' '}
                     <a target="_blank" href="https://datatables.net">
-                        official DataTables documentation
-                    </a>
-                    .
+                        든든하이
+                    </a>{' '}{' '}{' '}
+                    보호자 {' '} 회원이 어르신 등록을 신청한 내역을 확인하고 처리할 수 있는 페이지입니다.{' '}<br />
+                    검토 과정에서 필요한 경우 의견을 작성하여 보호자회원에게 전달할 수 있습니다. 안정적인 어르신 등록 관리를 위해 검토자는 모든 신청 내역을 정확하게 확인하고 처리해 주세요.
+                    {' '}
+
                 </p>
+
+                {/*<p className="mb-4">*/}
+                {/*    DataTables is a third party plugin that is used to generate the demo table below. For more information about DataTables,*/}
+                {/*    please visit the{' '}*/}
+                {/*    <a target="_blank" href="https://datatables.net">*/}
+                {/*        official DataTables documentation*/}
+                {/*    </a>*/}
+                {/*    .*/}
+                {/*</p>*/}
 
                 {/* DataTales */}
                 <div className="card shadow mb-4">
