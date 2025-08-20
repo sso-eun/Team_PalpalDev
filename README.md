@@ -71,7 +71,7 @@
 - https://trello.com/b/gdvXoiS9/dundun-hi
 
 [ Server(Render, cloudeType) ] 
-- https://dundunhi.onrender.com/
+- ❌https://dundunhi.onrender.com/ (미사용)
 - https://port-0-dundunhi-manmbjl26e1dbc28.sel4.cloudtype.app
 
 
